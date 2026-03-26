@@ -2,8 +2,7 @@
 #include <bitset>
 #include <SDL3/SDL_events.h>
 
-class Mouse {
-public:
+struct Mouse {
 
     static const unsigned short BUTTON_COUNT = 16;
 
@@ -28,7 +27,7 @@ public:
 
     void reset();
 
-    void handle_event(const SDL_Event &event);
+    void event(const SDL_Event &event);
 
 private:
 

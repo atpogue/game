@@ -17,7 +17,7 @@ float Mouse::dy() const { return dy_; }
 float Mouse::wheel_dx() const { return wdx_; }
 float Mouse::wheel_dy() const { return wdy_; }
 
-void Mouse::handle_event(const SDL_Event &event) {
+void Mouse::event(const SDL_Event &event) {
     switch (event.type) {
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
         if (event.button.button >= BUTTON_COUNT) break;

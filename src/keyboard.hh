@@ -2,8 +2,7 @@
 #include <bitset>
 #include <SDL3/SDL_events.h>
 
-class Keyboard {
-public:
+struct Keyboard {
 
     // is the key currently active?
     bool operator[](SDL_Scancode key) const;
