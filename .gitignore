@@ -1,4 +1,29 @@
-# ---> C++
+.vscode/
+.vs/
+.idea/
+
+# CMake
+CMakeSettings.json
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+CMakeUserPresets.json
+
+bin/
+build/
+out/
+
+*.bak
+*.tmp
+
 # Prerequisites
 *.d
 
@@ -31,24 +56,9 @@
 *.exe
 *.out
 *.app
-
-# ---> CMake
-CMakeLists.txt.user
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-CTestTestfile.cmake
-_deps
-CMakeUserPresets.json
-
-# ---> C
-# Prerequisites
-*.d
+*.i*86
+*.x86_64
+*.hex
 
 # Object files
 *.o
@@ -61,10 +71,6 @@ CMakeUserPresets.json
 *.map
 *.exp
 
-# Precompiled Headers
-*.gch
-*.pch
-
 # Libraries
 *.lib
 *.a
@@ -76,14 +82,6 @@ CMakeUserPresets.json
 *.so
 *.so.*
 *.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
 
 # Debug files
 *.dSYM/
