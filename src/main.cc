@@ -1,18 +1,27 @@
 #include "menu.hh"
+#include "director.hh"
 #include <cstdlib>
 #include <cmath>
 #include <SDL3/SDL.h>
 #include <iostream>
+#include <glm/vec2.hpp>
+#include <glm/geometric.hpp>
 
 struct {
     MainMenu main_menu;
 } ui;
 
+struct {
+    PlayerDirector director;
+    glm::vec2 position = {400.f, 200.f};
+} player;
+
+CommandQueue commands;
 SDL_Window *window = nullptr;
 SDL_Renderer *renderer = nullptr;
 
 // The length of a fixed time step in seconds
-const float step_size = 1.0f / 60.0f;
+const float step_size = 1.0f / 30.0f;
 
 // Get the number of seconds elapsed since SDL was initialized
 float time() { return float(SDL_GetTicks()) / 1000.0f; }
@@ -41,7 +50,9 @@ bool close() {
 
 void render() {
     SDL_RenderClear(renderer);
-    //SDL_SetRenderDrawColor(renderer, 255u, 160u, 16u, 0u);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_FRect player_square{player.position.x - 10.f, player.position.y - 10.f, 20.f, 20.f};
+    SDL_RenderFillRect(renderer, &player_square);
     ui.main_menu.render(renderer);
     SDL_RenderPresent(renderer);
 }
@@ -52,6 +63,15 @@ void update(float dt) {
 
 // progress the simulation forwards one fixed time step
 void step() {
+    player.director.generate(commands);
+    for (Command cmd : commands) {
+        switch(cmd.type) {
+        case Command::Type::Move:
+            player.position += 5.f * glm::normalize(glm::vec2(cmd.move.x, cmd.move.y));
+            break;
+        }
+    }
+    commands.clear();
 }
 
 // process all window events and other high priority events 
@@ -72,6 +92,7 @@ bool process_event(const SDL_Event &e) {
 // send events to interested systems
 void dispatch_event(const SDL_Event &e) {
     ui.main_menu.event(e);
+    player.director.event(e);
 }
 
 int main(void) {

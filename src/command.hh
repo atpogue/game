@@ -5,14 +5,15 @@ union Command {
 
     enum class Type {
         Move,
+        PathTo
     } type;
 
-    struct Move {
+    struct {
         Type type;
-        // TODO: Direction direction;
+        float x, y;
     } move;
 
-    struct PathTo {
+    struct {
         Type type;
         float x, y;
     } path;
@@ -20,4 +21,7 @@ union Command {
 };
 
 using CommandQueue = std::vector<Command>;
+
+Command make_move_command(float x, float y);
+Command make_path_command(float x, float y);
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "command.hh"
 #include "cue.hh"
 #include "keyboard.hh"
 #include "mouse.hh"
@@ -18,10 +17,21 @@ struct PlayerDirector : Director {
 
 private:
 
+    /*
+    struct {
+        KeyboardCue 
+            move_up    = {SDL_SCANCODE_W, On::Press | On::Repeat},
+            move_down  = {SDL_SCANCODE_S, On::Press | On::Repeat},
+            move_left  = {SDL_SCANCODE_A, On::Press | On::Repeat},
+            move_right = {SDL_SCANCODE_D, On::Press | On::Repeat};
+    } cues_;
+    */
+
     Keyboard keyboard_;
-    KeyboardCommandMap keyboard_cmds_;
     Mouse mouse_;
-    MouseCommandMap mouse_cmds_;
+
+    // KeyboardCommandMap keyboard_cmds_;
+    // MouseCommandMap mouse_cmds_;
 
 };
 
