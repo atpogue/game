@@ -25,5 +25,6 @@ void MainMenu::render(SDL_Renderer *renderer) {
           green = float(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 2.0 / 3.0)),
           blue  = float(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 4.0 / 3.0));
     SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);
+    SDL_RenderClear(renderer);
 }
 

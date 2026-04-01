@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-enum Component : uint8_t { Actor, Transform, Max };
+enum class Component : uint8_t { Actor, Transform, Max };
 
 constexpr size_t component_index(Component c) { return static_cast<size_t>(c); }
 

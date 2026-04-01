@@ -1,19 +1,20 @@
-#include "menu.hh"
+#include "actor.hh"
 #include "director.hh"
+#include "ledger.hh"
+#include "menu.hh"
+#include "transform.hh"
 #include <cstdlib>
 #include <cmath>
-#include <SDL3/SDL.h>
 #include <iostream>
-#include <glm/vec2.hpp>
-#include <glm/geometric.hpp>
+#include <SDL3/SDL.h>
 
 struct {
     MainMenu main_menu;
 } ui;
 
 struct {
+    Entity entity;
     PlayerDirector director;
-    glm::vec2 position = {400.f, 200.f};
 } player;
 
 CommandQueue commands;
@@ -39,6 +40,11 @@ bool open() {
         return false;
     }
 
+    player.entity = ledger::create();
+    assert(player.entity != NULL_ENTITY);
+    transforms::set(player.entity, { .position = {400.f, 200.f} });
+    actors::create(player.entity, 2);
+
     return true;
 }
 
@@ -50,10 +56,13 @@ bool close() {
 
 void render() {
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_FRect player_square{player.position.x - 10.f, player.position.y - 10.f, 20.f, 20.f};
-    SDL_RenderFillRect(renderer, &player_square);
     ui.main_menu.render(renderer);
+    auto t = transforms::get(player.entity);
+    if (t) {
+        SDL_FRect player_square{t->position.x - 10.f, t->position.y - 10.f, 20.f, 20.f};
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &player_square);
+    }
     SDL_RenderPresent(renderer);
 }
 
@@ -64,14 +73,9 @@ void update(float dt) {
 // progress the simulation forwards one fixed time step
 void step() {
     player.director.generate(commands);
-    for (Command cmd : commands) {
-        switch(cmd.type) {
-        case Command::Type::Move:
-            player.position += 5.f * glm::normalize(glm::vec2(cmd.move.x, cmd.move.y));
-            break;
-        }
-    }
+    actors::act(player.entity, commands);
     commands.clear();
+    actors::step();
 }
 
 // process all window events and other high priority events 
