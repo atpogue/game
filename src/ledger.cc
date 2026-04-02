@@ -8,14 +8,6 @@
 // problem: destroying an entity doesn't destroy its components
 // use a callback?
 
-constexpr Entity ENTITY_ID_BITS  = 20; // 1,048,575 IDs
-constexpr Entity ENTITY_GEN_BITS = 12; // 4,095 generations
-constexpr Entity ENTITY_ID_MAX  = (1 << ENTITY_ID_BITS) - 1;
-constexpr Entity ENTITY_GEN_MAX = (1 << ENTITY_GEN_BITS) - 1;
-
-constexpr uint32_t entity_id(Entity e) { return e & ENTITY_ID_MAX; }
-constexpr uint16_t entity_gen(Entity e) { return (e >> ENTITY_ID_BITS) & ENTITY_GEN_MAX; }
-
 struct EntityData {
     bool live = false;
     uint16_t generation;

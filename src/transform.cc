@@ -1,16 +1,15 @@
 #include "transform.hh"
 #include "ledger.hh"
+#include "sparse-map.hh"
 #include <utility> // std::move
-#include <flat_map>
 
 namespace {
-    std::flat_map<Entity, MoveComponent> components;
+    SparseMap<MoveComponent, Id> components;
 }
 
 MoveComponent *transforms::get(Entity e) {
-    auto it = components.find(e);
-    if (it == components.end()) return nullptr;
-    return &it->second;
+    assert(!ledger::has(e, Component::Transform) || components.has(entity_id(e)));
+    return components.get(entity_id(e));
 }
 
 MoveComponent *transforms::set(Entity e, MoveComponent &&c) {
@@ -19,14 +18,15 @@ MoveComponent *transforms::set(Entity e, MoveComponent &&c) {
         return nullptr;
     }
     ledger::sign(e, Component::Transform, true);
-    auto [it, _] = components.emplace(e, std::move(c));
-    return &it->second;
+    auto result = &components.set(entity_id(e), std::move(c));
+    assert(components.has(entity_id(e)));
+    return result;
 }
 
 void transforms::destroy(Entity e) {
-    if (!components.contains(e)) return;
+    if (!components.has(entity_id(e))) return;
     assert(ledger::has(e, Component::Transform) && "entity signature is not truthful");
     ledger::sign(e, Component::Transform, false);
-    components.erase(e);
+    components.erase(entity_id(e));
 }
 

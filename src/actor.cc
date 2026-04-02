@@ -1,7 +1,7 @@
 #include "actor.hh"
 #include "action.hh"
+#include "sparse-map.hh"
 #include <cassert>
-#include <flat_map>
 #include <memory>
 
 // TODO: action priority?
@@ -20,23 +20,23 @@ struct Actor {
 };
 
 namespace { ///////////////////////////////////////////////////////////////////////////////////
-    std::flat_map<Entity, Actor> components;
+    SparseMap<Actor, Id> components;
 
     Actor *get(Entity e) {
-        auto it = components.find(e);
-        if (it == components.end()) return nullptr;
-        return &it->second;
+        assert(!ledger::has(e, Component::Actor) || components.has(entity_id(e)));
+        return components.get(entity_id(e));
     }
 
     bool translate(Entity e, Actor &actor, const Command &cmd) {
+        if (actor.queue.size() == actor.queue.capacity()) return false;
         bool accepted = false;
         switch (cmd.type) {
         case Command::Type::Move:
-            if (ledger::has(e, Component::Transform)) {
-                actor.queue.emplace_back(
-                    std::make_unique<MoveAction>(cmd.move.x, cmd.move.y), 1u);
-                accepted = true;
-            } break;
+            if (!ledger::has(e, Component::Transform)) break;
+            actor.queue.emplace_back(
+                std::make_unique<MoveAction>(cmd.move.x, cmd.move.y), 1u);
+            accepted = true;
+            break;
         default:
             assert(!"Command type has no action translation");
             break;
@@ -46,21 +46,21 @@ namespace { ////////////////////////////////////////////////////////////////////
 } /////////////////////////////////////////////////////////////////////////////////////////////
 
 void actors::create(Entity e, unsigned short capacity) {
-    if (components.contains(e)) return;
+    if (components.has(entity_id(e))) return;
     assert(!ledger::has(e, Component::Actor) && "entity signature is not truthful");
     ledger::sign(e, Component::Actor, true);
-    components[e].queue.reserve(capacity);
+    components[entity_id(e)].queue.reserve(capacity);
 }
 
 void actors::destroy(Entity e) {
-    if (!components.contains(e)) return;
+    if (!components.has(entity_id(e))) return;
     assert(ledger::has(e, Component::Actor) && "entity signature is not truthful");
     ledger::sign(e, Component::Actor, false);
-    components.erase(e);
+    components.erase(entity_id(e));
 }
 
 void actors::step() {
-    for (auto [e, actor] : components) {
+    for (auto &[e, actor] : components) {
         for (auto &entry : actor.queue) {
             if (entry.age < entry.expiry
             &&  entry.action != nullptr
@@ -85,6 +85,12 @@ unsigned short actors::busy(Entity e) {
     auto actor = get(e);
     if (!actor) return 0u;
     return actor->queue.size();
+}
+
+bool actors::act(Entity e, const Command &cmd) {
+    Actor *actor = get(e);
+    if (!actor) return false;
+    return translate(e, *actor, cmd);
 }
 
 std::vector<bool> actors::act(Entity e, const CommandQueue &cmds) {

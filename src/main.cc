@@ -3,6 +3,7 @@
 #include "ledger.hh"
 #include "menu.hh"
 #include "transform.hh"
+#include <cassert>
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
@@ -40,10 +41,17 @@ bool open() {
         return false;
     }
 
-    player.entity = ledger::create();
-    assert(player.entity != NULL_ENTITY);
-    transforms::set(player.entity, { .position = {400.f, 200.f} });
-    actors::create(player.entity, 2);
+    auto e = ledger::create();
+    assert(e);
+    assert(ledger::status(e));
+    player.entity = e;
+
+    transforms::set(e, { .position = {400.f, 200.f} });
+    assert(transforms::get(e));
+    assert(ledger::has(e, Component::Transform));
+
+    actors::create(e, 2);
+    assert(ledger::has(e, Component::Actor));
 
     return true;
 }

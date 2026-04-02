@@ -4,15 +4,22 @@
 #include <functional>
 #include <vector>
 
-enum class Component : uint8_t { Actor, Transform, Max };
-
-constexpr size_t component_index(Component c) { return static_cast<size_t>(c); }
-
 using Entity = uint32_t;
-using Signature = std::bitset<component_index(Component::Max)>;
-
 constexpr Entity NULL_ENTITY = 0;
 
+using Id = uint32_t;
+constexpr Entity ENTITY_ID_BITS  = 20; // 1,048,575 IDs
+constexpr Entity ENTITY_ID_MAX  = (1 << ENTITY_ID_BITS) - 1;
+constexpr Id entity_id(Entity e) { return e & ENTITY_ID_MAX; }
+
+constexpr Entity ENTITY_GEN_BITS = 12; // 4,095 generations
+constexpr Entity ENTITY_GEN_MAX = (1 << ENTITY_GEN_BITS) - 1;
+constexpr uint16_t entity_gen(Entity e) { return (e >> ENTITY_ID_BITS) & ENTITY_GEN_MAX; }
+
+enum class Component : uint8_t { Actor, Transform, Max };
+constexpr size_t component_index(Component c) { return static_cast<size_t>(c); }
+
+using Signature = std::bitset<component_index(Component::Max)>;
 Signature signature(std::initializer_list<Component> components);
 
 namespace ledger {

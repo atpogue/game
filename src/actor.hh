@@ -14,6 +14,7 @@ namespace actors {
     // enqueue the action correlating to the given command
     // can be rejected if command is incompatible or if action queue is full
     std::vector<bool> act(Entity e, const CommandQueue &cmds);
+    bool act(Entity e, const Command &cmd);
 
     // returns the number of queued actions, 0 if idle
     unsigned short busy(Entity e);
