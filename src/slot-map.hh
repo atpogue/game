@@ -1,17 +1,10 @@
 #pragma once
-#include <limits>
+#include "handle.hh"
 #include <concepts>
 #include <vector>
 
 template <typename Type>
 struct SlotMap {
-
-    static constexpr auto INDEX_MAX = std::numeric_limits<uint32_t>::max();
-    static constexpr auto GENERATION_MAX = std::numeric_limits<uint32_t>::max();
-
-    struct Key { uint32_t index=0u, generation=0u; };
-
-    static constexpr Key NULL_KEY{INDEX_MAX, GENERATION_MAX};
 
     struct Slot {
         bool live = false;
@@ -21,41 +14,52 @@ struct SlotMap {
         // never read/write value if the slot is dead
         // always call value destructor before changing status
         union {
-            uint32_t next_free = INDEX_MAX;
+            uint32_t next_free = handle_index_max;
             Type value;
         };
     };
 
-    template <typename T>
-    requires std::constructible_from<Value, T>
-    Key insert(T &&value) {
-        if (first_free == INDEX_MAX) {
-            if (slots.size() >= INDEX_MAX) return NULL_KEY;
+    template <typename... Args>
+    requires std::constructible_from<Type, Args...>
+    void replace(Handle<Type> handle, Args &&... args) {
+        uint32_t i = locate(handle);
+        if (i == handle_index_max) return;
+        assert(slots[i].live);
+        slot.value.~Type();
+        new (&slots[i].value) Type(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    requires std::constructible_from<Type, Args...>
+    Handle<Type> emplace(Args &&... args) {
+        if (first_free == handle_index_max) {
+            if (slots.size() >= handle_index_max) return Handle<Type>::null();
             Slot &slot = slots.emplace_back(true, 0u);
-            new (&slot.value) Value(std::forward<T>(value));
+            new (&slot.value) Type(std::forward<Args>(args)...);
             return {size()-1u, 0u};
         }
         auto i = first_free;
         Slot &slot = slots[i];
+        assert(!slot.live);
         first_free = slot.next_free
-        new (&slot.value) Value(std::forward<T>(value));
+        new (&slot.value) Type(std::forward<Args>(args)...);
         slot.live = true;
         return {i, slot.generation};
     }
 
-    void erase(Key &key) {
-        auto i = locate(key);
-        if (i == INDEX_MAX) return;
+    void erase(Handle<Type> &handle) {
+        auto i = locate(handle);
+        if (i == handle_index_max) return;
         Slot &slot = slots[i];
         slot.live = false;
         slot.generation++;
         slot.value.~Type();
-        if (slot.generation >= GENERATION_MAX) {
+        if (slot.generation >= handle_generation_max) {
             // retire the slot
-            // this means keys are guaranteed to be unique and stable
+            // this means handles are guaranteed to be unique and stable
             // but also means if generations max out regularly,
             // the slot array will have increasing amounts of unused slots
-            slot.next_free = INDEX_MAX;
+            slot.next_free = handle_index_max;
             return;
         }
         // mark the slot for re-use
@@ -63,36 +67,46 @@ struct SlotMap {
         first_free = i;
 	}
 
-    constexpr bool status(Key key) const { return locate(key) != INDEX_MAX; }
+    constexpr bool status(Handle<Type> handle) const { return locate(handle) != handle_index_max; }
 
-    constexpr const Value *get(Key key) const { auto i = locate(key); return i != INDEX_MAX ? &slot[i].value : nullptr; }
-    constexpr       Value *get(Key key)       { auto i = locate(key); return i != INDEX_MAX ? &slot[i].value : nullptr; }
+    constexpr const Type *get(Handle<Type> handle) const { auto i = locate(handle); return i != handle_index_max ? &slot[i].value : nullptr; }
+    constexpr       Type *get(Handle<Type> handle)       { auto i = locate(handle); return i != handle_index_max ? &slot[i].value : nullptr; }
 
     constexpr uint32_t size() const { return static_cast<uint32_t>(slots.size()) };
 
-    constexpr size_t capacity() const { return slots.capacity(n); }
+    constexpr size_t capacity() const { return slots.capacity(); }
 
     constexpr void reserve(uint32_t n) { slots.reserve(n); }
 
-    constexpr auto begin() const { return slots.begin(); }
-    constexpr auto begin()       { return slots.begin(); }
+    struct Iterator {
+        reference operator*() const { return it->value; }
+        pointer operator->() { return &it->value; }
+        Iterator &operator++() { do { ++it; } while (!it->live); return *this; }
+        Iterator operator++(int) { auto temp = *this; ++(*this); return temp; }
+        auto operator<=>(const Iterator&) const = default;
+    private:
+        std::vector<Slot>::iterator it;
+    };
 
-    constexpr auto end() const { return slots.end(); }
-    constexpr auto end()       { return slots.end(); }
+    constexpr Iterator begin() const { return slots.begin(); }
+    constexpr Iterator begin()       { return slots.begin(); }
+
+    constexpr Iterator end() const { return slots.end(); }
+    constexpr Iterator end()       { return slots.end(); }
 
 private:
 
-    constexpr uint32_t locate(Key key) const {
-        return key.index != INDEX_MAX 
-            && key.index < slots.size()
-            && slots[key.index].live
-            && key.generation != MAX_GENERATION
-            && key.generation == slots[key.index].generation
-            ? key.index : INDEX_MAX;
+    constexpr uint32_t locate(Handle<Type> handle) const {
+        return handle.index != handle_index_max 
+            && handle.index < slots.size()
+            && slots[handle.index].live
+            && handle.generation != MAX_GENERATION
+            && handle.generation == slots[handle.index].generation
+            ? handle.index : handle_index_max;
     }
 
     std::vector<Slot> slots;
-    uint32_t first_free = INDEX_MAX;
+    uint32_t first_free = handle_index_max;
 
 };
 
