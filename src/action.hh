@@ -32,8 +32,6 @@ struct Action {
 
 struct MoveAction : Action {
 
-    static bool is_compatible(Entity e);
-
     MoveAction(glm::vec2 to);
     MoveAction(float x, float y);
     Status status() const override;

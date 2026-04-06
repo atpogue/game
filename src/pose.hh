@@ -2,19 +2,19 @@
 #include "ledger.hh"
 #include <glm/vec2.hpp>
 
-struct MoveComponent {
+struct Pose {
 
     glm::vec2 position;
     // glm::vec2 rotation;
 
 };
 
-namespace transforms {
+namespace poses {
 
-    MoveComponent *get(Entity e);
-    MoveComponent *set(Entity e, MoveComponent &&c);
+    Pose *get(Entity e);
+    Pose *set(Entity e, Pose &&c);
     void destroy(Entity e);
     void step();
 
-} // namespace transforms
+} // namespace poses
 

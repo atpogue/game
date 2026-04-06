@@ -1,83 +1,76 @@
 #pragma once
 #include <concepts>
+#include <cstdint>
 #include <limits>
+#include <vector>
 
-// ignores the key value of 0
-template <typename Value, std::unsigned_integral Key=size_t>
+template <typename Type>
 struct SparseMap {
 
-    struct Entry { Key key; Value value; };
+    struct Item { uint32_t key; Type value; };
 
-    void reserve(Key num_values, Key num_keys = 0) {
-        data_.reserve(num_values);
-        index_.reserve(num_keys);
+    constexpr size_t capacity() const { return dense.capacity(); }
+
+    void reserve(uint32_t num_values, uint32_t num_keys = 0) {
+        dense.reserve(num_values);
+        sparse.reserve(num_keys);
     }
 
-    bool has(Key key) const {
-        assert(key >= index_.size() || index_[key] == NULL_INDEX || index_[key] < data_.size());
-        return key < index_.size() && index_[key] != NULL_INDEX;
+    bool has(uint32_t key) const {
+        assert(key >= sparse.size() || sparse[key] == index_max || sparse[key] < dense.size());
+        return key < sparse.size() && sparse[key] < index_max;
     }
 
-    // creates the key if it doesn't yet exist
-    Value &operator[](Key key) {
-        if (key >= index_.size()) index_.resize(key + 1, NULL_INDEX);
+    // assigns the value to the key if it does, creates the key if it doesn't yet exist
+    template <typename... Args>
+    requires std::constructible_from<Type, Args...>
+    Type &emplace(uint32_t key, Args &&... args) {
+        if (key >= sparse.size())
+            sparse.resize(key + 1, index_max);
 
-        Key &i = index_[key];
-        if (i == NULL_INDEX) {
-            i = data_.size();
-            data_.emplace_back(key);
-        }
-
-        assert(i != NULL_INDEX && i < data_.size());
-        return data_[i].value;
-    }
-
-    // does what operator[] without creating a default constructed value
-    Value &set(Key key, Value &&value) {
-        if (key >= index_.size()) index_.resize(key + 1, NULL_INDEX);
-
-        Key &i = index_[key];
-        if (i == NULL_INDEX) {
-            i = data_.size();
-            data_.emplace_back(key, std::move(value));
+        uint32_t i = sparse[key];
+        if (i >= index_max) {
+            i = dense.size();
+            sparse[key] = i;
+            dense.emplace_back(key, Type(std::forward<Args>(args)...));
         } else {
-            data_[i].value = std::move(value);
+            dense[i].value = Type(std::forward<Args>(args)...);
         }
 
-        assert(i != NULL_INDEX && i < data_.size());
-        return data_[i].value;
+        assert(i < index_max && i < dense.size());
+        return dense[i].value;
     }
 
-    void erase(Key key) {
-        if (key >= index_.size()) return;
-        Key &i = index_[key];
-        if (i == NULL_INDEX) return;
-        assert(i < data_.size());
-        index_[key] = NULL_INDEX;
-        index_[data_.back().key] = i;
-        data_[i].key = data_.back().key;
-        data_[i].value = std::move(data_.back().value);
-        data_.pop_back();
+    void erase(uint32_t key) {
+        if (key >= sparse.size()) return;
+        uint32_t &i = sparse[key];
+        if (i == index_max) return;
+        assert(i < dense.size());
+        sparse[key] = index_max;
+        sparse[dense.back().key] = i;
+        dense[i].key = dense.back().key;
+        dense[i].value = std::move(dense.back().value);
+        dense.pop_back();
     }
 
-    const Value *get(Key key) const { return has(key) ? &data_[index_[key]].value : nullptr; }
-          Value *get(Key key)       { return has(key) ? &data_[index_[key]].value : nullptr; }
+    const Type *get(uint32_t key) const { return has(key) ? &dense[sparse[key]].value : nullptr; }
+          Type *get(uint32_t key)       { return has(key) ? &dense[sparse[key]].value : nullptr; }
 
-    constexpr size_t size() const { return data_.size(); }
+    constexpr size_t size() const { return dense.size(); }
 
-    constexpr auto begin() const { return data_.begin(); }
-    constexpr auto begin()       { return data_.begin(); }
+    constexpr auto begin() const { return dense.begin(); }
+    constexpr auto begin()       { return dense.begin(); }
 
-    constexpr auto end() const { return data_.end(); }
-    constexpr auto end()       { return data_.end(); }
+    constexpr auto end() const { return dense.end(); }
+    constexpr auto end()       { return dense.end(); }
 
 private:
 
-    static constexpr Key NULL_INDEX = std::numeric_limits<Key>::max();
+    static constexpr uint32_t index_max = std::numeric_limits<uint32_t>::max();
 
-    std::vector<Entry> data_; // dense
-    // if the largest id used is huge the index array that maps key to value will use a lot of memory
-    std::vector<Key> index_; // sparse
+    std::vector<Item> dense;
+    // if the largest index used is huge the sparse array will use a lot of memory
+    std::vector<uint32_t> sparse;
 
 };
 

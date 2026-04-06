@@ -1,40 +1,25 @@
 #include "actor.hh"
-#include "action.hh"
 #include "sparse-map.hh"
 #include <cassert>
-#include <memory>
 
 // TODO: action priority?
 // TODO: culmulative log of last N actions
 
-struct PendingAction {
-    std::unique_ptr<Action> action;
-    // if the action has not been made "hot" before the expiry is reached, it is marked invalid/stale
-    unsigned expiry = 1u;    // the age at which the action expires if its still cold/pending
-    unsigned age    = 0u;    // how long the action has been cold
-    bool     active = false; // false if the action is still cold
-};
-
-struct Actor {
-    std::vector<PendingAction> queue;
-};
-
 namespace { ///////////////////////////////////////////////////////////////////////////////////
-    SparseMap<Actor, Id> components;
+    SparseMap<ActionQueue> components;
 
-    Actor *get(Entity e) {
-        assert(!ledger::has(e, Component::Actor) || components.has(entity_id(e)));
-        return components.get(entity_id(e));
+    ActionQueue *get(Entity e) {
+        assert(!ledger::has(e, Flag::Actor) || components.has(e.index));
+        return components.get(e.index);
     }
 
-    bool translate(Entity e, Actor &actor, const Command &cmd) {
-        if (actor.queue.size() == actor.queue.capacity()) return false;
+    bool translate(Entity e, ActionQueue &q, const Command &cmd) {
+        if (q.size() == q.capacity()) return false;
         bool accepted = false;
         switch (cmd.type) {
         case Command::Type::Move:
-            if (!ledger::has(e, Component::Transform)) break;
-            actor.queue.emplace_back(
-                std::make_unique<MoveAction>(cmd.move.x, cmd.move.y), 1u);
+            if (!ledger::has(e, Flag::Pose)) break;
+            q.emplace_back(std::make_unique<MoveAction>(cmd.move.x, cmd.move.y), 1u);
             accepted = true;
             break;
         default:
@@ -46,71 +31,73 @@ namespace { ////////////////////////////////////////////////////////////////////
 } /////////////////////////////////////////////////////////////////////////////////////////////
 
 void actors::create(Entity e, unsigned short capacity) {
-    if (components.has(entity_id(e))) return;
-    assert(!ledger::has(e, Component::Actor) && "entity signature is not truthful");
-    ledger::sign(e, Component::Actor, true);
-    components[entity_id(e)].queue.reserve(capacity);
+    if (components.has(e.index)) return;
+    assert(!ledger::has(e, Flag::Actor) && "entity signature is not truthful");
+    ledger::sign(e, Flag::Actor, true);
+    auto &q = components.emplace(e.index, e.generation);
+    assert(components.has(e.index));
+    q.reserve(capacity);
 }
 
 void actors::destroy(Entity e) {
-    if (!components.has(entity_id(e))) return;
-    assert(ledger::has(e, Component::Actor) && "entity signature is not truthful");
-    ledger::sign(e, Component::Actor, false);
-    components.erase(entity_id(e));
+    if (!components.has(e.index)) return;
+    assert(ledger::has(e, Flag::Actor) && "entity signature is not truthful");
+    ledger::sign(e, Flag::Actor, false);
+    components.erase(e.index);
 }
 
 void actors::step() {
-    for (auto &[e, actor] : components) {
-        for (auto &entry : actor.queue) {
-            if (entry.age < entry.expiry
-            &&  entry.action != nullptr
-            &&  entry.action->status() == Action::Status::Busy)
+    for (auto &[i, q] : components) {
+        for (auto &pending : q) {
+            if (pending.age < pending.expiry
+            &&  pending.action != nullptr
+            &&  pending.action->status() == Action::Status::Busy)
             {
-                entry.action->step(e);
+                pending.action->step({i, ledger::generation(i)});
             }
-            entry.age++;
+            pending.age++;
         }
 
-        std::erase_if(actor.queue,
-            [](const PendingAction &entry) {
-                return  entry.age >= entry.expiry
-                    || !entry.action
-                    ||  entry.action->status() != Action::Status::Busy;
+        std::erase_if(q,
+            [](const PendingAction &pending) {
+                return  pending.age >= pending.expiry
+                    || !pending.action
+                    ||  pending.action->status() != Action::Status::Busy;
             }
         );
     }
 }
 
 unsigned short actors::busy(Entity e) {
-    auto actor = get(e);
-    if (!actor) return 0u;
-    return actor->queue.size();
+    auto q = get(e);
+    if (!q) return 0u;
+    return q->size();
 }
 
 bool actors::act(Entity e, const Command &cmd) {
-    Actor *actor = get(e);
-    if (!actor) return false;
-    return translate(e, *actor, cmd);
+    ActionQueue *q = get(e);
+    if (!q) return false;
+    return translate(e, *q, cmd);
 }
 
 std::vector<bool> actors::act(Entity e, const CommandQueue &cmds) {
     std::vector<bool> results;
-    Actor *actor = get(e);
-    if (!actor) return results;
+    ActionQueue *q = get(e);
+    if (!q) return results;
     results.reserve(cmds.size());
-    for (auto &cmd : cmds) results.push_back(translate(e, *actor, cmd));
+    for (auto &cmd : cmds) results.push_back(translate(e, *q, cmd));
     return results;
 }
 
 unsigned short actors::capacity(Entity e) {
-    auto actor = get(e);
-    if (!actor) return 0u;
-    return actor->queue.capacity();
+    auto q = get(e);
+    if (!q) return 0u;
+    return q->capacity();
 }
 
 void actors::capacity(Entity e, unsigned short cap) {
-    auto actor = get(e);
-    if (!actor) return;
-    actor->queue.reserve(cap);
+    auto q = get(e);
+    if (!q) return;
+    q->reserve(cap);
 }
 

@@ -1,29 +1,20 @@
 #include "ledger.hh"
-#include <array>
-#include <cassert>
+#include "slot-map.hh"
 #include <initializer_list>
-#include <queue>
 
 // problem: signature may not be valid if ledger::sign is used to set components it doesn't have or unset components it does
 // problem: destroying an entity doesn't destroy its components
 // use a callback?
 
-struct EntityData {
-    bool live = false;
-    uint16_t generation;
-    Signature signature;
-};
-
 namespace {
-    std::vector<EntityData> entities(1, EntityData{false,0});
-    std::queue<Entity> recycle;
+    SlotMap<Signature> data;
     const char *err_msg = nullptr;
 }
 
-Signature signature(std::initializer_list<Component> components) {
+Signature signature(std::initializer_list<Flag> flags) {
     // initializer lists can be constexpr in C++26
     Signature sign;
-    for (Component c : components) sign.set(component_index(c), true);
+    for (Flag f : flags) sign.set(flag_index(f), true);
     return sign;
 }
 
@@ -33,74 +24,48 @@ const char *ledger::error() {
     return msg;
 }
 
-bool ledger::status(Entity e) {
-    auto i = entity_id(e);
-    if (i >= entities.size()) return false;
-    return entities[i].live && entities[i].generation == entity_gen(e);
-}
+bool ledger::status(Entity e) { return data.status(e); }
 
 Signature ledger::signature(Entity e) {
-    return ledger::status(e) ? entities[entity_id(e)].signature : Signature();
+    auto ptr = data.get(e);
+    return ptr ? *ptr : Signature();
 }
 
-bool ledger::has(Entity e, Component c) {
-    return ledger::status(e) ? entities[entity_id(e)].signature.test(component_index(c)) : false;
+bool ledger::has(Entity e, Flag f) {
+    auto ptr = data.get(e);
+    return ptr ? ptr->test(flag_index(f)) : false;
 }
 
 bool ledger::has(Entity e, Signature sign) {
-    return ledger::status(e) ? (ledger::signature(e) & sign) == sign : false; 
+    auto ptr = data.get(e);
+    return ptr ? (*ptr & sign) == sign : false; 
 }
 
-bool ledger::has(Entity e, std::initializer_list<Component> sign) {
+bool ledger::has(Entity e, std::initializer_list<Flag> sign) {
     return has(e, signature(sign));
 }
 
-bool ledger::sign(Entity e, Component c, bool value) {
-    if (!ledger::status(e)) return false;
-    entities[entity_id(e)].signature.set(component_index(c), value);
+bool ledger::sign(Entity e, Flag f, bool value) {
+    auto ptr = data.get(e);
+    if (!ptr) return false;
+    ptr->set(flag_index(f), value);
     return true;
 }
 
-Entity ledger::create() {
-    Entity e = NULL_ENTITY;
-    if (!recycle.empty()) {
-        auto id = entity_id(recycle.front());
-        recycle.pop();
-        uint16_t gen = entities[id].generation + 1;
-        if (gen > ENTITY_GEN_MAX) {
-            assert(!"entity with max generation should not be queued for recycle");
-            return ledger::create();
-        }
-        entities[id] = EntityData{true, gen};
-        e = (gen << ENTITY_ID_BITS) | id;
-    } else if (entities.size() < ENTITY_ID_MAX) {
-        auto id = entities.size();
-        entities.emplace_back(true, 0);
-        e = id;
-    } else {
-        err_msg = "ledger::create: entity limit reached";
-    }
-    return e;
-}
+uint32_t ledger::generation(uint32_t index) { return data.generation(index); }
 
-void ledger::destroy(Entity e) {
-    if (!ledger::status(e)) return;
-    auto i = entity_id(e);
-    if (entities[i].generation < ENTITY_GEN_MAX) recycle.push(e);
-    entities[i].live = false;
-    entities[i].signature.reset();
-}
+Entity ledger::create() { return data.emplace(); }
 
-void ledger::for_each(Signature sign, std::function<void(Entity)> call) {
+void ledger::destroy(Entity e) { data.erase(e); }
+
+void ledger::for_each(Signature match, std::function<void(Entity)> call) {
     // consider using template or function pointer to avoid heap allocation done by std::function
-    for (auto id = 1u; id < entities.size(); id++) {
-        if ((entities[id].signature & sign) == sign) {
-            call((entities[id].generation << ENTITY_ID_BITS) | id);
-        }
+    for (auto [e, sign] : data) {
+        if ((sign & match) == match) call(e);
     }
 }
 
-void ledger::for_each(std::initializer_list<Component> sign, std::function<void(Entity)> call) {
+void ledger::for_each(std::initializer_list<Flag> sign, std::function<void(Entity)> call) {
     for_each(signature(sign), call);
 }
 
@@ -114,7 +79,7 @@ ledger::View ledger::view(Signature sign) {
     return matches;
 }
 
-ledger::View ledger::view(std::initializer_list<Component> sign) {
+ledger::View ledger::view(std::initializer_list<Flag> sign) {
     return view(signature(sign));
 }
 

@@ -1,46 +1,44 @@
 #pragma once
+#include "handle.hh"
 #include <bitset>
 #include <cstdint>
 #include <functional>
 #include <vector>
 
-using Entity = uint32_t;
-constexpr Entity NULL_ENTITY = 0;
+enum class Flag : uint8_t { Actor, Pose, Max };
+constexpr size_t flag_index(Flag c) { return static_cast<size_t>(c); }
 
-using Id = uint32_t;
-constexpr Entity ENTITY_ID_BITS  = 20; // 1,048,575 IDs
-constexpr Entity ENTITY_ID_MAX  = (1 << ENTITY_ID_BITS) - 1;
-constexpr Id entity_id(Entity e) { return e & ENTITY_ID_MAX; }
+using Signature = std::bitset<flag_index(Flag::Max)>;
+Signature signature(std::initializer_list<Flag> flags);
 
-constexpr Entity ENTITY_GEN_BITS = 12; // 4,095 generations
-constexpr Entity ENTITY_GEN_MAX = (1 << ENTITY_GEN_BITS) - 1;
-constexpr uint16_t entity_gen(Entity e) { return (e >> ENTITY_ID_BITS) & ENTITY_GEN_MAX; }
-
-enum class Component : uint8_t { Actor, Transform, Max };
-constexpr size_t component_index(Component c) { return static_cast<size_t>(c); }
-
-using Signature = std::bitset<component_index(Component::Max)>;
-Signature signature(std::initializer_list<Component> components);
+using Entity = Handle<Signature>;
 
 namespace ledger {
 
     bool status(Entity e);
+    uint32_t generation(uint32_t index);
     Signature signature(Entity e);
-    bool has(Entity e, Component c);
+    bool has(Entity e, Flag f);
     bool has(Entity e, Signature sign);
-    bool has(Entity e, std::initializer_list<Component> sign);
+    bool has(Entity e, std::initializer_list<Flag> sign);
     void error(const char *msg);
     const char *error();
 
-    bool sign(Entity e, Component c, bool value);
+    bool sign(Entity e, Flag c, bool value);
     Entity create();
     void destroy(Entity e);
 
     using View = std::vector<Entity>;
     View view(Signature sign);
-    View view(std::initializer_list<Component> sign);
+    View view(std::initializer_list<Flag> sign);
     void for_each(Signature sign, std::function<void(Entity)> call);
-    void for_each(std::initializer_list<Component> sign, std::function<void(Entity)> call);
+    void for_each(std::initializer_list<Flag> sign, std::function<void(Entity)> call);
 
 } // namespace ledger
+
+template <typename Type>
+struct Component {
+    uint32_t generation;
+    Type type;
+};
 

@@ -2,6 +2,18 @@
 #include "command.hh"
 #include "ledger.hh"
 #include <vector>
+#include "action.hh"
+#include <memory>
+
+struct PendingAction {
+    std::unique_ptr<Action> action;
+    // if the action has not been made "hot" before the expiry is reached, it is marked invalid/stale
+    unsigned expiry = 0u;    // the age at which the action expires if its still cold/pending
+    unsigned age    = 0u;    // how long the action has been cold
+    bool     active = false; // false if the action is still cold
+};
+
+using ActionQueue = std::vector<PendingAction>;
 
 namespace actors {
 

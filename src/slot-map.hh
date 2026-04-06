@@ -63,6 +63,13 @@ struct SlotMap {
         first_free = i;
 	}
 
+    constexpr uint32_t generation(uint32_t index) const {
+        return index < handle_index_max 
+            && index < slots.size()
+            && slots[index].live
+            ? slots[index].generation : handle_generation_max;
+    }
+
     constexpr bool status(Handle<Type> handle) const { return locate(handle) != handle_index_max; }
 
     constexpr const Type *get(Handle<Type> handle) const {
@@ -110,7 +117,7 @@ struct SlotMap {
 
     private:
 
-        friend class SlotMap;
+        friend struct SlotMap;
 
         ConstIterator(const SlotMap *map, uint32_t index)
             : map{map}, index{index}
@@ -195,8 +202,6 @@ private:
             Type value;
         };
     };
-
-    constexpr Slot &operator[](uint32_t index) { return slots[index]; }
 
     constexpr uint32_t locate(Handle<Type> handle) const {
         return handle.index < handle_index_max 

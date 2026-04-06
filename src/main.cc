@@ -2,7 +2,7 @@
 #include "director.hh"
 #include "ledger.hh"
 #include "menu.hh"
-#include "transform.hh"
+#include "pose.hh"
 #include <cassert>
 #include <cstdlib>
 #include <cmath>
@@ -42,16 +42,16 @@ bool open() {
     }
 
     auto e = ledger::create();
-    assert(e);
+    assert(e != Entity::null());
     assert(ledger::status(e));
     player.entity = e;
 
-    transforms::set(e, { .position = {400.f, 200.f} });
-    assert(transforms::get(e));
-    assert(ledger::has(e, Component::Transform));
+    poses::set(e, { .position = {400.f, 200.f} });
+    assert(poses::get(e));
+    assert(ledger::has(e, Flag::Pose));
 
     actors::create(e, 2);
-    assert(ledger::has(e, Component::Actor));
+    assert(ledger::has(e, Flag::Actor));
 
     return true;
 }
@@ -65,9 +65,9 @@ bool close() {
 void render() {
     SDL_RenderClear(renderer);
     ui.main_menu.render(renderer);
-    auto t = transforms::get(player.entity);
-    if (t) {
-        SDL_FRect player_square{t->position.x - 10.f, t->position.y - 10.f, 20.f, 20.f};
+    auto pose = poses::get(player.entity);
+    if (pose) {
+        SDL_FRect player_square{pose->position.x - 10.f, pose->position.y - 10.f, 20.f, 20.f};
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderFillRect(renderer, &player_square);
     }

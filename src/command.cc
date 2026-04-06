@@ -1,6 +1,6 @@
 #include "command.hh"
 
-Command make_move_command(float x, float y) {
+Command move_command(float x, float y) {
     Command cmd;
     cmd.type = Command::Type::Move;
     cmd.move.x = x;
@@ -8,7 +8,7 @@ Command make_move_command(float x, float y) {
     return cmd;
 }
 
-Command make_path_command(float x, float y) {
+Command path_command(float x, float y) {
     Command cmd;
     cmd.type = Command::Type::PathTo;
     cmd.path.x = x;
