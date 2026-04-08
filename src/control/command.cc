@@ -1,4 +1,4 @@
-#include "command.hh"
+#include "control/command.hh"
 
 Command move_command(float x, float y) {
     Command cmd;

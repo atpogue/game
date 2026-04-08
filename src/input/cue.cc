@@ -1,6 +1,6 @@
-#include "cue.hh"
-#include "keyboard.hh"
-#include "mouse.hh"
+#include "input/cue.hh"
+#include "input/keyboard.hh"
+#include "input/mouse.hh"
 
 namespace {
 

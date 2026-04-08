@@ -1,7 +1,7 @@
 #pragma once
-#include "cue.hh"
-#include "keyboard.hh"
-#include "mouse.hh"
+#include "input/cue.hh"
+#include "input/keyboard.hh"
+#include "input/mouse.hh"
 
 // Generates commands to pass to Actors
 struct Director {

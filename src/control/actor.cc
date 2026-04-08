@@ -1,5 +1,5 @@
-#include "actor.hh"
-#include "sparse-map.hh"
+#include "control/actor.hh"
+#include "core/sparse-map.hh"
 #include <cassert>
 
 // TODO: action priority?

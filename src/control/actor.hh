@@ -1,8 +1,8 @@
 #pragma once
-#include "command.hh"
-#include "ledger.hh"
+#include "control/action.hh"
+#include "control/command.hh"
+#include "ecs/ledger.hh"
 #include <vector>
-#include "action.hh"
 #include <memory>
 
 struct PendingAction {

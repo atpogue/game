@@ -1,9 +1,9 @@
-#include "actor.hh"
-#include "director.hh"
-#include "graphics.hh"
-#include "ledger.hh"
-#include "menu.hh"
-#include "pose.hh"
+#include "control/actor.hh"
+#include "control/director.hh"
+#include "ecs/ledger.hh"
+#include "ecs/pose.hh"
+#include "render/graphics.hh"
+#include "ui/menu.hh"
 #include <cassert>
 #include <cstdlib>
 #include <cmath>

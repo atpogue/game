@@ -1,6 +1,6 @@
 #pragma once
-#include "bitmask.hh"
-#include "command.hh"
+#include "core/bitmask.hh"
+#include "control/command.hh"
 #include <SDL3/SDL_scancode.h>
 #include <map>
 

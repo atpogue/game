@@ -1,6 +1,6 @@
-#include "graphics.hh"
-#include "slot-map.hh"
-#include "sparse-map.hh"
+#include "render/graphics.hh"
+#include "core/slot-map.hh"
+#include "core/sparse-map.hh"
 #include <map>
 #include <string>
 #include <string_view>

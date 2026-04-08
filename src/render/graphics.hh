@@ -1,6 +1,6 @@
 #pragma once
-#include "handle.hh"
-#include "ledger.hh"
+#include "core/handle.hh"
+#include "ecs/ledger.hh"
 #include <memory>
 #include <SDL3/SDL_render.h>
 

@@ -1,6 +1,6 @@
-#include "pose.hh"
-#include "ledger.hh"
-#include "sparse-map.hh"
+#include "ecs/pose.hh"
+#include "ecs/ledger.hh"
+#include "core/sparse-map.hh"
 #include <utility> // std::move
 
 namespace {

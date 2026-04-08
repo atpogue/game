@@ -1,5 +1,5 @@
-#include "action.hh"
-#include "pose.hh"
+#include "control/action.hh"
+#include "ecs/pose.hh"
 #include <glm/geometric.hpp>
 
 MoveAction::MoveAction(glm::vec2 to) : direction_(glm::normalize(to)) {}

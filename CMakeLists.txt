@@ -32,7 +32,8 @@ FetchContent_MakeAvailable(glm)
 
 add_executable (${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
+target_include_directories (${PROJECT_NAME} PUBLIC ${SDL3_INCLUDE_DIRS})
+target_include_directories (${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 add_subdirectory (src)
 
