@@ -6,6 +6,6 @@
 ## Building 
 
 ```bash
-cmake -B build && make -C build && ./bin/game
+cmake -B build && cmake --build build && ./bin/game
 ```
 

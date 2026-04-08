@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-enum class Flag : uint8_t { Actor, Pose, Max };
+enum class Flag : uint8_t { Actor, Pose, Sprite, Max };
 constexpr size_t flag_index(Flag c) { return static_cast<size_t>(c); }
 
 using Signature = std::bitset<flag_index(Flag::Max)>;
@@ -35,10 +35,4 @@ namespace ledger {
     void for_each(std::initializer_list<Flag> sign, std::function<void(Entity)> call);
 
 } // namespace ledger
-
-template <typename Type>
-struct Component {
-    uint32_t generation;
-    Type type;
-};
 

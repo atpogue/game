@@ -1,5 +1,6 @@
 #include "actor.hh"
 #include "director.hh"
+#include "graphics.hh"
 #include "ledger.hh"
 #include "menu.hh"
 #include "pose.hh"
@@ -8,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_render.h>
 
 struct {
     MainMenu main_menu;
@@ -41,6 +43,8 @@ bool open() {
         return false;
     }
 
+    graphics::init(renderer);
+
     auto e = ledger::create();
     assert(e != Entity::null());
     assert(ledger::status(e));
@@ -57,12 +61,15 @@ bool open() {
 }
 
 bool close() {
+    graphics::quit();
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return true;
 }
 
 void render() {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
     ui.main_menu.render(renderer);
     auto pose = poses::get(player.entity);
