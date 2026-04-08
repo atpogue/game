@@ -53,6 +53,8 @@ struct SparseMap {
         dense.pop_back();
     }
 
+    void clear() { dense.clear(); sparse.clear(); }
+
     const Type *get(uint32_t key) const { return has(key) ? &dense[sparse[key]].value : nullptr; }
           Type *get(uint32_t key)       { return has(key) ? &dense[sparse[key]].value : nullptr; }
 

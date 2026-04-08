@@ -7,22 +7,16 @@
 template <typename Type>
 struct SlotMap {
 
-    ~SlotMap() {
-        for (Slot &slot : slots) {
-            if (slot.live) slot.value.~Type();
-        }
-    }
-
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
-    Type &replace(Handle<Type> handle, Args &&... args) {
+    Type *replace(Handle<Type> handle, Args &&... args) {
         uint32_t i = locate(handle);
-        if (i == handle_index_max) return;
+        if (i == handle_index_max) return nullptr;
         Slot &slot = slots[i];
         assert(slot.live);
         slot.value.~Type();
         new (&slot.value) Type(std::forward<Args>(args)...);
-        return slot.value;
+        return &slot.value;
     }
 
     template <typename... Args>
@@ -30,8 +24,9 @@ struct SlotMap {
     Handle<Type> emplace(Args &&... args) {
         if (first_free == handle_index_max) {
             if (slots.size() >= handle_index_max) return Handle<Type>::null();
-            Slot &slot = slots.emplace_back(true, 0u);
+            Slot &slot = slots.emplace_back();
             new (&slot.value) Type(std::forward<Args>(args)...);
+            slot.live = true;
             return {size()-1u, 0u};
         }
         auto i = first_free;
@@ -62,6 +57,8 @@ struct SlotMap {
         slot.next_free = first_free;
         first_free = i;
 	}
+
+    void clear() { slots.clear(); }
 
     constexpr uint32_t generation(uint32_t index) const {
         return index < handle_index_max 
@@ -190,18 +187,58 @@ private:
     friend struct ConstIterator;
     friend struct Iterator;
 
-    struct Slot {
-        bool live = false;
-        uint32_t generation = 0u;
+    struct Slot { ///////////////////////////////////////////////////////////////////////
+
+        Slot() noexcept : live(false), generation(0u), next_free(handle_index_max) {}
+
+        Slot(const Slot &other) 
+            : live(other.live), generation(other.generation)
+        {
+            if (live) {
+                new (&value) Type(other.value);
+            } else next_free = other.next_free;
+        }
+
+        Slot& operator=(const Slot &other) {
+            live = other.live;
+            generation = other.generation;
+            if (live) {
+                new (&value) Type(other.value);
+            } else next_free = other.next_free;
+        }
+
+        Slot(Slot &&other) noexcept(std::is_nothrow_move_constructible_v<Type>)
+            : live(other.live), generation(other.generation)
+        {
+            if (live) {
+                new (&value) Type(std::move(other.value));
+                other.live = false;
+            } else next_free = other.next_free;
+        }
+
+        Slot &operator=(Slot &&other) noexcept(std::is_nothrow_move_constructible_v<Type>) {
+            live = other.live;
+            generation = other.generation;
+            if (live) {
+                new (&value) Type(std::move(other.value));
+                other.live = false;
+            } else next_free = other.next_free;
+        }
+
+        ~Slot() { if (live) value.~Type(); }
+
+        bool live;
+        uint32_t generation;
         // use placement new to set value
         // never read/write next_free if the slot is live
         // never read/write value if the slot is dead
         // always call value destructor before changing status
         union {
-            uint32_t next_free = handle_index_max;
+            uint32_t next_free;
             Type value;
         };
-    };
+
+    }; //////////////////////////////////////////////////////////////////////////////////
 
     constexpr uint32_t locate(Handle<Type> handle) const {
         return handle.index < handle_index_max 
