@@ -1,1 +1,1 @@
-target_sources (${PROJECT_NAME} PRIVATE graphics.cc)
+target_sources (${PROJECT_NAME} PRIVATE graphics.cc camera.cc)
