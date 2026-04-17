@@ -33,7 +33,7 @@ struct Grid2 {
     }
 
     Grid2 &operator=(Grid2 &&other) noexcept {
-        if (this == &other) return;
+        if (this == &other) return *this;
         width_ = other.width_;
         height_ = other.height_;
         data = std::move(other.data);

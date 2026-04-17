@@ -36,7 +36,7 @@ struct Grid3 {
     }
 
     Grid3 &operator=(Grid3 &&other) noexcept {
-        if (this == &other) return;
+        if (this == &other) return *this;
         width_ = other.width_;
         height_ = other.height_;
         depth_ = other.depth_;
