@@ -52,7 +52,7 @@ bool ledger::sign(Entity e, Flag f, bool value) {
     return true;
 }
 
-uint32_t ledger::generation(uint32_t index) { return data.generation(index); }
+u32 ledger::generation(u32 index) { return data.generation(index); }
 
 Entity ledger::create() { return data.emplace(); }
 

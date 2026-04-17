@@ -4,7 +4,7 @@
 
 MoveAction::MoveAction(glm::vec2 to) : direction_(glm::normalize(to)) {}
 
-MoveAction::MoveAction(float x, float y) : MoveAction(glm::vec2(x,y)) {}
+MoveAction::MoveAction(f32 x, f32 y) : MoveAction(glm::vec2(x,y)) {}
 
 Action::Status MoveAction::status() const { return Action::Status::Busy; }
 

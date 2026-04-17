@@ -16,14 +16,14 @@ void MainMenu::event(const SDL_Event &e) {
     }
 }
 
-void MainMenu::update(float dt) {
+void MainMenu::update(f32 dt) {
     time_ += dt;
 }
 
 void MainMenu::render(SDL_Renderer *renderer) {
-    float red   = float(0.5 + 0.5 * SDL_sin(time_)),
-          green = float(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 2.0 / 3.0)),
-          blue  = float(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 4.0 / 3.0));
+    f32 red   = f32(0.5 + 0.5 * SDL_sin(time_)),
+          green = f32(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 2.0 / 3.0)),
+          blue  = f32(0.5 + 0.5 * SDL_sin(time_ + SDL_PI_D * 4.0 / 3.0));
     SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);
     SDL_RenderClear(renderer);
 }

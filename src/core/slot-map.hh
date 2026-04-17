@@ -1,5 +1,6 @@
 #pragma once
 #include "core/handle.hh"
+#include "core/types.hh"
 #include <cassert>
 #include <concepts>
 #include <vector>
@@ -10,7 +11,7 @@ struct SlotMap {
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Type *replace(Handle<Type> handle, Args &&... args) {
-        uint32_t i = locate(handle);
+        u32 i = locate(handle);
         if (i == handle_index_max) return nullptr;
         Slot &slot = slots[i];
         assert(slot.live);
@@ -60,7 +61,7 @@ struct SlotMap {
 
     void clear() { slots.clear(); }
 
-    constexpr uint32_t generation(uint32_t index) const {
+    constexpr u32 generation(u32 index) const {
         return index < handle_index_max 
             && index < slots.size()
             && slots[index].live
@@ -79,11 +80,11 @@ struct SlotMap {
         return i != handle_index_max ? &slots[i].value : nullptr;
     }
 
-    constexpr uint32_t size() const { return static_cast<uint32_t>(slots.size()); };
+    constexpr u32 size() const { return static_cast<u32>(slots.size()); };
 
     constexpr size_t capacity() const { return slots.capacity(); }
 
-    constexpr void reserve(uint32_t n) { slots.reserve(n); }
+    constexpr void reserve(u32 n) { slots.reserve(n); }
 
     struct Item { const Handle<Type> handle; Type &type; };
     struct ConstItem { const Handle<Type> handle; const Type &type; };
@@ -116,14 +117,14 @@ struct SlotMap {
 
         friend struct SlotMap;
 
-        ConstIterator(const SlotMap *map, uint32_t index)
+        ConstIterator(const SlotMap *map, u32 index)
             : map{map}, index{index}
         {
             assert(index <= map->slots.size() && "constructed with invalid index");
         }
 
         const SlotMap *map;
-        uint32_t index;
+        u32 index;
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
@@ -156,25 +157,25 @@ struct SlotMap {
 
         friend class SlotMap;
 
-        Iterator(SlotMap *map, uint32_t index)
+        Iterator(SlotMap *map, u32 index)
             : map{map}, index{index}
         {
             assert(index <= map->slots.size() && "constructed with invalid index");
         }
 
         SlotMap *map;
-        uint32_t index;
+        u32 index;
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
     constexpr const ConstIterator begin() const {
-        uint32_t i = 0u;
+        u32 i = 0u;
         while (i > slots.size() && !slots[i].live) i++;
         return ConstIterator(this, i);
     }
 
     constexpr Iterator begin() {
-        uint32_t i = 0u;
+        u32 i = 0u;
         while (i > slots.size() && !slots[i].live) i++;
         return Iterator(this, i);
     }
@@ -228,19 +229,19 @@ private:
         ~Slot() { if (live) value.~Type(); }
 
         bool live;
-        uint32_t generation;
+        u32 generation;
         // use placement new to set value
         // never read/write next_free if the slot is live
         // never read/write value if the slot is dead
         // always call value destructor before changing status
         union {
-            uint32_t next_free;
+            u32 next_free;
             Type value;
         };
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
-    constexpr uint32_t locate(Handle<Type> handle) const {
+    constexpr u32 locate(Handle<Type> handle) const {
         return handle.index < handle_index_max 
             && handle.index < slots.size()
             && slots[handle.index].live
@@ -250,7 +251,7 @@ private:
     }
 
     std::vector<Slot> slots;
-    uint32_t first_free = handle_index_max;
+    u32 first_free = handle_index_max;
 
 };
 

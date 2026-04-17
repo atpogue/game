@@ -10,11 +10,12 @@ glm::vec2 Camera::world_coord_at(glm::vec2 view_coord) const {
 }
 
 bool Camera::contains(glm::vec2 world_coord) const {
-    auto view_coord = view_coord_at(world_coord);
-    return view_coord.x <= ceilf(position.x + viewport.x * 0.5f)
-        && view_coord.x >= floorf(position.x - viewport.x * 0.5f)
-        && view_coord.y <= ceilf(position.y + viewport.y * 0.5f)
-        && view_coord.y >= floorf(position.y - viewport.y * 0.5f);
+    glm::vec2 half = viewport * 0.5f;
+    auto view_coord = (world_coord - position) * zoom + half;
+    return view_coord.x <= ceilf(position.x + half.x)
+        && view_coord.x >= floorf(position.x - half.x)
+        && view_coord.y <= ceilf(position.y + half.y)
+        && view_coord.y >= floorf(position.y - half.y);
 }
 
 Camera::Iterator Camera::begin() const {

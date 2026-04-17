@@ -14,15 +14,15 @@
 #include <SDL3/SDL_render.h>
 
 // The length of a fixed time step in seconds
-constexpr float step_size = 1.f / 30.f;
+constexpr f32 step_size = 1.f / 30.f;
 
 // Get the number of seconds elapsed since SDL was initialized
-float time() { return float(SDL_GetTicks()) / 1000.f; }
+f32 time() { return (f32)(SDL_GetTicks()) / 1000.f; }
 
 struct AppState {
 
-    float lag = 0.f;
-    float prior = 0.f; // time of start of last frame in seconds
+    f32 lag = 0.f;
+    f32 prior = 0.f; // time of start of last frame in seconds
 
     SDL_Window *window = nullptr;
     SDL_Renderer *renderer = nullptr;
@@ -80,7 +80,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
     auto *state = static_cast<AppState *>(appstate);
-    float t = time(), // time of start of current frame in seconds
+    f32 t = time(), // time of start of current frame in seconds
           dt = t - state->prior; // time that elapsed since the start of last frame
 
     /// STEP ////////////////////////////////////////////////////////////

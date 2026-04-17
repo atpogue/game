@@ -1,11 +1,10 @@
 #pragma once
 #include "core/handle.hh"
 #include <bitset>
-#include <cstdint>
 #include <functional>
 #include <vector>
 
-enum class Flag : uint8_t { Actor, Pose, Sprite, Max };
+enum class Flag : u8 { Actor, Pose, Sprite, Max };
 constexpr size_t flag_index(Flag c) { return static_cast<size_t>(c); }
 
 using Signature = std::bitset<flag_index(Flag::Max)>;
@@ -16,7 +15,7 @@ using Entity = Handle<Signature>;
 namespace ledger {
 
     bool status(Entity e);
-    uint32_t generation(uint32_t index);
+    u32 generation(u32 index);
     Signature signature(Entity e);
     bool has(Entity e, Flag f);
     bool has(Entity e, Signature sign);

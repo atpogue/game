@@ -7,7 +7,7 @@ void PlayerDirector::event(const SDL_Event &e) {
 }
 
 void PlayerDirector::generate(CommandQueue &queue) {
-    float x = 0.f, y = 0.f;
+    f32 x = 0.f, y = 0.f;
     if (keyboard_[SDL_SCANCODE_W]) y -= 1.f;
     if (keyboard_[SDL_SCANCODE_S]) y += 1.f;
     if (keyboard_[SDL_SCANCODE_A]) x -= 1.f;

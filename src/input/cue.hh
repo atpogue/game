@@ -9,13 +9,13 @@ struct Keyboard;
 // Represents keyboard input. Used to associate keys with commands.
 struct KeyboardCue {
     SDL_Scancode key;
-    enum class With : unsigned short {
+    enum class With : u8 {
         None  = 0,
         Ctrl  = 1 << 0,
         Shift = 1 << 1,
         Alt   = 1 << 2,
     } with = With::None;
-    enum class On : unsigned short {
+    enum class On : u8 {
         Press   = 1 << 0,
         Release = 1 << 1,
         Repeat  = 1 << 2,

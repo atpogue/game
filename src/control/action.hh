@@ -32,7 +32,7 @@ struct Action {
 struct MoveAction : Action {
 
     MoveAction(glm::vec2 to);
-    MoveAction(float x, float y);
+    MoveAction(f32 x, f32 y);
     Status status() const override;
     Status cancel() override;
     void step(Entity entity) override;
