@@ -1,105 +1,114 @@
 #pragma once
+#include "core/types.hh"
+#include <array>
 #include <cassert>
-#include <gml/vec2.hpp>
+#include <cstddef>
+#include <vector>
 
-template <typename T>
+// 2D grid stored on the heap whose size is unknown at comptile time
+template <typename Type, u32 Width=0u, u32 Height=0u>
 struct Grid2 {
-    // could just use an std::mdspan instead
 
-    Grid2(unsigned w, unsigned h)
-        : width_{w}, height_{h}
-        , data{new T[size()]()}
-    {}
-
-    Grid2(unsigned w, unsigned h, const T &value)
-        : width_{w}, height_{h}
-        , data{new T[size()](value)}
-    {}
-
-    Grid2(const Grid2 &other)
-        : width_{other.width_}, height_{other.height_}
-        , data{new T[size()]()}
+    Grid2(u32 w, u32 h)
+        : width_{w}, height_{h}, data(size_t{width_} * height_)
     {
-        for (size_t i = 0; i < size(); i++) data[i] = other.data[i];
+        assert(width_ != 0u && height_ != 0u);
     }
 
-    Grid2 &operator=(const Grid2 &other) {
-        if (this == &other) return;
-        delete[] data;
-        width_ = other.width_;
-        height_ = other.height_;
-        data = new T[size()]();
-        for (size_t i = 0; i < size(); i++) data[i] = other.data[i];
-        return *this;
+    Grid2(u32 w, u32 h, const Type &value)
+        : width_{w}, height_{h}, data(size_t{width_} * height_, value)
+    {
+        assert(width_ != 0u && height_ != 0u);
     }
+
+    Grid2(const Grid2 &other) = default;
+    Grid2 &operator=(const Grid2 &other) = default;
 
     Grid2(Grid2 &&other) noexcept
         : width_{other.width_}, height_{other.height_}
-        , data{other.data}
+        , data(std::move(other.data))
     {
         other.width_ = 0u;
         other.height_ = 0u;
-        other.data = nullptr;
     }
 
     Grid2 &operator=(Grid2 &&other) noexcept {
         if (this == &other) return;
-        delete[] data;
         width_ = other.width_;
         height_ = other.height_;
-        data = other.data;
+        data = std::move(other.data);
         other.width_ = 0u;
         other.height_ = 0u;
-        other.data = nullptr;
         return *this;
     }
 
-    ~Grid2() { delete[] data; }
-
     constexpr size_t size() const {
-        assert(data != nullptr || size() == 0);
-        return size_t(width_) * size_t(height_);
+        assert(data.size() == size_t{width_} * height_);
+        return data.size();
     }
 
-    constexpr bool has(int x, int y) const {
-        assert(data != nullptr || size() == 0);
+    constexpr bool has(u32 x, u32 y) const {
         return x >= 0 && x < width_
             && y >= 0 && y < height_;
     }
 
-    constexpr bool has(glm::uvec2 coord) const { return has(coord.x, coord.y); }
+    constexpr const Type &operator[](u32 x, u32 y) const { assert(has(x, y)); return data[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { assert(has(x, y)); return data[index(x, y)]; }
 
-    constexpr const T &operator[](int x, int y) const { assert(has(x, y)); return data[index(x, y)]; }
-    constexpr       T &operator[](int x, int y)       { assert(has(x, y)); return data[index(x, y)]; }
+    constexpr const Type *get(u32 x, u32 y) const { return has(x,y) ? &data[index(x,y)] : nullptr; }
+    constexpr       Type *get(u32 x, u32 y)       { return has(x,y) ? &data[index(x,y)] : nullptr; }
 
-    constexpr const T &operator[](glm::uvec2 coord) const { return (*this)[coord.x, coord.y]; }
-    constexpr       T &operator[](glm::uvec2 coord)       { return (*this)[coord.x, coord.y]; }
+    constexpr auto begin() const { return data.begin(); }
+    constexpr auto begin()       { return data.begin(); }
 
-    constexpr const T *get(int x, int y) const { return has(x,y) ? data + index(x,y) : nullptr; }
-    constexpr       T *get(int x, int y)       { return has(x,y) ? data + index(x,y) : nullptr; }
+    constexpr auto end() const { return data.end(); }
+    constexpr auto end()       { return data.end(); }
 
-    constexpr const T *get(glm::uvec2 coord) const { return get(coord.x, coord.y); }
-    constexpr       T *get(glm::uvec2 coord)       { return get(coord.x, coord.y); }
-
-    constexpr const T *begin() const { return data; }
-    constexpr       T *begin()       { return data; }
-
-    constexpr const T *end() const { return data + size(); }
-    constexpr       T *end()       { return data + size(); }
-
-    constexpr unsigned width() const { return width_; }
-    constexpr unsigned height() const { return height_; }
+    constexpr u32 width() const { return width_; }
+    constexpr u32 height() const { return height_; }
 
 private:
 
-    unsigned width_, height_;
-    T *data;
+    u32 width_, height_;
+    std::vector<Type> data;
 
-    constexpr size_t index(int x, int y) const {
-        size_t i = x + (y * width_);
-        assert(i < size() && "invalid index");
+    constexpr size_t index(u32 x, u32 y) const {
+        size_t i = x + (y * size_t{width_});
+        assert(i < data.size() && "invalid index");
         return i;
     }
+
+};
+
+// 2D grid whose size is known at comptile time
+template <typename Type, u32 Width, u32 Height>
+requires (Width > 0u && Height > 0u)
+struct Grid2<Type, Width, Height> {
+
+    constexpr size_t size() const { return size_t{Width} * Height; }
+
+    constexpr bool has(u32 x, u32 y) const { return x < Width && y < Height; }
+
+    constexpr const Type &operator[](u32 x, u32 y) const { assert(has(x, y)); return data[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { assert(has(x, y)); return data[index(x, y)]; }
+
+    constexpr const Type *get(u32 x, u32 y) const { return has(x, y) ? &data[index(x, y)] : nullptr; }
+    constexpr       Type *get(u32 x, u32 y)       { return has(x, y) ? &data[index(x, y)] : nullptr; }
+
+    constexpr auto begin() const { return data.begin(); }
+    constexpr auto begin()       { return data.begin(); }
+
+    constexpr auto end() const { return data.end(); }
+    constexpr auto end()       { return data.end(); }
+
+    constexpr u32 width() const { return Width; }
+    constexpr u32 height() const { return Height; }
+
+private:
+
+    std::array<Type, size_t{Width} * Height> data;
+
+    constexpr size_t index(u32 x, u32 y) const { return x + (y * size_t{Width}); }
 
 };
 

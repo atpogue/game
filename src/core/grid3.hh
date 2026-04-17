@@ -1,109 +1,121 @@
 #pragma once
+#include "core/types.hh"
+#include <array>
 #include <cassert>
-#include <glm/vec3.hpp>
+#include <cstddef>
+#include <vector>
 
-template <typename T>
+// 3D grid stored on the heap whose size is unknown at comptile time
+template <typename Type, u32 Width, u32 Height=0u, u32 Depth=0u>
 struct Grid3 {
 
-    Grid3(unsigned w, unsigned h, unsigned d)
+    Grid3(u32 w, u32 h, u32 d)
         : width_{w}, height_{h}, depth_{d}
-        , data_{new T[size()]()}
-    {}
-
-    Grid3(unsigned w, unsigned h, unsigned d, const T &value)
-        : width_{w}, height_{h}, depth_{d}
-        , data_{new T[size()](value)}
-    {}
-
-    Grid3(const Grid3 &other)
-        : width_{other.width_}, height_{other.height_}, depth_{other.depth_}
-        , data_{new T[size()]()}
+        , data(size_t{width_} * height_ * depth_)
     {
-        for (size_t i = 0; i < size(); i++) data_[i] = other.data_[i];
+        assert(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
 
-    Grid3 &operator=(const Grid3 &other) {
-        if (this == &other) return;
-        delete[] data_;
-        width_ = other.width_;
-        height_ = other.height_;
-        depth_ = other.depth_;
-        data_ = new T[size()]();
-        for (size_t i = 0; i < size(); i++) data_[i] = other.data_[i];
-        return *this;
+    Grid3(u32 w, u32 h, u32 d, const Type &value)
+        : width_{w}, height_{h}, depth_{d}
+        , data(size_t{width_} * height_ * depth_, value)
+    {
+        assert(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
+
+    Grid3(const Grid3 &other) = default;
+    Grid3 &operator=(const Grid3 &other) = default;
 
     Grid3(Grid3 &&other) noexcept
         : width_{other.width_}, height_{other.height_}, depth_{other.depth_}
-        , data_{other.data_}
+        , data(std::move(other.data))
     {
         other.width_ = 0u;
         other.height_ = 0u;
         other.depth_ = 0u;
-        other.data_ = nullptr;
     }
 
     Grid3 &operator=(Grid3 &&other) noexcept {
         if (this == &other) return;
-        delete[] data_;
         width_ = other.width_;
         height_ = other.height_;
         depth_ = other.depth_;
-        data_ = other.data_;
+        data = std::move(other.data);
         other.width_ = 0u;
         other.height_ = 0u;
         other.depth_ = 0u;
-        other.data_ = nullptr;
         return *this;
     }
 
-    ~Grid3() noexcept { delete[] data_; }
-
     constexpr size_t size() const {
-        assert(data_ != nullptr || size() == 0); // this should never happen!
-        return size_t(width_) * size_t(height_) * size_t(depth_);
+        assert(data.size() == size_t{width_} * height_ * depth_);
+        return data.size();
     }
 
-    constexpr bool has(int x, int y, int z) const {
-        assert(data_ != nullptr || size() == 0);
-        return x >= 0 && x < width_
-            && y >= 0 && y < height_
-            && z >= 0 && z < depth_;
+    constexpr bool has(u32 x, u32 y, u32 z) const {
+        return x < width_ && y < height_ && z < depth_;
     }
 
-    constexpr bool has(glm::uvec3 coord) const { return has(coord.x, coord.y, coord.z); }
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { assert(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { assert(has(x, y, z)); return data[index(x, y, z)]; }
 
-    constexpr const T &operator[](int x, int y, int z) const { assert(has(x, y, z)); return data_[index(x, y, z)]; }
-    constexpr       T &operator[](int x, int y, int z)       { assert(has(x, y, z)); return data_[index(x, y, z)]; }
+    constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
+    constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
 
-    constexpr const T &operator[](glm::uvec3 coord) const { return (*this)[coord.x, coord.y, coord.z]; }
-    constexpr       T &operator[](glm::uvec3 coord)       { return (*this)[coord.x, coord.y, coord.z]; }
+    constexpr auto begin() const { return data.begin(); }
+    constexpr auto begin()       { return data.begin(); }
 
-    constexpr const T *get(int x, int y, int z) const { return has(x,y,z) ? data_ + index(x,y,z) : nullptr; }
-    constexpr       T *get(int x, int y, int z)       { return has(x,y,z) ? data_ + index(x,y,z) : nullptr; }
+    constexpr auto end() const { return data.end(); }
+    constexpr auto end()       { return data.end(); }
 
-    constexpr const T *get(glm::uvec3 coord) const { return get(coord.x, coord.y, coord.z); }
-    constexpr       T *get(glm::uvec3 coord)       { return get(coord.x, coord.y, coord.z); }
-
-    constexpr const T *begin() const { return data_; }
-    constexpr       T *begin()       { return data_; }
-
-    constexpr const T *end() const { return data_ + size(); }
-    constexpr       T *end()       { return data_ + size(); }
-
-    constexpr unsigned width() const { return width_; }
-    constexpr unsigned height() const { return height_; }
-    constexpr unsigned depth() const { return depth_; }
+    constexpr u32 width() const { return width_; }
+    constexpr u32 height() const { return height_; }
+    constexpr u32 depth() const { return depth_; }
 
 private:
 
-    unsigned width_, height_, depth_;
-    T *data_;
+    u32 width_, height_, depth_;
+    std::vector<Type> data;
 
-    constexpr size_t index(int x, int y, int z) const {
-        size_t i = x + (y * width_) + (z * width_ * height_);
-        assert(i < size() && "invalid index");
+    constexpr size_t index(u32 x, u32 y, u32 z) const {
+        size_t i = x + (y * size_t{width_}) + (z * size_t{width_} * height_);
+        assert(i < data.size() && "invalid index");
         return i;
+    }
+
+};
+
+// 3D grid whose size is known at comptile time
+template <typename Type, u32 Width, u32 Height, u32 Depth>
+requires (Width > 0u && Height > 0u && Depth > 0u)
+struct Grid3<Type, Width, Height, Depth> {
+
+    constexpr size_t size() const { return size_t{Width} * Height * Depth; }
+
+    constexpr bool has(u32 x, u32 y, u32 z) const { return x < Width && y < Height && z < Depth; }
+
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { assert(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { assert(has(x, y, z)); return data[index(x, y, z)]; }
+
+    constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
+    constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
+
+    constexpr auto begin() const { return data.begin(); }
+    constexpr auto begin()       { return data.begin(); }
+
+    constexpr auto end() const { return data.end(); }
+    constexpr auto end()       { return data.end(); }
+
+    constexpr u32 width() const { return Width; }
+    constexpr u32 height() const { return Height; }
+    constexpr u32 depth() const { return Depth; }
+
+private:
+
+    std::array<Type, size_t{Width} * Height * Depth> data;
+
+    constexpr size_t index(u32 x, u32 y, u32 z) const {
+        return x + (y * size_t{Width}) + (z * size_t{Width} * Height);
     }
 
 };
