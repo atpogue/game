@@ -1,1 +1,1 @@
-#target_sources (${PROJECT_NAME} PRIVATE core-util.cc)
+target_sources (${PROJECT_NAME} PRIVATE random.cc)
