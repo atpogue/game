@@ -1,7 +1,9 @@
 #include "world/world.hh"
+#include "core/random.hh"
 
 World::World(u32 width, u32 height)
     : width_{width}, height_{height}
+    , seed{random_seed()}
     , chunks()
 {
     assert(width_ != 0u && height_ != 0u);
@@ -31,10 +33,13 @@ const Chunk *World::find_chunk(u64 key) const {
 
 Chunk &World::get_chunk(u64 key) {
     auto [it, is_new] = chunks.try_emplace(key);
+    auto &chunk = it->second;
     if (is_new) {
-        load_chunk(key, it->second);
-        return it->second;
+        u32 x, y; coord_of(key, x, y);
+        generate_chunk(seed, x, y, chunk);
+        load_chunk(x, y, chunk);
+        return chunk;
     }
-    return it->second;
+    return chunk;
 }
 

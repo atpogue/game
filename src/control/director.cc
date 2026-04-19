@@ -8,10 +8,10 @@ void PlayerDirector::event(const SDL_Event &e) {
 
 void PlayerDirector::generate(CommandQueue &queue) {
     f32 x = 0.f, y = 0.f;
-    if (keyboard_[SDL_SCANCODE_W]) y -= 1.f;
-    if (keyboard_[SDL_SCANCODE_S]) y += 1.f;
-    if (keyboard_[SDL_SCANCODE_A]) x -= 1.f;
-    if (keyboard_[SDL_SCANCODE_D]) x += 1.f;
+    if (keyboard_[SDL_SCANCODE_W]) y -= 0.1f;
+    if (keyboard_[SDL_SCANCODE_S]) y += 0.1f;
+    if (keyboard_[SDL_SCANCODE_A]) x -= 0.1f;
+    if (keyboard_[SDL_SCANCODE_D]) x += 0.1f;
     if (x != 0.f || y != 0.f) queue.push_back(move_command(x, y));
 
     // translate(keyboard_cmds_, keyboard_, queue);

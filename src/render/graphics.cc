@@ -47,7 +47,7 @@ Handle<Texture> graphics::create_texture(SDL_Surface *surface) {
     return textures.emplace(texture, SDL_DestroyTexture);
 }
 
-SDL_Texture *graphics::texture(Handle<Texture> handle) {
+SDL_Texture *graphics::get_texture(Handle<Texture> handle) {
     Texture *texture = textures.get(handle);
     return texture ? texture->get() : nullptr;
 }
@@ -56,7 +56,7 @@ void graphics::destroy_texture(Handle<Texture> handle) {
     textures.erase(handle);
 }
 
-Sprite *graphics::sprite(Entity e) {
+Sprite *graphics::get_sprite(Entity e) {
     return ledger::status(e) ? sprites.get(e.index) : nullptr;
 }
 
@@ -71,8 +71,8 @@ void graphics::destroy_sprite(Entity e) {
 }
 
 void graphics::render(Entity entity, const SDL_FRect &destination) {
-    auto s = graphics::sprite(entity);
-    auto t = graphics::texture(s->atlas);
-    if (s) SDL_RenderTexture(renderer, t, &s->source, &destination);
+    auto sprite = graphics::get_sprite(entity);
+    auto texture = graphics::get_texture(sprite->atlas);
+    if (sprite) SDL_RenderTexture(renderer, texture, &sprite->source, &destination);
 }
 

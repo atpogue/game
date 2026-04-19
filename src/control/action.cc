@@ -13,6 +13,6 @@ Action::Status MoveAction::cancel() { return Action::Status::Success; }
 void MoveAction::step(Entity e) {
     auto pose = poses::get(e);
     if (!pose) return;
-    pose->position += 5.f * glm::vec2(direction_.x, direction_.y);
+    pose->position += glm::vec2(direction_.x, direction_.y);
 }
 

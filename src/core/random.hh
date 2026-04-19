@@ -1,6 +1,8 @@
 #include "core/types.hh"
 #include "core/hash.hh"
 
+u64 random_seed();
+
 // Fixed-increment version of Java 8's SplittableRandom generator.
 // Written by Sebastiano Vigna (https://prng.di.unimi.it/splitmix64.c).
 struct SplitMix64 {

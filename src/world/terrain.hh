@@ -1,11 +1,12 @@
 #pragma once
 #include "render/graphics.hh"
+#include <optional>
 #include <string>
 
 struct Terrain {
-    using Id = uint16_t;
+    using Id = u32;
 
-    enum class Flag : uint8_t {
+    enum class Flag : u8 {
         None    = 0,
         Collide = 1 << 0,
     };
@@ -15,12 +16,12 @@ struct Terrain {
     Flag flag = Flag::None;
 };
 
-constexpr Terrain::Id terrain_max = UINT16_MAX;
-
 namespace terrain {
 
-    const Terrain &get(Terrain::Id id);
-    Terrain::Id create(std::string name, Sprite sprite, Terrain::Flag flag);
+    std::optional<Terrain::Id> find(std::string_view name);
+    const Terrain &get(Terrain::Id id); // assumes the ID is valid
+    std::optional<Terrain::Id> create(std::string_view name, Sprite sprite, Terrain::Flag flag = Terrain::Flag::None);
 
 } // namspace terrian
+
 

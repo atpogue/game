@@ -13,10 +13,10 @@ struct Camera {
     bool contains(glm::vec2 world_coord) const;
 
     struct Iterator {
+
         using iterator_category = std::forward_iterator_tag;
         using value_type = glm::vec2;
 
-        Iterator(glm::vec2 from, glm::vec2 to);
         Iterator(const Iterator &other) = default;
         Iterator &operator=(const Iterator &other) = default;
 
@@ -29,8 +29,13 @@ struct Camera {
 
     private:
 
+        friend class Camera;
+
+        Iterator(glm::vec2 min, glm::vec2 max, glm::vec2 start);
+
         float min_x, max_x;
         glm::vec2 position;
+
     };
 
     Iterator begin() const;

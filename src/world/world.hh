@@ -39,6 +39,7 @@ struct World {
 
 private:
 
+    u64 seed;
     u32 width_, height_;
     std::unordered_map<u64, Chunk> chunks;
 

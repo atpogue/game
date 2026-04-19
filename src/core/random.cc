@@ -1,10 +1,16 @@
 #include "core/random.hh"
 #include "core/types.hh"
+#include <random>
 
 namespace {
     constexpr u64 rotl(u64 x, int k) {
         return (x << k) | (x >> (64 - k));
     }
+}
+
+u64 random_seed() {
+    std::random_device rd;
+    return (u64{rd()} << 32) | rd();
 }
 
 Xoshiro256ss::Xoshiro256ss(u64 seed) {

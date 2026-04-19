@@ -9,5 +9,9 @@ struct Chunk {
     // other relevant data...
 };
 
-void load_chunk(u64 key, Chunk &chunk);
+// procedural generation using world seed
+bool generate_chunk(u64 seed, u32 x, u32 y, Chunk& chunk);
+
+// load and apply deltas if there are any
+void load_chunk(u32 x, u32 y, Chunk &chunk);
 
