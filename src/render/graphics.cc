@@ -27,13 +27,12 @@ void graphics::quit() {
 Handle<Texture> graphics::create_texture(std::string_view path) {
     if (auto it = texture_paths.find(path); it != texture_paths.end())
         return it->second;
-    SDL_Surface *surface = SDL_LoadPNG(path.data());
+    Surface surface(SDL_LoadPNG(path.data()));
     if (!surface) {
         SDL_Log("Couldn't load png: %s", SDL_GetError());
         return Handle<Texture>::null();
     }
-    auto handle = graphics::create_texture(surface);
-    SDL_DestroySurface(surface);
+    auto handle = graphics::create_texture(surface.get());
     texture_paths.emplace(path, handle);
     return handle;
 }
@@ -44,7 +43,7 @@ Handle<Texture> graphics::create_texture(SDL_Surface *surface) {
         SDL_Log("Couldn't create static texture: %s", SDL_GetError());
         return Handle<Texture>::null();
     }
-    return textures.emplace(texture, SDL_DestroyTexture);
+    return textures.emplace(texture);
 }
 
 SDL_Texture *graphics::get_texture(Handle<Texture> handle) {
@@ -60,17 +59,17 @@ Sprite *graphics::get_sprite(Entity e) {
     return ledger::status(e) ? sprites.get(e.index) : nullptr;
 }
 
-Sprite *graphics::create_sprite(Entity e, Handle<Texture> atlas, SDL_FRect source) {
+Sprite *graphics::create_sprite(Entity e, Handle<Texture> atlas, Rectangle source, Color color) {
     if (!ledger::status(e) || !textures.status(atlas)) return nullptr;
     ledger::sign(e, Flag::Sprite, true);
-    return &sprites.emplace(e.index, atlas, source);
+    return &sprites.emplace(e.index, atlas, source, color);
 }
 
 void graphics::destroy_sprite(Entity e) {
     sprites.erase(e.index);
 }
 
-void graphics::render(Entity entity, const SDL_FRect &destination) {
+void graphics::render(Entity entity, const Rectangle &destination) {
     auto sprite = graphics::get_sprite(entity);
     auto texture = graphics::get_texture(sprite->atlas);
     if (sprite) SDL_RenderTexture(renderer, texture, &sprite->source, &destination);

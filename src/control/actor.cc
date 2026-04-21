@@ -80,15 +80,6 @@ bool actors::act(Entity e, const Command &cmd) {
     return translate(e, *q, cmd);
 }
 
-std::vector<bool> actors::act(Entity e, const CommandQueue &cmds) {
-    std::vector<bool> results;
-    ActionQueue *q = get(e);
-    if (!q) return results;
-    results.reserve(cmds.size());
-    for (auto &cmd : cmds) results.push_back(translate(e, *q, cmd));
-    return results;
-}
-
 unsigned short actors::capacity(Entity e) {
     auto q = get(e);
     if (!q) return 0u;

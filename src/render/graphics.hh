@@ -1,15 +1,11 @@
 #pragma once
-#include "core/handle.hh"
+#include "core/sdlxx.hh"
 #include "ecs/ledger.hh"
-#include <memory>
-#include <SDL3/SDL_render.h>
-
-using Texture = std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)>;
-using Surface = std::unique_ptr<SDL_Surface, decltype(&SDL_DestroySurface)>;
 
 struct Sprite {
     Handle<Texture> atlas;
-    SDL_FRect source;
+    Rectangle source;
+    Color color;
 };
 
 namespace graphics {
@@ -21,12 +17,12 @@ namespace graphics {
     void destroy_texture(Handle<Texture> handle);
 
     Sprite *get_sprite(Entity e);
-    Sprite *create_sprite(Entity e, Handle<Texture> atlas, SDL_FRect source);
+    Sprite *create_sprite(Entity e, Handle<Texture> atlas, Rectangle source, Color color);
     void destroy_sprite(Entity e);
 
     bool init(SDL_Renderer *r);
     void quit();
-    void render(Entity entity, const SDL_FRect &destination);
+    void render(Entity entity, const Rectangle &destination);
 
 } // namespace graphics
 

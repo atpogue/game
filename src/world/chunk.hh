@@ -4,8 +4,7 @@
 
 constexpr u32 chunk_size = 64;
 
-struct Chunk {
-    Grid2<Tile, chunk_size, chunk_size> tiles;
+struct Chunk : Grid2<Tile, chunk_size, chunk_size> {
     // other relevant data...
 };
 

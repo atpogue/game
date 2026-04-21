@@ -11,18 +11,18 @@ World::World(u32 width, u32 height)
 
 Tile &World::operator[](u32 x, u32 y) {
     assert(has(x, y));
-    return get_chunk(key_at(x, y)).tiles[x % chunk_size, y % chunk_size];
+    return get_chunk(key_at(x, y))[x % chunk_size, y % chunk_size];
 }
 
 Tile *World::get(u32 x, u32 y) {
     if (!has(x, y)) return nullptr;
-    return &get_chunk(key_at(x, y)).tiles[x % chunk_size, y % chunk_size];
+    return &get_chunk(key_at(x, y))[x % chunk_size, y % chunk_size];
 }
 
 const Tile *World::find(u32 x, u32 y) const {
     if (!has(x, y)) return nullptr;
     auto chunk = find_chunk(key_at(x, y));
-    return chunk ? chunk->tiles.get(x % chunk_size, y % chunk_size) : nullptr;
+    return chunk ? chunk->get(x % chunk_size, y % chunk_size) : nullptr;
 }
 
 const Chunk *World::find_chunk(u64 key) const {
