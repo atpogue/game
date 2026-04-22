@@ -1,6 +1,6 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include "core/random.hh"
-#include "core/sdlxx.hh"
+#include "core/render.hh"
 #include <iostream>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>

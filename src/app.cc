@@ -1,6 +1,7 @@
 #include "control/actor.hh"
 #include "control/director.hh"
 #include "core/random.hh"
+#include "core/event.hh"
 #include "ecs/ledger.hh"
 #include "ecs/pose.hh"
 #include "render/graphics.hh"
@@ -126,6 +127,14 @@ void app_render(SDL_Renderer *renderer) {
 void app_event(const SDL_Event &event) {
     // dispatch events to interested systems
     player.director.event(event);
+    switch (event.type) {
+    case SDL_EVENT_KEY_DOWN:
+        if (event.key.scancode != SDL_SCANCODE_ESCAPE
+        &&  event.key.scancode != SDL_SCANCODE_Q)
+            break;
+        if (!push_event(make_quit_event()))
+        break;
+    }
 }
 
 void app_quit() {

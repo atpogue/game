@@ -1,18 +1,19 @@
 #pragma once
 #include "core/types.hh"
-#include <vector>
 
 struct Command {
-    enum class Type { Move, PathTo, } type;
+    u32 id;
+    enum class Type { Move, Path, } type;
+
+    struct Move { f32 x, y; };
+    struct Path { f32 x, y; };
 
     union { //////////////////////////////////////
-        struct { f32 x, y; } move;
-        struct { f32 x, y; } path;
+        Move move;
+        Path path;
     }; ///////////////////////////////////////////
 };
 
-using CommandQueue = std::vector<Command>;
-
-Command move_command(f32 x, f32 y);
-Command path_command(f32 x, f32 y);
+Command make_move_command(u32 id, f32 x, f32 y);
+Command make_path_command(u32 id, f32 x, f32 y);
 

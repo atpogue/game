@@ -1,32 +1,18 @@
 #include "control/actor.hh"
+#include "control/action.hh"
 #include "core/sparse-map.hh"
 #include <cassert>
+#include <memory>
 
 // TODO: action priority?
-// TODO: culmulative log of last N actions
 
 namespace { ///////////////////////////////////////////////////////////////////////////////////
+    using ActionQueue = std::vector<std::unique_ptr<Action>>;
     SparseMap<ActionQueue> components;
 
     ActionQueue *get(Entity e) {
         assert(!ledger::has(e, Flag::Actor) || components.has(e.index));
         return components.get(e.index);
-    }
-
-    bool translate(Entity e, ActionQueue &q, const Command &cmd) {
-        if (q.size() == q.capacity()) return false;
-        bool accepted = false;
-        switch (cmd.type) {
-        case Command::Type::Move:
-            if (!ledger::has(e, Flag::Pose)) break;
-            q.emplace_back(std::make_unique<MoveAction>(cmd.move.x, cmd.move.y), 1u);
-            accepted = true;
-            break;
-        default:
-            assert(!"Command type has no action translation");
-            break;
-        }
-        return accepted;
     }
 } /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +20,7 @@ void actors::create(Entity e, unsigned short capacity) {
     if (components.has(e.index)) return;
     assert(!ledger::has(e, Flag::Actor) && "entity signature is not truthful");
     ledger::sign(e, Flag::Actor, true);
-    auto &q = components.emplace(e.index, e.generation);
+    auto &q = components.emplace(e.index);
     assert(components.has(e.index));
     q.reserve(capacity);
 }
@@ -47,24 +33,14 @@ void actors::destroy(Entity e) {
 }
 
 void actors::step() {
-    for (auto &[i, q] : components) {
-        for (auto &pending : q) {
-            if (pending.age < pending.expiry
-            &&  pending.action != nullptr
-            &&  pending.action->status() == Action::Status::Busy)
-            {
-                pending.action->step({i, ledger::generation(i)});
-            }
-            pending.age++;
+    for (auto &[i, queue] : components) {
+        for (auto &action : queue) {
+            assert(action && "action queue has null action");
+            assert(!action->is_complete() && "action queue has completed action");
+            action->step({i, ledger::generation(i)});
         }
 
-        std::erase_if(q,
-            [](const PendingAction &pending) {
-                return  pending.age >= pending.expiry
-                    || !pending.action
-                    ||  pending.action->status() != Action::Status::Busy;
-            }
-        );
+        std::erase_if(queue, [](const auto &action) { return action->is_complete(); });
     }
 }
 
@@ -77,7 +53,9 @@ unsigned short actors::busy(Entity e) {
 bool actors::act(Entity e, const Command &cmd) {
     ActionQueue *q = get(e);
     if (!q) return false;
-    return translate(e, *q, cmd);
+    if (q->size() == q->capacity()) return false;
+    q->emplace_back(make_action(e, cmd));
+    return true;
 }
 
 unsigned short actors::capacity(Entity e) {

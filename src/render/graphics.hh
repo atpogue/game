@@ -1,5 +1,5 @@
 #pragma once
-#include "core/sdlxx.hh"
+#include "core/render.hh"
 #include "ecs/ledger.hh"
 
 struct Sprite {

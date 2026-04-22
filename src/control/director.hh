@@ -1,5 +1,5 @@
 #pragma once
-#include "input/cue.hh"
+#include "control/command.hh"
 #include "input/keyboard.hh"
 #include "input/mouse.hh"
 #include <generator>
@@ -21,20 +21,24 @@ private:
     /*
     struct {
         KeyboardCue 
-            move_up    = {SDL_SCANCODE_W, On::Press | On::Repeat},
-            move_down  = {SDL_SCANCODE_S, On::Press | On::Repeat},
-            move_left  = {SDL_SCANCODE_A, On::Press | On::Repeat},
-            move_right = {SDL_SCANCODE_D, On::Press | On::Repeat};
-    } cues_;
+            move_up    = {SDL_SCANCODE_W, With::None, On::Press | On::Repeat},
+            move_down  = {SDL_SCANCODE_S, With::None, On::Press | On::Repeat},
+            move_left  = {SDL_SCANCODE_A, With::None, On::Press | On::Repeat},
+            move_right = {SDL_SCANCODE_D, With::None, On::Press | On::Repeat};
+    } cues;
     */
 
-    Keyboard keyboard_;
-    Mouse mouse_;
-
-    // KeyboardCommandMap keyboard_cmds_;
-    // MouseCommandMap mouse_cmds_;
+    Keyboard keyboard;
+    Mouse mouse;
+    u32 next_id = 0u;
 
 };
 
-// TODO: AIDirector
+/* TODO: LLMDirector with planning
+struct PendingCommand {
+    Command cmd;
+    u8 age    = 0u;
+    u8 expiry = 0u;
+};
+*/
 

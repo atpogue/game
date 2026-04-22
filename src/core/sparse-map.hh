@@ -1,5 +1,6 @@
 #pragma once
 #include "core/types.hh"
+#include <cassert>
 #include <concepts>
 #include <vector>
 
