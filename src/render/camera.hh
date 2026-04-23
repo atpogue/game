@@ -20,7 +20,7 @@ struct Camera {
         Iterator(const Iterator &other) = default;
         Iterator &operator=(const Iterator &other) = default;
 
-        glm::vec2 operator*();
+        glm::vec2 operator*() const;
 
         Iterator &operator++();
         Iterator operator++(int);

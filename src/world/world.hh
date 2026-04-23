@@ -3,6 +3,8 @@
 #include "world/tile.hh"
 #include <unordered_map>
 
+struct Camera;
+
 struct World {
 
     World(u32 width, u32 height);
@@ -16,6 +18,8 @@ struct World {
     constexpr u64 size() const { return u64{chunk_size} * width_ * height_; }
 
     constexpr bool has(u32 x, u32 y) const { return x  < width_ && y < height_; }
+
+    void render(const Camera &camera, float tile_size) const;
 
     Tile &operator[](u32 x, u32 y);
 

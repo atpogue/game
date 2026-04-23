@@ -1,5 +1,6 @@
 #include "world/world.hh"
 #include "core/random.hh"
+#include "render/camera.hh"
 
 World::World(u32 width, u32 height)
     : width_{width}, height_{height}
@@ -41,5 +42,16 @@ Chunk &World::get_chunk(u64 key) {
         return chunk;
     }
     return chunk;
+}
+
+void World::render(const Camera &camera, float tile_size) const {
+    for (auto coord : camera) {
+        u32 x = coord.x, y = coord.y;
+        wrap_around(x, y);
+        auto tile = find(x, y);
+        assert(tile && "tile not found despite wrap around");
+        auto pixel = camera.view_coord_at({x, y}) * tile_size;
+        terrains::get(tile->terrain).sprite.draw(pixel.x, pixel.y, camera.zoom);
+    }
 }
 

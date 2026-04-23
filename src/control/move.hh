@@ -4,8 +4,6 @@
 
 struct MoveAction : Action {
 
-    static bool is_compatible(Entity entity);
-
     MoveAction(glm::vec2 to);
     MoveAction(f32 x, f32 y);
     bool is_complete() const override;

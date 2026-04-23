@@ -90,11 +90,12 @@ struct SlotMap {
     struct ConstItem { const Handle<Type> handle; const Type &type; };
 
     struct ConstIterator { //////////////////////////////////////////////////////////////
+        using iterator_category = std::forward_iterator_tag;
 
         ConstIterator(const ConstIterator &other) = default;
         ConstIterator &operator=(const ConstIterator &other) = default;
 
-        ConstItem operator*() {
+        ConstItem operator*() const {
             assert(index < map->slots.size() && "dereferenced end iterator");
             assert(map->slots[index].live && "dereferenced dead slot");
             return {
@@ -130,6 +131,7 @@ struct SlotMap {
 
     struct Iterator { ///////////////////////////////////////////////////////////////////
         // Is this code duplication avoidable?
+        using iterator_category = std::forward_iterator_tag;
 
         Iterator(const Iterator &other) = default;
         Iterator &operator=(const Iterator &other) = default;

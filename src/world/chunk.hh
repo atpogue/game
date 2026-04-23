@@ -2,10 +2,13 @@
 #include "core/grid2.hh"
 #include "world/tile.hh"
 
+struct Camera;
+
 constexpr u32 chunk_size = 64;
 
 struct Chunk : Grid2<Tile, chunk_size, chunk_size> {
     // other relevant data...
+    void render(const Camera &camera, float tile_size) const;
 };
 
 // procedural generation using world seed

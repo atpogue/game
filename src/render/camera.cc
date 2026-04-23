@@ -40,7 +40,7 @@ Camera::Iterator::Iterator(glm::vec2 min, glm::vec2 max, glm::vec2 start)
     , position{start}
 {}
 
-glm::vec2 Camera::Iterator::operator*() { return position; }
+glm::vec2 Camera::Iterator::operator*() const { return position; }
 
 Camera::Iterator &Camera::Iterator::operator++() {
     if (++position.x > max_x) {
