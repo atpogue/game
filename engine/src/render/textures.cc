@@ -44,6 +44,7 @@ Handle<Texture> textures::create(SDL_Surface *surface) {
         SDL_Log("Couldn't create static texture: %s", SDL_GetError());
         return Handle<Texture>::null();
     }
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     return components.emplace(texture);
 }
 

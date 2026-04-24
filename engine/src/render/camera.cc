@@ -1,4 +1,4 @@
-#include "camera.hh"
+#include "render/camera.hh"
 #include <glm/common.hpp>
 
 glm::vec2 Camera::view_coord_at(glm::vec2 world_coord) const {
