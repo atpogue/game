@@ -1,4 +1,4 @@
-#include "control/director.hh"
+#include "player-director.hh"
 #include "control/command.hh"
 
 void PlayerDirector::event(const SDL_Event &e) {

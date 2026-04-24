@@ -21,7 +21,7 @@ FetchContent_Declare (
 )
 FetchContent_MakeAvailable (glm)
 
-add_library (${ENGINE} SHARED)
+add_library (${ENGINE})
 
 target_include_directories (${ENGINE} PUBLIC ${SDL3_INCLUDE_DIRS})
 
