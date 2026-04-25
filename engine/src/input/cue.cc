@@ -10,16 +10,16 @@ static bool keyboard_matches_modifier(const Keyboard &kb, With with) {
 
 bool KeyboardCue::operator()(const Keyboard &kb) const {
     return keyboard_matches_modifier(kb, with) && (
-           has_flag(on, On::Press)   &&  kb.was_pressed(key)
-        || has_flag(on, On::Release) &&  kb.was_released(key)
-        || has_flag(on, On::Repeat)  && !kb.was_pressed(key) && kb[key]
+           (has_flag(on, On::Press)   &&  kb.was_pressed(key))
+        || (has_flag(on, On::Release) &&  kb.was_released(key))
+        || (has_flag(on, On::Repeat)  && !kb.was_pressed(key) && kb[key])
     );
 }
 
 bool MouseCue::operator()(const Mouse &m) const {
-    return has_flag(on, On::Press)   &&  m.was_pressed(button)
-        || has_flag(on, On::Release) &&  m.was_released(button)
-        || has_flag(on, On::Repeat)  && !m.was_pressed(button) && m[button];
+    return (has_flag(on, On::Press)   &&  m.was_pressed(button))
+        || (has_flag(on, On::Release) &&  m.was_released(button))
+        || (has_flag(on, On::Repeat)  && !m.was_pressed(button) && m[button]);
 }
 
 bool MouseCue::operator()(const Mouse &m, const Keyboard &kb) const {

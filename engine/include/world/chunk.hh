@@ -11,9 +11,21 @@ struct Chunk : Grid2<Tile, chunk_size, chunk_size> {
     void render(const Camera &camera, float tile_size) const;
 };
 
-// procedural generation using world seed
-bool generate_chunk(u64 seed, u32 x, u32 y, Chunk& chunk);
+struct ChunkGenerator {
+    virtual ~ChunkGenerator() = default;
+    virtual void generate(u32 x, u32 y, Chunk &chunk) = 0;
+};
 
-// load and apply deltas if there are any
-void load_chunk(u32 x, u32 y, Chunk &chunk);
+struct NullChunkGenerator : ChunkGenerator {
+    void generate(u32, u32, Chunk &) override {};
+};
+
+struct ChunkLoader {
+    virtual ~ChunkLoader() = default;
+    virtual void load(u32 x, u32 y, Chunk &chunk) = 0;
+};
+
+struct NullChunkLoader : ChunkLoader {
+    void load(u32, u32, Chunk &) override {};
+};
 

@@ -1,13 +1,17 @@
+#include "core/invariant.hh"
 #include "world/world.hh"
-#include "core/random.hh"
 #include "render/camera.hh"
 
-World::World(u32 width, u32 height)
+World::World(u32 width, u32 height,
+             std::unique_ptr<ChunkGenerator> generator,
+             std::unique_ptr<ChunkLoader> loader)
     : width_{width}, height_{height}
-    , seed{random_seed()}
-    , chunks()
+    , generator_(generator.release()), loader_(loader.release())
+    , chunks_()
 {
-    assert(width_ != 0u && height_ != 0u);
+    INVARIANT(width_ != 0u && height_ != 0u, "constructing an empty world");
+    INVARIANT(generator_, "chunk generator is undefined");
+    INVARIANT(loader_, "chunk loader is undefined");
 }
 
 Tile &World::operator[](u32 x, u32 y) {
@@ -27,18 +31,18 @@ const Tile *World::find(u32 x, u32 y) const {
 }
 
 const Chunk *World::find_chunk(u64 key) const {
-    if (auto it = chunks.find(key); it != chunks.end())
+    if (auto it = chunks_.find(key); it != chunks_.end())
         return &it->second;
     return nullptr;
 }
 
 Chunk &World::get_chunk(u64 key) {
-    auto [it, is_new] = chunks.try_emplace(key);
+    auto [it, is_new] = chunks_.try_emplace(key);
     auto &chunk = it->second;
     if (is_new) {
         u32 x, y; coord_of(key, x, y);
-        generate_chunk(seed, x, y, chunk);
-        load_chunk(x, y, chunk);
+        generator_->generate(x, y, chunk);
+        loader_->load(x, y, chunk);
         return chunk;
     }
     return chunk;

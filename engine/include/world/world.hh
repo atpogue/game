@@ -1,16 +1,19 @@
 #pragma once
 #include "world/chunk.hh"
 #include "world/tile.hh"
+#include <memory>
 #include <unordered_map>
 
 struct Camera;
 
 struct World {
 
-    World(u32 width, u32 height);
+    World(u32 width, u32 height,
+          std::unique_ptr<ChunkGenerator> generator,
+          std::unique_ptr<ChunkLoader> loader);
 
-    World(const World &other) = default;
-    World &operator=(const World &other) = default;
+    World(const World &other) = delete;
+    World &operator=(const World &other) = delete;
 
     World(World &&other) = default; 
     World &operator=(World &&other) = default;
@@ -32,20 +35,21 @@ struct World {
         y %= (chunk_size * height_);
     }
 
-    constexpr auto begin() const { return chunks.begin(); }
-    constexpr auto begin()       { return chunks.begin(); }
+    constexpr auto begin() const { return chunks_.begin(); }
+    constexpr auto begin()       { return chunks_.begin(); }
 
-    constexpr auto end() const { return chunks.end(); }
-    constexpr auto end()       { return chunks.end(); }
+    constexpr auto end() const { return chunks_.end(); }
+    constexpr auto end()       { return chunks_.end(); }
 
     constexpr u32 width() const { return width_; }
     constexpr u32 height() const { return height_; }
 
 private:
 
-    u64 seed;
     u32 width_, height_;
-    std::unordered_map<u64, Chunk> chunks;
+    std::unique_ptr<ChunkGenerator> generator_;
+    std::unique_ptr<ChunkLoader> loader_;
+    std::unordered_map<u64, Chunk> chunks_;
 
     constexpr u64 key_at(u32 x, u32 y) const {
         return x / chunk_size + (y / chunk_size) * width_;

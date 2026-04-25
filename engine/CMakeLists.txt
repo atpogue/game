@@ -37,4 +37,6 @@ target_link_libraries (
     PUBLIC glm::glm
 )
 
+target_compile_options (${ENGINE} PRIVATE -Wall -Wextra -Wpedantic)
+
 add_subdirectory (src)

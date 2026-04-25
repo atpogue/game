@@ -2,7 +2,7 @@
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_log.h>
 
-void MainMenu::event(const SDL_Event &e) {
+void MainMenu::event(const SDL_Event &) {
 }
 
 void MainMenu::update(f32 dt) {
