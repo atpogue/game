@@ -1,6 +1,6 @@
-#include "core/invariant.hh"
-#include "world/world.hh"
-#include "render/camera.hh"
+#include "engine/core/invariant.hh"
+#include "engine/world/world.hh"
+#include "engine/render/camera.hh"
 
 World::World(u32 width, u32 height,
              std::unique_ptr<ChunkGenerator> generator,

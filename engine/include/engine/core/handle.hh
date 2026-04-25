@@ -1,5 +1,5 @@
 #pragma once
-#include "core/types.hh"
+#include "engine/core/types.hh"
 
 constexpr auto handle_index_max      = UINT32_MAX;
 constexpr auto handle_generation_max = UINT32_MAX;

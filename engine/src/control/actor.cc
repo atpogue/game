@@ -1,6 +1,6 @@
-#include "control/actor.hh"
-#include "control/action.hh"
-#include "core/sparse-map.hh"
+#include "engine/control/actor.hh"
+#include "engine/control/action.hh"
+#include "engine/core/sparse-map.hh"
 #include <cassert>
 #include <memory>
 

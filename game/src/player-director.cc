@@ -1,5 +1,5 @@
 #include "player-director.hh"
-#include "control/command.hh"
+#include "engine/control/command.hh"
 
 void PlayerDirector::event(const SDL_Event &e) {
     mouse.event(e);

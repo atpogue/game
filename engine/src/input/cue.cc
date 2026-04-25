@@ -1,6 +1,6 @@
-#include "input/cue.hh"
-#include "input/keyboard.hh"
-#include "input/mouse.hh"
+#include "engine/input/cue.hh"
+#include "engine/input/keyboard.hh"
+#include "engine/input/mouse.hh"
 
 static bool keyboard_matches_modifier(const Keyboard &kb, With with) {
     return (!has_flag(with, With::Alt)   || kb[SDL_SCANCODE_LALT]   || kb[SDL_SCANCODE_RALT])

@@ -1,5 +1,5 @@
-#include "ecs/ledger.hh"
-#include "core/slot-map.hh"
+#include "engine/ecs/ledger.hh"
+#include "engine/core/slot-map.hh"
 #include <initializer_list>
 
 // problem: signature may not be valid if ledger::sign is used to set components it doesn't have or unset components it does

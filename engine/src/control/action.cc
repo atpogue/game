@@ -1,4 +1,4 @@
-#include "control/action.hh"
+#include "engine/control/action.hh"
 #include <cassert>
 
 Action *make_action(Entity e, const Command &cmd) {

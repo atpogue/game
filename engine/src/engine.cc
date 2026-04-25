@@ -1,5 +1,5 @@
-#include "render/textures.hh"
-#include "control/actor.hh"
+#include "engine/render/textures.hh"
+#include "engine/control/actor.hh"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
 
@@ -13,7 +13,7 @@ void engine_step() {
     actors::step();
 }
 
-void engine_update(float dt) {
+void engine_update(float /*dt*/) {
     // progress animations, effects, and user-interface elements
 }
 

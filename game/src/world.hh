@@ -1,5 +1,5 @@
 #pragma once
-#include "world/chunk.hh"
+#include "engine/world/chunk.hh"
 
 struct MyChunkGenerator : ChunkGenerator {
     MyChunkGenerator(u64 seed);

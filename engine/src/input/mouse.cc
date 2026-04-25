@@ -1,4 +1,4 @@
-#include "input/mouse.hh"
+#include "engine/input/mouse.hh"
 
 bool Mouse::operator[](Uint8 btn) const { return btn >= BUTTON_COUNT ? state_.test(btn) : false; }
 

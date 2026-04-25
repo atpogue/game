@@ -1,6 +1,5 @@
 #pragma once
-#include "core/types.hh"
-#include "core/handle.hh"
+#include "engine/core/handle.hh"
 
 struct Texture;
 struct SDL_Texture;

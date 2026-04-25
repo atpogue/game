@@ -1,7 +1,7 @@
 #include "world.hh"
-#include "core/invariant.hh"
-#include "core/random.hh"
-#include "world/terrain.hh"
+#include "engine/core/invariant.hh"
+#include "engine/core/random.hh"
+#include "engine/world/terrain.hh"
 #include <random>
 
 namespace {

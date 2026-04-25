@@ -1,6 +1,6 @@
 #pragma once
-#include "ecs/ledger.hh"
-#include "control/command.hh"
+#include "engine/ecs/ledger.hh"
+#include "engine/control/command.hh"
 
 struct Action {
 

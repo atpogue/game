@@ -1,5 +1,5 @@
 #pragma once
-#include "control/command.hh"
+#include "engine/control/command.hh"
 #include <generator>
 #include <SDL3/SDL_events.h>
 

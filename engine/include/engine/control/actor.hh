@@ -1,6 +1,6 @@
 #pragma once
-#include "control/command.hh"
-#include "ecs/ledger.hh"
+#include "engine/control/command.hh"
+#include "engine/ecs/ledger.hh"
 
 // TODO: polling of action/command results
 

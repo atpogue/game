@@ -1,7 +1,7 @@
 #define SDL_MAIN_USE_CALLBACKS
-#include "core/types.hh"
+#include "engine/core/types.hh"
 #include "render/internal.hh"
-#include "render/window.hh"
+#include "engine/render/window.hh"
 #include <iostream>
 #include <cmath>
 #include <SDL3/SDL_init.h>
@@ -31,7 +31,7 @@ constexpr f32 step_size = 1.f / 30.f;
 f32 time_lag = 0.f;
 f32 time_prior = 0.f;
 
-SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
+SDL_AppResult SDL_AppInit(void ** /*appstate*/, int /*argc*/, char ** /*argv*/) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "Could not initialize SDL: " << SDL_GetError() << '\n';
         return SDL_APP_FAILURE;
@@ -45,7 +45,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate) {
+SDL_AppResult SDL_AppIterate(void * /*appstate*/) {
     auto time = time_seconds();
     auto dt = time - time_prior;
 
@@ -69,7 +69,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
+SDL_AppResult SDL_AppEvent(void * /*appstate*/, SDL_Event *event) {
     engine_event(*event);
     app_event(*event);
     switch (event->type) {
@@ -81,7 +81,7 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+void SDL_AppQuit(void * /*appstate*/, SDL_AppResult /*result*/) {
     app_quit();
     engine_quit();
     close_window();

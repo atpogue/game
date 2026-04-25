@@ -1,6 +1,6 @@
 #include "render/internal.hh"
-#include "render/textures.hh"
-#include "core/slot-map.hh"
+#include "engine/render/textures.hh"
+#include "engine/core/slot-map.hh"
 #include <map>
 #include <string>
 #include <string_view>

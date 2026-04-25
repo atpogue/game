@@ -1,4 +1,4 @@
-#include "control/command.hh"
+#include "engine/control/command.hh"
 
 Command make_move_command(u32 id, f32 x, f32 y) {
     Command cmd;

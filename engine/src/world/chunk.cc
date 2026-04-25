@@ -1,6 +1,6 @@
-#include "world/chunk.hh"
-#include "world/terrain.hh"
-#include "render/camera.hh"
+#include "engine/world/chunk.hh"
+#include "engine/world/terrain.hh"
+#include "engine/render/camera.hh"
 
 void Chunk::render(const Camera &camera, float tile_size) const {
     for (auto coord : camera) {

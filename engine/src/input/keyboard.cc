@@ -1,4 +1,4 @@
-#include "input/keyboard.hh"
+#include "engine/input/keyboard.hh"
 
 bool Keyboard::operator[](SDL_Scancode key) const { return state_.test(key); }
 

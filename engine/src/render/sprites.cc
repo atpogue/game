@@ -1,7 +1,7 @@
 #include "render/internal.hh"
-#include "render/sprites.hh"
-#include "render/textures.hh"
-#include "core/sparse-map.hh"
+#include "engine/render/sprites.hh"
+#include "engine/render/textures.hh"
+#include "engine/core/sparse-map.hh"
 
 namespace {
     SparseMap<Sprite> components;
@@ -13,7 +13,7 @@ void Sprite::draw(float x, float y, float scale) const {
     assert(texture && "sprite atlas does not map to a texture");
     Rectangle to{x, y, source.w * scale, source.h * scale};
     SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-    SDL_RenderTexture(get_renderer(), texture, &source, &to);
+    SDL_RenderTexture(renderer, texture, &source, &to);
 }
 
 Sprite *sprites::get(Entity e) {

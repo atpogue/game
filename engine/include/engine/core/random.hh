@@ -1,5 +1,5 @@
-#include "core/types.hh"
-#include "core/hash.hh"
+#include "engine/core/types.hh"
+#include "engine/core/hash.hh"
 
 u64 random_seed();
 

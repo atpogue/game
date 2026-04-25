@@ -29,7 +29,7 @@ struct Camera {
 
     private:
 
-        friend class Camera;
+        friend struct Camera;
 
         Iterator(glm::vec2 min, glm::vec2 max, glm::vec2 start);
 

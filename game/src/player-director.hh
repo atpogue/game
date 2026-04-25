@@ -1,6 +1,6 @@
-#include "input/keyboard.hh"
-#include "input/mouse.hh"
-#include "control/director.hh"
+#include "engine/input/keyboard.hh"
+#include "engine/input/mouse.hh"
+#include "engine/control/director.hh"
 
 struct PlayerDirector : Director {
 

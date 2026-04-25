@@ -1,5 +1,5 @@
-#include "world/terrain.hh"
-#include "core/hash.hh"
+#include "engine/world/terrain.hh"
+#include "engine/core/hash.hh"
 #include <cassert>
 #include <vector>
 #include <limits>

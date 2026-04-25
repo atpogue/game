@@ -1,5 +1,5 @@
-#include "control/move.hh"
-#include "ecs/pose.hh"
+#include "engine/control/move.hh"
+#include "engine/ecs/pose.hh"
 #include <glm/geometric.hpp>
 
 Action *make_action(Entity e, const Command::Move &move) {
@@ -17,8 +17,10 @@ bool MoveAction::is_complete() const { return status; }
 bool MoveAction::cancel() { return true; }
 
 void MoveAction::step(Entity e) {
-    if (status) return; status = true;
-    auto pose = poses::get(e); if (!pose) return;
+    if (status) return;
+    status = true;
+    auto pose = poses::get(e);
+    if (!pose) return;
     pose->position += direction;
 }
 
