@@ -1,1 +1,1 @@
-target_sources (${GAME} PRIVATE main.cc player-director.cc world.cc)
+target_sources (${GAME} PRIVATE main.cc player.cc world.cc procgen.cc)

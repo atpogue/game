@@ -48,8 +48,7 @@ struct Grid2 {
     }
 
     constexpr bool has(u32 x, u32 y) const {
-        return x >= 0 && x < width_
-            && y >= 0 && y < height_;
+        return x < width_ && y < height_;
     }
 
     constexpr const Type &operator[](u32 x, u32 y) const { assert(has(x, y)); return data[index(x, y)]; }
