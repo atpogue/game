@@ -7,3 +7,4 @@ target_link_libraries (${GAME} PRIVATE ${ENGINE})
 target_compile_options (${GAME} PRIVATE -Wall -Wextra -Wpedantic)
 
 add_subdirectory (src)
+add_subdirectory (demos)
