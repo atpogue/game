@@ -1,6 +1,8 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
 
+void destroy_all_textures();
+
 // initialize all subsystems
 bool engine_init() {
     return true;
@@ -25,5 +27,6 @@ void engine_event(const SDL_Event &event) {
 
 // clear all subsystems here
 void engine_quit() {
+    destroy_all_textures();
 }
 

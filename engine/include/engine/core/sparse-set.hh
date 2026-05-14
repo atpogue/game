@@ -6,7 +6,7 @@
 #include <vector>
 
 template <typename Type>
-struct SparseMap {
+struct SparseSet {
 
     struct Item { u32 key; Type value; };
 
@@ -19,39 +19,30 @@ struct SparseMap {
 
     [[nodiscard]] constexpr bool has(u32 key) const { return key < sparse.size() && sparse[key] != nil; }
 
-    // assigns the value to the key if it does, creates the key if it doesn't yet exist
+    // assumptions: key is not nil, key doesn't already exist
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Type &emplace(u32 key, Args &&... args) {
         assert(key != nil && "emplace at nil index");
-
         if (key >= sparse.size()) {
             // grow sparse array to include the key
             sparse.resize(sparse_page_size * (1u + key / sparse_page_size), nil);
         }
 
-        u32 i = sparse[key];
-        if (i == nil) {
-            i = dense.size();
-            sparse[key] = i;
-            dense.emplace_back(key, Type(std::forward<Args>(args)...));
-        } else {
-            dense[i].value = Type(std::forward<Args>(args)...);
-        }
-
-        assert(i < dense.size());
-        return dense[i].value;
+        assert(sparse[key] == nil && "emplace on already existing key");
+        sparse[key] = dense.size();
+        return dense.emplace_back(key, Type(std::forward<Args>(args)...)).value;
     }
 
+    // assumptions: key is not nil, key is assigned to an element
     void erase(u32 key) {
-        if (key >= sparse.size()) return;
-        u32 &i = sparse[key];
-        if (i == nil) return;
-        assert(i < dense.size());
+        assert(key != nil && "erase at nil index");
+        assert(has(key) && "erase on non-existent key");
+
+        u32 i = sparse[key];
         sparse[key] = nil;
         sparse[dense.back().key] = i;
-        dense[i].key = dense.back().key;
-        dense[i].value = std::move(dense.back().value);
+        dense[i] = std::move(dense.back());
         dense.pop_back();
     }
 

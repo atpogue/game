@@ -5,29 +5,37 @@
 #include <concepts>
 #include <vector>
 
+// Use assertions such that unexpected/invalid use fails loudly in debug mode,
+// but comes at zero-cost and assumes full trust in release mode.
+
 template <typename Type>
 struct SlotMap {
 
-    SlotMap() = default;
+    SlotMap(u32 limit = UINT32_MAX)
+        : slots_()
+        , limit_{limit}
+        , size_{0u}
+        , first_free_{nil}
+    {}
 
     SlotMap(SlotMap &&) = default;
     SlotMap &operator=(SlotMap &&) = default;
 
     SlotMap &operator=(const SlotMap &) = delete;
 
-    struct Item { const Handle<Type> handle; Type &value; };
-    struct ConstItem { const Handle<Type> handle; const Type &value; };
-
     // Replace the element in the slot and increment the generation, invalidating the old handle.
     // Can be used to represent a new version of the same element, depending on how you interpret generation.
     // If you want to replace the element without changing the generation, use [SlotMap::get] instead.
+    // Assumptions: handle is not null, handle has element.
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Handle<Type> replace(Handle<Type> handle, Args &&... args) {
+        assert(handle && "replace on null handle");
         u32 i = locate(handle);
-        if (i == nil) return nullptr;
+        assert(i != nil && "replace on dead handle");
         Slot &slot = slots_[i];
         assert(slot.live);
+        // doesn't require move constructible
         slot.value.~Type();
         new (&slot.value) Type(std::forward<Args>(args)...);
         ++slot.generation;
@@ -35,18 +43,25 @@ struct SlotMap {
     }
 
     // Fills a slot and returns its handle.
+    // Returns null handle if slot limit is reached.
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Handle<Type> emplace(Args &&... args) {
         u32 i = pop_free_slot();
         if (i == nil) return Handle<Type>::null();
-        return fill_slot(i, std::forward<Args>(args)...);
+        Slot &slot = slots_[i];
+        new (&slot.value) Type(std::forward<Args>(args)...);
+        slot.live = true;
+        ++size_;
+        return {i, slot.generation};
     }
 
     // Empty a slot and mark it for re-use, destroying the element if it exists.
+    // Assumptions: handle is not null, handle has element.
     void erase(Handle<Type> handle) {
+        assert(handle && "erase on null handle");
         auto i = locate(handle);
-        if (i == nil) return;
+        assert(i != nil && "erase on dead handle");
         Slot &slot = slots_[i];
         assert(slot.live);
         ++slot.generation;
@@ -55,14 +70,14 @@ struct SlotMap {
         --size_;
         // if generations max out regularly, the slot array will have increasing amounts of unused slots
         // alternatively, generation could be allowed to overflow and wrap around back to 0
-        if (slot.generation < index_max) {
+        if (slot.generation < limit_) {
             // mark the slot for re-use
             slot.next_free = first_free_;
             first_free_ = i;
         } else slot.next_free = nil;
     }
 
-    void clear() { slots_.clear(); }
+    void clear() { slots_.clear(); first_free_ = 0u; size_ = 0u; }
 
     // Get the full handle associated with the slot at the index.
     [[nodiscard]] constexpr Handle<Type> find(u32 index) const {
@@ -89,6 +104,8 @@ struct SlotMap {
     // Get the number of filled slots.
     [[nodiscard]] constexpr u32 size() const { return size_; }
 
+    [[nodiscard]] constexpr u32 limit() const { return limit_; }
+
     [[nodiscard]] constexpr size_t capacity() const { return slots_.capacity(); }
 
     constexpr void reserve(u32 n) { slots_.reserve(n); }
@@ -98,14 +115,15 @@ struct SlotMap {
 
 private:
 
-    SlotMap(const SlotMap &) = default;
-
-    template <typename Value>
+    template <typename ReferenceType>
     struct Iterator { ///////////////////////////////////////////////////////////////////
+        
         using iterator_concept  = std::forward_iterator_tag;
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
-        using reference         = Value;
+        using value_type        = std::pair<Handle<Type>, Type>;
+        using reference         = std::pair<Handle<Type>, ReferenceType>;
+        using pointer           = void;
 
         Iterator() : owner_{nullptr}, index_{0u} {}
 
@@ -149,6 +167,30 @@ private:
         u32 index_;
 
     }; //////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+    using iterator = Iterator<Type &>;
+    using const_iterator = Iterator<const Type &>;
+
+    [[nodiscard]] constexpr const_iterator begin() const {
+        u32 i = 0u;
+        while (i < slots_.size() && !slots_[i].live) i++;
+        return const_iterator(this, i);
+    }
+
+    [[nodiscard]] constexpr iterator begin() {
+        u32 i = 0u;
+        while (i < slots_.size() && !slots_[i].live) i++;
+        return iterator(this, i);
+    }
+
+    [[nodiscard]] constexpr const_iterator end() const { return const_iterator(this, size()); }
+    [[nodiscard]] constexpr iterator       end()       { return iterator(this, size()); }
+
+private:
+
+    SlotMap(const SlotMap &) = default;
 
     struct Slot { ///////////////////////////////////////////////////////////////////////
 
@@ -213,35 +255,13 @@ private:
             ? handle.index : nil;
     }
 
-    std::vector<Slot> slots_;
-    u32 first_free_ = nil;
-    u32 size_ = 0u;
-
-protected:
-
-    template <typename... Args>
-    requires std::constructible_from<Type, Args...>
-    Handle<Type> fill_slot(u32 i, Args &&... args) {
-        assert(i != nil && i < slots_.size());
-        Slot &slot = slots_[i];
-        new (&slot.value) Type(std::forward<Args>(args)...);
-        slot.live = true;
-        ++size_;
-        return {i, slot.generation};
-    }
-
-    constexpr void next_generation(u32 i) noexcept {
-        assert(i != nil && i < slots_.size());
-        ++slots_[i].generation;
-    }
-
     // remove slot from the free list
     [[nodiscard]] u32 pop_free_slot() {
         u32 i = first_free_;
         if (i == nil) {
             // append a new slot
             i = slots_.size();
-            if (i >= index_max) return nil;
+            if (i >= limit_) return nil;
             slots_.emplace_back();
         } else {
             // re-use the slot
@@ -251,33 +271,10 @@ protected:
         return i;
     }
 
-    // add slot to the free list
-    constexpr void push_free_slot(u32 i) noexcept {
-        assert(i != nil && i < slots_.size());
-        assert(!slots_[i].live);
-        slots_[i].next_free = first_free_;
-        first_free_ = i;
-    }
-
-public:
-
-    using iterator = Iterator<Item>;
-    using const_iterator = Iterator<ConstItem>;
-
-    [[nodiscard]] constexpr const_iterator begin() const {
-        u32 i = 0u;
-        while (i < slots_.size() && !slots_[i].live) i++;
-        return const_iterator(this, i);
-    }
-
-    [[nodiscard]] constexpr iterator begin() {
-        u32 i = 0u;
-        while (i < slots_.size() && !slots_[i].live) i++;
-        return iterator(this, i);
-    }
-
-    [[nodiscard]] constexpr const_iterator end() const { return const_iterator(this, size()); }
-    [[nodiscard]] constexpr iterator       end()       { return iterator(this, size()); }
+    std::vector<Slot> slots_;
+    u32 limit_; // should not change after construction except for move assignment
+    u32 size_;
+    u32 first_free_;
 
 };
 

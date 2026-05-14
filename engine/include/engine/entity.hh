@@ -15,7 +15,7 @@ struct Entity {
 
     auto operator<=>(const Entity &) const = default;
 
-    constexpr explicit operator Handle<void>() { return handle_; }
+    constexpr explicit operator Handle<void>() const { return handle_; }
 
 private:
 
