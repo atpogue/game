@@ -1,4 +1,5 @@
 #include "engine/core/invariant.hh"
+#include "engine/world/terrain.hh"
 #include "engine/world/world.hh"
 #include "engine/render/camera.hh"
 
@@ -55,7 +56,7 @@ void World::render(const Camera &camera, float tile_size) const {
         auto tile = find(x, y);
         assert(tile && "tile not found despite wrap around");
         auto pixel = camera.view_coord_at({x, y}) * tile_size;
-        terrains::get(tile->terrain).sprite.draw(pixel.x, pixel.y, camera.zoom);
+        get_terrain(tile->terrain).sprite.draw(pixel.x, pixel.y, camera.zoom);
     }
 }
 

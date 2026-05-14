@@ -1,27 +1,19 @@
 #pragma once
-#include "engine/render/sprites.hh"
-#include <optional>
+#include "engine/render/textures.hh"
+#include <string>
 #include <string_view>
 
 struct Terrain {
-    using Id = u32;
+    std::string name;
+    Sprite sprite;
 
     enum class Flag : u8 {
         None    = 0,
         Collide = 1 << 0,
-    };
-
-    std::string name;
-    Sprite sprite;
-    Flag flag = Flag::None;
+    } flag = Flag::None;
 };
 
-namespace terrains {
-
-    std::optional<Terrain::Id> find(std::string_view name);
-    const Terrain &get(Terrain::Id id); // assumes the ID is valid
-    std::optional<Terrain::Id> create(std::string_view name, Sprite sprite, Terrain::Flag flag = Terrain::Flag::None);
-
-} // namspace terrians
-
+u32 find_terrain(std::string_view name);
+const Terrain &get_terrain(u32 id); // assumes the ID is valid
+u32 create_terrain(std::string_view name, Sprite sprite, Terrain::Flag flag = Terrain::Flag::None);
 

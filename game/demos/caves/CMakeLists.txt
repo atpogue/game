@@ -15,4 +15,4 @@ target_link_libraries (caves PRIVATE ${ENGINE})
 
 target_compile_options (caves PRIVATE -Wall -Wextra -Wpedantic)
 
-target_sources (caves PRIVATE main.cc "${CMAKE_SOURCE_DIR}/game/src/caves.cc")
+target_sources (caves PRIVATE main.cc "${CMAKE_SOURCE_DIR}/game/src/procgen/caves.cc")

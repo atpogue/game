@@ -1,9 +1,8 @@
-#include "caves.hh"
+#include "procgen/caves.hh"
 #include "engine/core/random.hh"
-#include "engine/core/event.hh"
+#include "engine/event.hh"
 #include "engine/input/keyboard.hh"
 #include "engine/render/camera.hh"
-#include "engine/render/color.hh"
 #include "engine/render/draw.hh"
 #include "engine/render/window.hh"
 #include <cassert>

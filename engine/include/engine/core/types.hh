@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 
 using u8  = uint8_t;
@@ -12,4 +13,8 @@ using i64 = int64_t;
 
 using f32 = float;
 using f64 = double;
+
+using Index = uint32_t;
+constexpr Index index_max = UINT32_MAX;
+constexpr Index nil = index_max;
 

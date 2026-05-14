@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/core/types.hh"
 #include <cassert>
+#include <utility>
 #include <concepts>
 #include <vector>
 
@@ -9,27 +10,28 @@ struct SparseMap {
 
     struct Item { u32 key; Type value; };
 
-    constexpr size_t capacity() const { return dense.capacity(); }
+    [[nodiscard]] constexpr size_t capacity() const { return dense.capacity(); }
 
     void reserve(u32 num_values, u32 num_keys = 0) {
         dense.reserve(num_values);
         sparse.reserve(num_keys);
     }
 
-    bool has(u32 key) const {
-        assert(key >= sparse.size() || sparse[key] == index_max || sparse[key] < dense.size());
-        return key < sparse.size() && sparse[key] < index_max;
-    }
+    [[nodiscard]] constexpr bool has(u32 key) const { return key < sparse.size() && sparse[key] != nil; }
 
     // assigns the value to the key if it does, creates the key if it doesn't yet exist
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Type &emplace(u32 key, Args &&... args) {
-        if (key >= sparse.size())
-            sparse.resize(key + 1, index_max);
+        assert(key != nil && "emplace at nil index");
+
+        if (key >= sparse.size()) {
+            // grow sparse array to include the key
+            sparse.resize(sparse_page_size * (1u + key / sparse_page_size), nil);
+        }
 
         u32 i = sparse[key];
-        if (i >= index_max) {
+        if (i == nil) {
             i = dense.size();
             sparse[key] = i;
             dense.emplace_back(key, Type(std::forward<Args>(args)...));
@@ -37,16 +39,16 @@ struct SparseMap {
             dense[i].value = Type(std::forward<Args>(args)...);
         }
 
-        assert(i < index_max && i < dense.size());
+        assert(i < dense.size());
         return dense[i].value;
     }
 
     void erase(u32 key) {
         if (key >= sparse.size()) return;
         u32 &i = sparse[key];
-        if (i == index_max) return;
+        if (i == nil) return;
         assert(i < dense.size());
-        sparse[key] = index_max;
+        sparse[key] = nil;
         sparse[dense.back().key] = i;
         dense[i].key = dense.back().key;
         dense[i].value = std::move(dense.back().value);
@@ -55,20 +57,26 @@ struct SparseMap {
 
     void clear() { dense.clear(); sparse.clear(); }
 
-    const Type *get(u32 key) const { return has(key) ? &dense[sparse[key]].value : nullptr; }
-          Type *get(u32 key)       { return has(key) ? &dense[sparse[key]].value : nullptr; }
+    [[nodiscard]] const Type &operator[](u32 key) const { assert(has(key)); return dense[sparse[key]].value; }
+    [[nodiscard]]       Type &operator[](u32 key)       { assert(has(key)); return dense[sparse[key]].value; }
 
-    constexpr size_t size() const { return dense.size(); }
+    [[nodiscard]] const Type *get(u32 key) const { return has(key) ? &dense[sparse[key]].value : nullptr; }
+    [[nodiscard]]       Type *get(u32 key)       { return has(key) ? &dense[sparse[key]].value : nullptr; }
 
-    constexpr auto begin() const { return dense.begin(); }
-    constexpr auto begin()       { return dense.begin(); }
+    [[nodiscard]] constexpr size_t size() const { return dense.size(); }
 
-    constexpr auto end() const { return dense.end(); }
-    constexpr auto end()       { return dense.end(); }
+    using iterator = std::vector<Item>::iterator;
+    using const_iterator = std::vector<Item>::const_iterator;
+
+    [[nodiscard]] constexpr const_iterator begin() const { return dense.begin(); }
+    [[nodiscard]] constexpr iterator       begin()       { return dense.begin(); }
+
+    [[nodiscard]] constexpr const_iterator end() const { return dense.end(); }
+    [[nodiscard]] constexpr iterator       end()       { return dense.end(); }
 
 private:
 
-    static constexpr u32 index_max = UINT32_MAX;
+    static constexpr u32 sparse_page_size = 256; // 256 * 4B = 1 KB of memory
 
     std::vector<Item> dense;
     // if the largest index used is huge the sparse array will use a lot of memory

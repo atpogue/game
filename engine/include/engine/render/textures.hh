@@ -1,17 +1,26 @@
 #pragma once
 #include "engine/core/handle.hh"
+#include "engine/render/draw.hh"
 #include <SDL3/SDL_render.h>
 #include <string_view>
 
 struct Texture;
 
-namespace textures {
+Handle<Texture> create_texture(std::string_view path);
+Handle<Texture> create_texture(SDL_Surface *surface);
 
-    Handle<Texture> create(std::string_view path);
-    Handle<Texture> create(SDL_Surface *surface);
-    void destroy(Handle<Texture> handle);
+void destroy_texture(Handle<Texture> handle);
 
-    void quit();
+void draw_texture(Handle<Texture> texture, Rectangle source, Rectangle dest, Color tint);
 
-} // namespace textures
+struct Sprite {
+
+    Handle<Texture> atlas;
+    Rectangle source;
+    Color color;
+
+    // assumes the sprite is valid
+    void draw(float x, float y, float scale=1.f) const;
+
+};
 

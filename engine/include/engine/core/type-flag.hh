@@ -18,28 +18,25 @@ public:
     using Base::count;
     using Base::size;
     using Base::reset;
+    using Base::operator==;
 
     template <typename U, typename... Us>
     constexpr void set(bool value = true) {
-        bits_.set(Types::template index_of<U>(), value);
-        (bits_.set(Types::template index_of<Us>(), value), ...);
+        Base::set(Types::template index<U>(), value);
+        (Base::set(Types::template index<Us>(), value), ...);
     }
 
-    constexpr bool has(u32 i) const { return bits_.test(i); }
+    constexpr bool has(u32 i) const { return Base::test(i); }
 
     constexpr bool has(const TypeFlag &other) const {
-        return (bits_ & other.bits_) == other.bits_;
+        return ((Base)(*this) & (Base)(other)) == (Base)(other);
     }
 
     template <typename U, typename... Us>
     constexpr bool has() {
-        return bits_.test(Types::template index_of<U>())
-            && (bits_.test(Types::template index_of<Us>()) && ...);
+        return Base::test(Types::template index<U>())
+            && (Base::test(Types::template index<Us>()) && ...);
     }
-
-private:
-
-    std::bitset<Types::size> bits_;
 
 };
 

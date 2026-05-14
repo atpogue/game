@@ -1,6 +1,5 @@
 #pragma once
-#include "engine/ecs/ledger.hh"
-#include "engine/control/command.hh"
+#include "engine/registry.hh"
 
 struct Action {
 
@@ -10,14 +9,11 @@ struct Action {
 
     // progress the simulation forwards one fixed time step
     // action steps run before simulation step
-    virtual void step(Entity entity) = 0;
+    virtual void step(Registry &registry, Entity entity) = 0;
 
     // ask the action to complete or halt
     // can be rejected if doing so would leave the simulation in an invalid state
     virtual bool cancel() = 0;
 
 };
-
-Action *make_action(Entity e, const Command::Move &move);
-Action *make_action(Entity e, const Command &cmd);
 

@@ -1,15 +1,25 @@
 #pragma once
 #include "engine/core/types.hh"
+#include <compare>
 
-constexpr auto handle_index_max      = UINT32_MAX;
-constexpr auto handle_generation_max = UINT32_MAX;
-
+// Used to represent a reference that can become stale (referring a deleted element)
+// similar to the role of a weak pointer.
 template <typename Tag>
 struct Handle {
-    u32 index      = handle_index_max;
-    u32 generation = handle_generation_max;
-    auto operator<=>(const Handle<Tag> &) const = default;
+
+    u32 index      = nil;
+    u32 generation = nil;
+
+    [[nodiscard]] static constexpr Handle<Tag> null() { return {nil, nil}; }
+
+    std::strong_ordering operator<=>(const Handle<Tag> &) const = default;
+
+    constexpr operator Handle<void>() const { return {index, generation}; }
+
+    template <typename T>
+    constexpr explicit operator Handle<T>() const { return {index, generation}; }
+
     constexpr explicit operator bool() const { return *this != Handle<Tag>::null(); }
-    static constexpr Handle<Tag> null() { return {handle_index_max, handle_generation_max}; }
+
 };
 

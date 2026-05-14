@@ -69,9 +69,9 @@ void generate_cave(
 }
 
 static auto find_terrain_or_fail(const char *name) {
-    auto found = terrains::find(name);
-    INVARIANT(found, "terrain undefined");
-    return *found;
+    auto found = find_terrain(name);
+    INVARIANT(found != nil, "terrain undefined");
+    return found;
 };
 
 CaveGenerator::CaveGenerator(u64 seed)
@@ -80,7 +80,7 @@ CaveGenerator::CaveGenerator(u64 seed)
 
 void CaveGenerator::generate(u32 x, u32 y, Chunk &chunk) {
     const auto hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
-    Grid2<Terrain::Id> cave(chunk_size, chunk_size);
+    Grid2<u32> cave(chunk_size, chunk_size);
 
     // uniformly random fill
     Xoshiro256ss rng{hash};

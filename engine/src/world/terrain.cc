@@ -8,26 +8,25 @@
 namespace {
     std::vector<Terrain> data;
     // transparent hash allows lookup with string views
-    std::unordered_map<std::string, Terrain::Id, TransparentHash<std::string_view>, std::equal_to<>> lookup;
+    std::unordered_map<std::string, u32, TransparentHash<std::string_view>, std::equal_to<>> lookup;
 }
 
-const Terrain &terrains::get(Terrain::Id id) {
+const Terrain &get_terrain(u32 id) {
     assert(id < data.size() && "invalid terrain id");
     return data[id];
 }
 
-std::optional<Terrain::Id> terrains::find(std::string_view name) {
-    if (auto it = lookup.find(name); it != lookup.end())
-        return std::make_optional(it->second);
-    return {};
+u32 find_terrain(std::string_view name) {
+    if (auto it = lookup.find(name); it != lookup.end()) return it->second;
+    return nil;
 }
 
-std::optional<Terrain::Id> terrains::create(std::string_view name, Sprite sprite, Terrain::Flag flag) {
-    if (data.size() > std::numeric_limits<Terrain::Id>::max()) return {};
+u32 create_terrain(std::string_view name, Sprite sprite, Terrain::Flag flag) {
+    if (data.size() > std::numeric_limits<u32>::max()) return nil;
     // check validity of sprite atlas
-    Terrain::Id id = data.size();
-    if (auto [_, is_new] = lookup.emplace(name, id); !is_new) return {};
+    u32 id = data.size();
+    if (auto [_, is_new] = lookup.emplace(name, id); !is_new) return nil;
     data.emplace_back(std::string(name), sprite, flag);
-    return std::make_optional(id);
+    return id;
 }
 

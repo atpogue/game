@@ -1,9 +1,9 @@
 #pragma once
-#include "engine/world/terrain.hh"
+#include "engine/entity.hh"
 #include <vector>
 
 struct Tile {
-    Terrain::Id terrain;
+    u32 terrain;
     std::vector<Entity> occupants;
 };
 
