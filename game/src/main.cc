@@ -1,14 +1,14 @@
+#include "action/move.hh"
+#include "component/pose.hh"
 #include "director.hh"
-#include "engine/component/pose.hh"
-#include "engine/component/actor.hh"
 #include "engine/core/random.hh"
 #include "engine/event.hh"
-#include "engine/registry.hh"
 #include "engine/render/camera.hh"
 #include "engine/render/textures.hh"
 #include "engine/render/window.hh"
 #include "engine/world/terrain.hh"
 #include "procgen/world.hh"
+#include "registry.hh"
 #include <cassert>
 #include <glm/common.hpp>
 #include <random>
@@ -31,7 +31,7 @@ namespace { ////////////////////////////////////////////////////////////////////
     SplitMix64 rng(seed);
     std::uniform_int_distribution<u32> dist{0u, chunk_size-1u};
 
-    Registry registry;
+    GameRegistry registry;
 
     Chunk chunk;
     Camera camera;
@@ -63,16 +63,13 @@ static void load_world(u32 x, u32 y) {
 
 void create_player(f32 x, f32 y) {
     player.entity = registry.create();
-    registry.emplace<Actor>(player.entity, 2);
     registry.emplace<Pose>(player.entity, glm::vec2{x, y});
+    assert(registry.has<Pose>(player.entity));
 }
 
 void process_input() {
-    auto actor = registry.get<Actor>(player.entity);
-    if (!actor) return;
     for (auto command : player.director.generate()) {
-        // TODO: check for room before allocating an action
-        actor->try_submit(make_action(registry, player.entity, command));
+        try_submit_command(registry, player.entity, command);
     }
 }
 
@@ -80,18 +77,23 @@ bool app_init() {
     camera.viewport = {800.f/tile_size, 600.f/tile_size};
     camera.zoom = 1.3f;
     create_player(chunk_size * 0.5f, chunk_size * 0.5f);
-    assert(registry.has<Actor>(player.entity));
-    assert(registry.has<Pose>(player.entity));
     if (!load_terrain()) return false;
     load_world(dist(rng), dist(rng));
     return true;
 }
 
 void app_step() {
-    // TODO: ability to query all entities matching a component signature
     process_input();
-    auto actor = registry.get<Actor>(player.entity);
-    if (actor) actor->step(registry, player.entity);
+    if (auto action = registry.get<MoveAction>(player.entity)) {
+        switch (act(registry, player.entity, *action)) {
+        case ActionResult::Canceled:
+        case ActionResult::Complete:
+            registry.erase<MoveAction>(player.entity);
+            break;
+        case ActionResult::Ongoing:
+            break;
+        }
+    }
 }
 
 void app_update(float) {

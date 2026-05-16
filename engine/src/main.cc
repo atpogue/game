@@ -46,13 +46,15 @@ SDL_AppResult SDL_AppInit(void ** /*appstate*/, int /*argc*/, char ** /*argv*/) 
 }
 
 SDL_AppResult SDL_AppIterate(void * /*appstate*/) {
-    auto time = time_seconds();
-    auto dt = time - time_prior;
+    f32 time = time_seconds();
+    f32 dt = time - time_prior;
+    time_lag += dt;
 
-    for (time_lag += dt; time_lag >= step_size; time_lag -= step_size) {
+    while (time_lag >= step_size) {
         // progress the simulation forwards one fixed time step
         engine_step();
         app_step();
+        time_lag -= step_size;
     }
 
     dt = fmin(dt, 0.25f);

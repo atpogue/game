@@ -39,10 +39,12 @@ struct SparseSet {
         assert(key != nil && "erase at nil index");
         assert(has(key) && "erase on non-existent key");
 
-        u32 i = sparse[key];
+        if (u32 end = dense.back().key; key != end) {
+            sparse[end] = sparse[key];
+            dense[sparse[end]] = std::move(dense.back());
+        }
+
         sparse[key] = nil;
-        sparse[dense.back().key] = i;
-        dense[i] = std::move(dense.back());
         dense.pop_back();
     }
 

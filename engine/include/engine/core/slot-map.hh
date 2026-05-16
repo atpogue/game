@@ -16,7 +16,9 @@ struct SlotMap {
         , limit_{limit}
         , size_{0u}
         , first_free_{nil}
-    {}
+    {
+        assert(limit > 0u && "constructed unusable slot map");
+    }
 
     SlotMap(SlotMap &&) = default;
     SlotMap &operator=(SlotMap &&) = default;

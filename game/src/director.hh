@@ -5,6 +5,8 @@
 #include <generator>
 #include <SDL3/SDL_events.h>
 
+// TODO: polling of action results
+
 // Generates commands to pass to Actors
 struct Director {
     virtual void event(const SDL_Event &e) = 0;

@@ -1,8 +1,5 @@
 #pragma once
-#include "engine/action.hh"
-#include "engine/core/types.hh"
-#include "engine/registry.hh"
-#include <memory>
+#include "registry.hh"
 
 struct Command {
     u32 id;
@@ -20,7 +17,8 @@ struct Command {
 Command make_move_command(u32 id, f32 x, f32 y);
 Command make_path_command(u32 id, f32 x, f32 y);
 
-std::unique_ptr<Action> make_action(const Registry &registry, Entity e, const Command &cmd);
-std::unique_ptr<Action> make_action(const Registry &registry, Entity e, const Command::Move &move);
-constexpr std::unique_ptr<Action> make_action(const Registry &, Entity, const Command::Path &) { return nullptr; }
+// TODO: more informative command submission error (std::expected?)
+
+// can be rejected if the entity doesn't have the components to execute the command
+bool try_submit_command(GameRegistry &, Entity, const Command &);
 
