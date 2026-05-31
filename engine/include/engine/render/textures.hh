@@ -13,14 +13,3 @@ void destroy_texture(Handle<Texture> handle);
 
 void draw_texture(Handle<Texture> texture, Rectangle source, Rectangle dest, Color tint);
 
-struct Sprite {
-
-    Handle<Texture> atlas;
-    Rectangle source;
-    Color color;
-
-    // assumes the sprite is valid
-    void draw(float x, float y, float scale=1.f) const;
-
-};
-

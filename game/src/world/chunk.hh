@@ -1,6 +1,6 @@
 #pragma once
 #include "engine/core/grid2.hh"
-#include "engine/world/tile.hh"
+#include "world/tile.hh"
 
 struct Camera;
 

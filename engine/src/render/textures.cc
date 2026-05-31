@@ -70,7 +70,3 @@ void draw_texture(Handle<Texture> handle, Rectangle source, Rectangle dest, Colo
     SDL_RenderTexture(renderer, texture, &source, &dest);
 }
 
-void Sprite::draw(float x, float y, float scale) const {
-    draw_texture(atlas, source, {x, y, source.w * scale, source.h * scale}, color);
-}
-

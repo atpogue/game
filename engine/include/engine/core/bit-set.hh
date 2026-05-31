@@ -16,30 +16,31 @@ struct BitSet {
     BitSet(BitSet &&) noexcept            = default;
     BitSet &operator=(const BitSet &)     = default;
     BitSet &operator=(BitSet &&) noexcept = default;
+    ~BitSet() noexcept                    = default;
 
-    constexpr void set(u32 bit, bool value = true) {
+    void set(u32 bit, bool value = true) noexcept {
         assert(bit < size_);
         if (value) { words_[bit / 64u] |=  (1ull << (bit % 64u)); ++count_; }
         else       { words_[bit / 64u] &= ~(1ull << (bit % 64u)); --count_; }
     }
 
-    constexpr bool get(u32 bit) const {
+    bool get(u32 bit) const noexcept {
         assert(bit < size_);
         return (words_[bit / 64u] >> (bit % 64u)) & 1ull;
     }
 
-    constexpr bool any() const { return !none(); }
+    bool any() const noexcept { return !none(); }
 
-    constexpr bool none() const { return count_ == 0u; }
+    bool none() const noexcept { return count_ == 0u; }
 
     // Returns the number of bits set to true.
-    constexpr u32 count() const { return count_; }
+    u32 count() const noexcept { return count_; }
 
-    void reset() { std::fill(words_.begin(), words_.end(), 0ull); }
+    void fill(bool value) { std::fill(words_.begin(), words_.end(), value ? UINT64_MAX : 0ull); }
 
-    constexpr u32 size() const { return size_; }
+    u32 size() const noexcept { return size_; }
 
-    BitSet &operator|=(const BitSet &other) {
+    BitSet &operator|=(const BitSet &other) noexcept {
         assert(this != &other);
         assert(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
@@ -47,12 +48,12 @@ struct BitSet {
         return *this;
     }
 
-    BitSet operator|(const BitSet &other) const {
+    BitSet operator|(const BitSet &other) const noexcept {
         assert(this != &other);
         return BitSet(*this) |= other;
     }
 
-    BitSet &operator&=(const BitSet &other) {
+    BitSet &operator&=(const BitSet &other) noexcept {
         assert(this != &other);
         assert(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
@@ -60,12 +61,12 @@ struct BitSet {
         return *this;
     }
 
-    BitSet operator&(const BitSet &other) const {
+    BitSet operator&(const BitSet &other) const noexcept {
         assert(this != &other);
         return BitSet(*this) &= other;
     }
 
-    BitSet &operator^=(const BitSet &other) {
+    BitSet &operator^=(const BitSet &other) noexcept {
         assert(this != &other);
         assert(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
@@ -73,21 +74,21 @@ struct BitSet {
         return *this;
     }
 
-    BitSet operator^(const BitSet &other) const {
+    BitSet operator^(const BitSet &other) const noexcept {
         assert(this != &other);
         return BitSet(*this) ^= other;
     }
 
     // Are all flipped bits in this set also flipped in the other set?
     // Assumes: The bitsets are the same size.
-    bool operator==(const BitSet &other) const {
+    bool operator==(const BitSet &other) const noexcept {
         assert(this != &other);
         assert(size_ == other.size_);
         return count_ == other.count_
             && words_ == other.words_;
     }
 
-    bool operator!=(const BitSet &other) const { return !(*this == other); }
+    bool operator!=(const BitSet &other) const noexcept { return !(*this == other); }
 
 private:
 

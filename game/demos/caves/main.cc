@@ -1,4 +1,5 @@
-#include "procgen/caves.hh"
+#include "world/caves.hh"
+#include "world/terrain.hh"
 #include "engine/core/random.hh"
 #include "engine/event.hh"
 #include "engine/input/keyboard.hh"
@@ -12,7 +13,6 @@
 
 namespace { ///////////////////////////////////////////////////////////////////////////////
 
-    constexpr f32 tile_size = 16.f;
     constexpr u32 cave_width = 64u, cave_height = 64u;
     u32 iterations = 0u;
 
@@ -40,7 +40,7 @@ bool app_init() {
     new_cave();
     camera.viewport = {800.f/tile_size, 600.f/tile_size};
     camera.zoom = 1.3f;
-    return true;
+    return load_terrain();
 }
 
 void app_step() {

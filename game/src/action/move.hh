@@ -1,3 +1,4 @@
+#pragma once
 #include "action/result.hh"
 #include "registry.hh"
 #include <glm/vec2.hpp>

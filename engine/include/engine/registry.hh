@@ -2,7 +2,7 @@
 #include "engine/core/invariant.hh"
 #include "engine/core/slot-map.hh"
 #include "engine/core/sparse-set.hh"
-#include "engine/core/type-util.hh"
+#include "engine/core/type-info.hh"
 #include "engine/entity.hh"
 #include <vector>
 #include <memory>
@@ -11,15 +11,15 @@
 
 // Type-erased interface to component storage.
 struct AnyComponentStore {
-    virtual ~AnyComponentStore() = default;
+    virtual ~AnyComponentStore() noexcept = default;
     virtual bool has(u32 index) const = 0;
     virtual void erase(u32 index) = 0;
 };
 
-template <typename T>
-struct ComponentStore : AnyComponentStore, SparseSet<T> {
-    bool has(u32 i) const override { return SparseSet<T>::has(i); }
-    void erase(u32 i) override { SparseSet<T>::erase(i); }
+template <typename Type>
+struct ComponentStore : AnyComponentStore, SparseSet<Type> {
+    bool has(u32 i) const override { return SparseSet<Type>::has(i); }
+    void erase(u32 i) override { SparseSet<Type>::erase(i); }
 };
 
 // Use assertions to check internal logic, invariants to check external input.

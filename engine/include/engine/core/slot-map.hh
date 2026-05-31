@@ -11,7 +11,14 @@
 template <typename Type>
 struct SlotMap {
 
-    SlotMap(u32 limit = UINT32_MAX)
+    using size_type       = u32;
+    using value_type      = Type;
+    using reference       = Type &;
+    using const_reference = const Type &;
+    using pointer         = Type *;
+    using const_pointer   = const Type *;
+
+    explicit SlotMap(u32 limit = UINT32_MAX)
         : slots_()
         , limit_{limit}
         , size_{0u}
@@ -20,10 +27,10 @@ struct SlotMap {
         assert(limit > 0u && "constructed unusable slot map");
     }
 
-    SlotMap(SlotMap &&) = default;
-    SlotMap &operator=(SlotMap &&) = default;
-
+    SlotMap(SlotMap &&) noexcept = default;
+    SlotMap &operator=(SlotMap &&) noexcept = default;
     SlotMap &operator=(const SlotMap &) = delete;
+    ~SlotMap() noexcept = default;
 
     // Replace the element in the slot and increment the generation, invalidating the old handle.
     // Can be used to represent a new version of the same element, depending on how you interpret generation.
@@ -31,7 +38,9 @@ struct SlotMap {
     // Assumptions: handle is not null, handle has element.
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
-    Handle<Type> replace(Handle<Type> handle, Args &&... args) {
+    Handle<Type> replace(Handle<Type> handle, Args &&... args)
+    noexcept(std::is_nothrow_destructible_v<Type> && std::is_nothrow_constructible_v<Type, Args...>)
+    {
         assert(handle && "replace on null handle");
         u32 i = locate(handle);
         assert(i != nil && "replace on dead handle");
@@ -60,7 +69,7 @@ struct SlotMap {
 
     // Empty a slot and mark it for re-use, destroying the element if it exists.
     // Assumptions: handle is not null, handle has element.
-    void erase(Handle<Type> handle) {
+    void erase(Handle<Type> handle) noexcept {
         assert(handle && "erase on null handle");
         auto i = locate(handle);
         assert(i != nil && "erase on dead handle");
@@ -79,10 +88,12 @@ struct SlotMap {
         } else slot.next_free = nil;
     }
 
-    void clear() { slots_.clear(); first_free_ = 0u; size_ = 0u; }
+    void clear() noexcept {
+        slots_.clear(); first_free_ = 0u; size_ = 0u;
+    }
 
     // Get the full handle associated with the slot at the index.
-    [[nodiscard]] constexpr Handle<Type> find(u32 index) const {
+    [[nodiscard]] Handle<Type> find(u32 index) const noexcept {
         // rename to get_handle?
         return index != nil 
             && index < slots_.size()
@@ -91,48 +102,58 @@ struct SlotMap {
     }
 
     // Is this handle associated with a value.
-    [[nodiscard]] constexpr bool has(Handle<Type> handle) const { return locate(handle) != nil; }
+    [[nodiscard]] bool has(Handle<Type> handle) const noexcept { return locate(handle) != nil; }
 
-    [[nodiscard]] constexpr const Type *get(Handle<Type> handle) const {
+    [[nodiscard]] const_pointer get(Handle<Type> handle) const noexcept {
         auto i = locate(handle);
         return i != nil ? &slots_[i].value : nullptr;
     }
 
-    [[nodiscard]] constexpr Type *get(Handle<Type> handle) {
+    [[nodiscard]] pointer get(Handle<Type> handle) noexcept {
         auto i = locate(handle);
         return i != nil ? &slots_[i].value : nullptr;
     }
 
     // Get the number of filled slots.
-    [[nodiscard]] constexpr u32 size() const { return size_; }
+    [[nodiscard]] u32 size() const noexcept { return size_; }
 
-    [[nodiscard]] constexpr u32 limit() const { return limit_; }
+    [[nodiscard]] u32 limit() const noexcept { return limit_; }
 
-    [[nodiscard]] constexpr size_t capacity() const { return slots_.capacity(); }
+    [[nodiscard]] size_t capacity() const noexcept { return slots_.capacity(); }
 
-    constexpr void reserve(u32 n) { slots_.reserve(n); }
+    void reserve(u32 n) { slots_.reserve(n); }
 
     // Explicit copy to prevent unintended implicit copy construction.
-    [[nodiscard]] SlotMap copy() const { return *this; }
+    [[nodiscard]] SlotMap copy() const requires std::is_nothrow_copy_constructible_v<Type> { return *this; }
 
 private:
 
-    template <typename ReferenceType>
+    template <bool IsConst>
     struct Iterator { ///////////////////////////////////////////////////////////////////
-        
+    private:
+
+        using ReferenceType = std::conditional_t<IsConst, const Type &, Type &>;
+        using OwnerPtr      = std::conditional_t<IsConst, const SlotMap *, SlotMap *>;
+
+    public:
+
         using iterator_concept  = std::forward_iterator_tag;
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
-        using value_type        = std::pair<Handle<Type>, Type>;
-        using reference         = std::pair<Handle<Type>, ReferenceType>;
-        using pointer           = void;
+        using value_type        = std::pair<Handle<Type>, ReferenceType>;
+        using reference         = value_type;
+        using pointer           = void; // proxy; no operator-> provided
 
         Iterator() : owner_{nullptr}, index_{0u} {}
 
         Iterator(const Iterator &other) = default;
         Iterator &operator=(const Iterator &other) = default;
 
-        reference operator*() const {
+        operator Iterator<true>() const noexcept requires (!IsConst) {
+            return Iterator<true>(owner_, index_);
+        }
+
+        reference operator*() const noexcept {
             assert(owner_ && "dereferenced singular iterator");
             assert(index_ < owner_->slots_.size() && "dereferenced end iterator");
             assert(owner_->slots_[index_].live == true && "dereferenced dead slot");
@@ -142,7 +163,7 @@ private:
             };
         }
 
-        Iterator &operator++() {
+        Iterator &operator++() noexcept {
             assert(owner_ && "incremented singular iterator");
             if (index_ >= owner_->slots_.size()) return *this;
             do { ++index_; }
@@ -150,55 +171,55 @@ private:
             return *this;
         }
 
-        Iterator operator++(int) { auto temp = *this; ++(*this); return temp; }
+        Iterator operator++(int) noexcept { auto temp = *this; ++(*this); return temp; }
 
-        bool operator==(const Iterator &) const = default;
+        bool operator==(const Iterator &) const noexcept = default;
 
     private:
 
         friend struct SlotMap<Type>;
 
-        Iterator(const SlotMap *map, u32 index)
+        Iterator(OwnerPtr map, u32 index) noexcept
             : owner_{map}, index_{index}
         {
             assert(owner_ && "constructed without parent container");
             assert(index_ <= owner_->slots_.size() && "constructed with invalid index");
         }
 
-        const SlotMap *owner_;
+        OwnerPtr owner_;
         u32 index_;
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
 public:
 
-    using iterator = Iterator<Type &>;
-    using const_iterator = Iterator<const Type &>;
+    using iterator = Iterator<false>;
+    using const_iterator = Iterator<true>;
 
-    [[nodiscard]] constexpr const_iterator begin() const {
+    [[nodiscard]] const_iterator begin() const noexcept {
         u32 i = 0u;
         while (i < slots_.size() && !slots_[i].live) i++;
         return const_iterator(this, i);
     }
 
-    [[nodiscard]] constexpr iterator begin() {
+    [[nodiscard]] iterator begin() noexcept {
         u32 i = 0u;
         while (i < slots_.size() && !slots_[i].live) i++;
         return iterator(this, i);
     }
 
-    [[nodiscard]] constexpr const_iterator end() const { return const_iterator(this, size()); }
-    [[nodiscard]] constexpr iterator       end()       { return iterator(this, size()); }
+    [[nodiscard]] const_iterator end() const noexcept { return const_iterator(this, size()); }
+    [[nodiscard]] iterator       end()       noexcept { return iterator(this, size()); }
 
 private:
 
-    SlotMap(const SlotMap &) = default;
+    SlotMap(const SlotMap &) requires std::is_copy_constructible_v<Type> = default;
 
     struct Slot { ///////////////////////////////////////////////////////////////////////
 
         Slot() noexcept : live(false), generation(0u), next_free(nil) {}
 
-        Slot(const Slot &other) 
+        Slot(const Slot &other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
             : live(other.live), generation(other.generation)
         {
             if (live) {
@@ -206,7 +227,7 @@ private:
             } else next_free = other.next_free;
         }
 
-        Slot& operator=(const Slot &other) {
+        Slot& operator=(const Slot &other) noexcept(std::is_nothrow_copy_constructible_v<Type>) {
             live = other.live;
             generation = other.generation;
             if (live) {
@@ -232,7 +253,7 @@ private:
             } else next_free = other.next_free;
         }
 
-        ~Slot() { if (live) value.~Type(); }
+        ~Slot() noexcept { if (live) value.~Type(); }
 
         bool live;
         u32 generation;
@@ -248,7 +269,7 @@ private:
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
-    [[nodiscard]] constexpr u32 locate(Handle<Type> handle) const {
+    [[nodiscard]] u32 locate(Handle<Type> handle) const noexcept {
         return handle.index != nil 
             && handle.index < slots_.size()
             && slots_[handle.index].live
@@ -257,7 +278,7 @@ private:
             ? handle.index : nil;
     }
 
-    // remove slot from the free list
+    // remove slot from the free list or create a slot if free list is empty
     [[nodiscard]] u32 pop_free_slot() {
         u32 i = first_free_;
         if (i == nil) {

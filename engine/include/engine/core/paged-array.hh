@@ -31,7 +31,7 @@ private:
               Type *at(u32 i)       noexcept { return std::launder(reinterpret_cast<      Type *>(storage) + i); }
         const Type *at(u32 i) const noexcept { return std::launder(reinterpret_cast<const Type *>(storage) + i); }
 
-        ~Page() noexcept(std::is_nothrow_destructible_v<Type>) {
+        ~Page() noexcept {
             if constexpr (!std::is_trivially_destructible_v<Type>) { // constexpr if statement?
                 for (u32 i = 0u; i < PageSize; ++i)
                     if (occupied[i]) std::destroy_at(at(i));
@@ -109,6 +109,7 @@ public:
     /// Assumes: there is no element at [idx]
     template <typename... Args>
     reference emplace(u32 idx, Args&&... args) {
+        assert(idx != nil && "emplace on nil index");
         Page &page = get_or_create_page(idx);
         u32 s = slot_of(idx);
         assert(!page.occupied[s] && "emplace on existing element");
@@ -119,7 +120,8 @@ public:
     }
 
     /// Assumes: there is an element at [idx]
-    void erase(u32 idx) noexcept(std::is_nothrow_destructible_v<Type>) {
+    void erase(u32 idx) noexcept {
+        assert(idx != nil && "erase on nil index");
         Page *page = get_page(idx);
         u32 s = slot_of(idx);
         assert(page && page->occupied[s] && "erase on non-existing element");
@@ -130,7 +132,7 @@ public:
         if (page->count == 0) pages_[page_of(idx)].reset();
     }
 
-    void clear() noexcept(std::is_nothrow_destructible_v<Type>) { pages_.clear(); size_ = 0; }
+    void clear() noexcept { pages_.clear(); size_ = 0; }
 
     [[nodiscard]] PagedArray copy() const requires std::is_copy_constructible_v<Type> { return *this; }
 
@@ -187,7 +189,7 @@ private:
         }
 
         Iterator &operator++() noexcept {
-            idx_ = owner_->find_occupied(++idx_);
+            if (idx_ != nil) idx_ = owner_->find_occupied(++idx_);
             return *this;
         }
 
@@ -260,9 +262,10 @@ private:
 
     Page &get_or_create_page(u32 idx) {
         u32 p = page_of(idx);
-        if (p >= pages_.size()) pages_.resize(p + 1);
-        if (!pages_[p]) pages_[p] = std::make_unique<Page>();
-        return *pages_[p];
+        if (p >= pages_.size()) pages_.resize(p + 1u);
+        auto &page = pages_[p];
+        if (!page) page = std::make_unique<Page>();
+        return *page;
     }
 
     std::vector<std::unique_ptr<Page>> pages_;

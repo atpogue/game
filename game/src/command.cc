@@ -1,31 +1,26 @@
-#include "action/move.hh"
 #include "command.hh"
 #include "component/pose.hh"
 #include <cassert>
+#include <glm/geometric.hpp>
 
 Command make_move_command(u32 id, f32 x, f32 y) {
-    Command cmd;
-    cmd.id = id;
-    cmd.type = Command::Type::Move;
-    cmd.move.x = x;
-    cmd.move.y = y;
-    return cmd;
+    return Command{
+        id, Command::Type::Move,
+        { .move = {x, y} }
+    };
 }
 
 Command make_path_command(u32 id, f32 x, f32 y) {
-    Command cmd;
-    cmd.id = id;
-    cmd.type = Command::Type::Path;
-    cmd.path.x = x;
-    cmd.path.y = y;
-    return cmd;
+    return Command{
+        id, Command::Type::Path,
+        { .path = {x, y} }
+    };
 }
 
-// Is this the right place to define this???
 static bool try_submit_command(GameRegistry &r, Entity e, const Command::Move &cmd) {
-    if (r.has<MoveAction>(e)) return false;
-    if (!r.has<Pose>(e)) return false;
-    r.emplace<MoveAction>(e, glm::vec2(cmd.x, cmd.y), 1.f);
+    auto pose = r.get<Pose>(e);
+    if (!pose) return false;
+    pose->position += glm::normalize(glm::vec2(cmd.x, cmd.y));
     return true;
 }
 
@@ -34,6 +29,7 @@ static bool try_submit_command(GameRegistry &, Entity, const Command::Path &) {
 }
 
 bool try_submit_command(GameRegistry &r, Entity e, const Command &cmd) {
+    if (!r.is_alive(e)) return false;
     switch (cmd.type) {
     case Command::Type::Move: return try_submit_command(r, e, cmd.move);
     case Command::Type::Path: return try_submit_command(r, e, cmd.path);

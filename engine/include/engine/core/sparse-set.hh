@@ -16,9 +16,7 @@ struct SparseSet {
     using pointer         = Type *;
     using const_pointer   = const Type *;
 
-private:
-
-    SparseSet(u32 capacity)
+    explicit SparseSet(u32 capacity)
         : SparseSet()
     {
         reserve(capacity);
@@ -28,7 +26,7 @@ private:
     SparseSet(SparseSet &&) noexcept = default;
     SparseSet &operator=(SparseSet &&) noexcept = default;
     SparseSet &operator=(const SparseSet &) = delete;
-    ~SparseSet() noexcept(std::is_nothrow_destructible_v<Type>) = default;
+    ~SparseSet() noexcept = default;
 
     [[nodiscard]] size_t capacity() const noexcept { return values_.capacity(); }
 
@@ -40,9 +38,9 @@ private:
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     reference emplace(u32 key, Args &&... args) {
-        assert(key != nil && "emplace at nil index");
-        assert(lookup_[key] == nil && "emplace on already existing key");
-        assert(keys_.size() == values_.size() && "container in invalid state");
+        assert(key != nil                     && "unmet precondition: emplace at nil index");
+        assert(!lookup_.has(key)              && "unmet precondition: emplace on existing key");
+        assert(keys_.size() == values_.size() && "unmet invariant");
         lookup_.emplace(key, keys_.size());
         keys_.push_back(key);
         return values_.emplace_back(std::forward<Args>(args)...);
@@ -67,7 +65,7 @@ private:
         values_.pop_back();
     }
 
-    void clear() noexcept(std::is_nothrow_destructible_v<Type>) {
+    void clear() noexcept {
         values_.clear(); keys_.clear(); lookup_.clear();
     }
 
@@ -102,23 +100,23 @@ private:
         using value_type        = std::pair<u32, ReferenceType>;
         using reference         = value_type;
 
-        Iterator() : owner_{nullptr}, index_{nil} {}
+        Iterator() : owner_{nullptr}, idx_{nil} {}
 
         // Implicit conversion from iterator to const_iterator.
         operator Iterator<true>() const noexcept requires (!IsConst) {
-            return Iterator<true>(owner_, index_);
+            return Iterator<true>(owner_, idx_);
         }
 
         [[nodiscard]] value_type operator*() const noexcept {
-            return { owner_->keys_[index_], owner_->values_[index_] };
+            return { owner_->keys_[idx_], owner_->values_[idx_] };
         }
 
-        Iterator &operator++() noexcept { ++index_; return *this; }
+        Iterator &operator++() noexcept { ++idx_; return *this; }
 
         Iterator operator++(int) noexcept { auto tmp = *this; ++(*this); return tmp; }
 
         bool operator==(const Iterator& other) const noexcept {
-            return owner_ == other.owner_ && index_ = other.index_;
+            return owner_ == other.owner_ && idx_ = other.idx_;
         }
 
         bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }
@@ -128,11 +126,11 @@ private:
         friend struct SparseSet<Type>;
 
         Iterator(OwnerPtr owner, u32 idx) noexcept
-            : owner_{owner}, index_{idx}
+            : owner_{owner}, idx_{idx}
         {}
 
         OwnerPtr owner_;
-        u32 index_;
+        u32 idx_;
 
     }; //////////////////////////////////////////////////////////////////////////////////
 
@@ -141,11 +139,13 @@ public:
     using iterator       = Iterator<false>;
     using const_iterator = Iterator<true>;
 
-    [[nodiscard]] constexpr const_iterator begin() const { return const_iterator(this, 0u); }
-    [[nodiscard]] constexpr iterator       begin()       { return iterator(this, 0u); }
+    [[nodiscard]] const_iterator cbegin() const noexcept { return const_iterator(this, 0u); }
+    [[nodiscard]] const_iterator begin() const noexcept { return cbegin(); }
+    [[nodiscard]] iterator       begin()       noexcept { return iterator(this, 0u); }
 
-    [[nodiscard]] constexpr const_iterator end() const { return const_iterator(this, values_.size()); }
-    [[nodiscard]] constexpr iterator       end()       { return iterator(this, values_.size()); }
+    [[nodiscard]] const_iterator cend() const noexcept { return const_iterator(this, values_.size()); }
+    [[nodiscard]] const_iterator end() const noexcept { return cend(); }
+    [[nodiscard]] iterator       end()       noexcept { return iterator(this, values_.size()); }
 
 private:
 

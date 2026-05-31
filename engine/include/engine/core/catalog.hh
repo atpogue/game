@@ -22,7 +22,7 @@ struct Catalog {
     Catalog(Catalog &&) noexcept = default;
     Catalog &operator=(Catalog &&) noexcept = default;
     Catalog &operator=(const Catalog &) = delete;
-    ~Catalog() noexcept(std::is_nothrow_destructible_v<Type>) = default;
+    ~Catalog() noexcept = default;
 
     // Assumptions: name doesn't already exist, maximum size not reached.
     template <typename... Args>
@@ -36,7 +36,7 @@ struct Catalog {
         return id;
     }
 
-    void clear() noexcept(std::is_nothrow_destructible_v<Type>) { data_.clear(); lookup_.clear(); }
+    void clear() noexcept { data_.clear(); lookup_.clear(); }
 
     // Assumptions: ID is valid.
     [[nodiscard]] const Type &operator[](u32 id) const noexcept { assert(has(id)); return data_[id]; }

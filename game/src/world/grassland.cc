@@ -1,15 +1,15 @@
-#include "world.hh"
 #include "engine/core/invariant.hh"
 #include "engine/core/random.hh"
-#include "engine/world/terrain.hh"
+#include "world/grassland.hh"
+#include "world/terrain.hh"
 #include <ranges>
 #include <random>
 
-WorldGenerator::WorldGenerator(u64 seed) 
+GrasslandGenerator::GrasslandGenerator(u64 seed) 
     : seed_{seed}
 {}
 
-void WorldGenerator::generate(u32 x, u32 y, Chunk& chunk) {
+void GrasslandGenerator::generate(u32 x, u32 y, Chunk& chunk) {
     const auto hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
     Xoshiro256ss rng{hash};
 
