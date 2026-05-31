@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/types.hh"
+#include "engine/core/paged-array.hh"
 #include <cassert>
 #include <utility>
 #include <concepts>
@@ -8,72 +9,155 @@
 template <typename Type>
 struct SparseSet {
 
-    struct Item { u32 key; Type value; };
+    using size_type       = u32;
+    using value_type      = Type;
+    using reference       = Type &;
+    using const_reference = const Type &;
+    using pointer         = Type *;
+    using const_pointer   = const Type *;
 
-    [[nodiscard]] constexpr size_t capacity() const { return dense.capacity(); }
+private:
 
-    void reserve(u32 num_values, u32 num_keys = 0) {
-        dense.reserve(num_values);
-        sparse.reserve(num_keys);
+    SparseSet(u32 capacity)
+        : SparseSet()
+    {
+        reserve(capacity);
     }
 
-    [[nodiscard]] constexpr bool has(u32 key) const { return key < sparse.size() && sparse[key] != nil; }
+    SparseSet() = default;
+    SparseSet(SparseSet &&) noexcept = default;
+    SparseSet &operator=(SparseSet &&) noexcept = default;
+    SparseSet &operator=(const SparseSet &) = delete;
+    ~SparseSet() noexcept(std::is_nothrow_destructible_v<Type>) = default;
+
+    [[nodiscard]] size_t capacity() const noexcept { return values_.capacity(); }
+
+    void reserve(u32 count) { keys_.reserve(count); values_.reserve(count); }
+
+    [[nodiscard]] bool has(u32 key) const noexcept { return lookup_.has(key); }
 
     // assumptions: key is not nil, key doesn't already exist
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
-    Type &emplace(u32 key, Args &&... args) {
+    reference emplace(u32 key, Args &&... args) {
         assert(key != nil && "emplace at nil index");
-        if (key >= sparse.size()) {
-            // grow sparse array to include the key
-            sparse.resize(sparse_page_size * (1u + key / sparse_page_size), nil);
-        }
-
-        assert(sparse[key] == nil && "emplace on already existing key");
-        sparse[key] = dense.size();
-        return dense.emplace_back(key, Type(std::forward<Args>(args)...)).value;
+        assert(lookup_[key] == nil && "emplace on already existing key");
+        assert(keys_.size() == values_.size() && "container in invalid state");
+        lookup_.emplace(key, keys_.size());
+        keys_.push_back(key);
+        return values_.emplace_back(std::forward<Args>(args)...);
     }
 
     // assumptions: key is not nil, key is assigned to an element
-    void erase(u32 key) {
+    void erase(u32 key) noexcept(std::is_nothrow_move_assignable_v<Type>) {
         assert(key != nil && "erase at nil index");
         assert(has(key) && "erase on non-existent key");
+        assert(keys_.size() == values_.size() && "container in invalid state");
 
-        if (u32 end = dense.back().key; key != end) {
-            sparse[end] = sparse[key];
-            dense[sparse[end]] = std::move(dense.back());
+        // swap the indexes of the given key and the key at the end
+        if (u32 end = keys_.back(); key != end) {
+            u32 idx = lookup_[key];
+            lookup_[end] = idx;
+            keys_[idx] = end;
+            values_[idx] = std::move(values_.back());
         }
 
-        sparse[key] = nil;
-        dense.pop_back();
+        lookup_[key] = nil;
+        keys_.pop_back();
+        values_.pop_back();
     }
 
-    void clear() { dense.clear(); sparse.clear(); }
+    void clear() noexcept(std::is_nothrow_destructible_v<Type>) {
+        values_.clear(); keys_.clear(); lookup_.clear();
+    }
 
-    [[nodiscard]] const Type &operator[](u32 key) const { assert(has(key)); return dense[sparse[key]].value; }
-    [[nodiscard]]       Type &operator[](u32 key)       { assert(has(key)); return dense[sparse[key]].value; }
+    [[nodiscard]] const_reference operator[](u32 key) const noexcept { assert(has(key)); return values_[lookup_[key]]; }
+    [[nodiscard]]       reference operator[](u32 key)       noexcept { assert(has(key)); return values_[lookup_[key]]; }
 
-    [[nodiscard]] const Type *get(u32 key) const { return has(key) ? &dense[sparse[key]].value : nullptr; }
-    [[nodiscard]]       Type *get(u32 key)       { return has(key) ? &dense[sparse[key]].value : nullptr; }
+    [[nodiscard]] const_pointer get(u32 key) const noexcept { return has(key) ? &values_[lookup_[key]] : nullptr; }
+    [[nodiscard]]       pointer get(u32 key)       noexcept { return has(key) ? &values_[lookup_[key]] : nullptr; }
 
-    [[nodiscard]] constexpr size_t size() const { return dense.size(); }
+    [[nodiscard]] u32 size() const noexcept { return values_.size(); }
 
-    using iterator = std::vector<Item>::iterator;
-    using const_iterator = std::vector<Item>::const_iterator;
+    [[nodiscard]] SparseSet copy() const requires std::is_copy_constructible_v<Type> { return *this; }
 
-    [[nodiscard]] constexpr const_iterator begin() const { return dense.begin(); }
-    [[nodiscard]] constexpr iterator       begin()       { return dense.begin(); }
+    const auto &keys() const noexcept { return keys_; }
 
-    [[nodiscard]] constexpr const_iterator end() const { return dense.end(); }
-    [[nodiscard]] constexpr iterator       end()       { return dense.end(); }
+          auto &values()       noexcept { return values_; }
+    const auto &values() const noexcept { return values_; }
 
 private:
 
-    static constexpr u32 sparse_page_size = 256; // 256 * 4B = 1 KB of memory
+    template <bool IsConst>
+    struct Iterator { ////////////////////////////////////////////////////////////////////
 
-    std::vector<Item> dense;
-    // if the largest index used is huge the sparse array will use a lot of memory
-    std::vector<u32> sparse;
+        using OwnerPtr      = std::conditional_t<IsConst, const SparseSet *, SparseSet *>;
+        using ReferenceType = std::conditional_t<IsConst, const Type &, Type &>;
+
+    public:
+
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using pointer           = void; // proxy; no operator-> provided
+        using value_type        = std::pair<u32, ReferenceType>;
+        using reference         = value_type;
+
+        Iterator() : owner_{nullptr}, index_{nil} {}
+
+        // Implicit conversion from iterator to const_iterator.
+        operator Iterator<true>() const noexcept requires (!IsConst) {
+            return Iterator<true>(owner_, index_);
+        }
+
+        [[nodiscard]] value_type operator*() const noexcept {
+            return { owner_->keys_[index_], owner_->values_[index_] };
+        }
+
+        Iterator &operator++() noexcept { ++index_; return *this; }
+
+        Iterator operator++(int) noexcept { auto tmp = *this; ++(*this); return tmp; }
+
+        bool operator==(const Iterator& other) const noexcept {
+            return owner_ == other.owner_ && index_ = other.index_;
+        }
+
+        bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }
+    
+    private:
+
+        friend struct SparseSet<Type>;
+
+        Iterator(OwnerPtr owner, u32 idx) noexcept
+            : owner_{owner}, index_{idx}
+        {}
+
+        OwnerPtr owner_;
+        u32 index_;
+
+    }; //////////////////////////////////////////////////////////////////////////////////
+
+public:
+
+    using iterator       = Iterator<false>;
+    using const_iterator = Iterator<true>;
+
+    [[nodiscard]] constexpr const_iterator begin() const { return const_iterator(this, 0u); }
+    [[nodiscard]] constexpr iterator       begin()       { return iterator(this, 0u); }
+
+    [[nodiscard]] constexpr const_iterator end() const { return const_iterator(this, values_.size()); }
+    [[nodiscard]] constexpr iterator       end()       { return iterator(this, values_.size()); }
+
+private:
+
+    SparseSet(const SparseSet &) requires std::is_copy_constructible_v<Type> = default;
+
+    // Invariants:
+    // - values_ and keys_ and lookup_ are all the same size
+    // - keys_[lookup_[key]] equals key
+
+    std::vector<Type> values_;
+    std::vector<u32> keys_;
+    PagedArray<u32, 256> lookup_; // 256 * 4B = 1 KB of memory per page
 
 };
 
