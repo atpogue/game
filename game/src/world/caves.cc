@@ -28,9 +28,9 @@ void generate_cave(
     u32 birth, u32 survival,
     u32 range, u32 iterations
 ) {
-    assert(out.size() > 0u);
-    assert(iterations > 0u);
-    assert(range > 0u);
+    ASSERT(out.size() > 0u);
+    ASSERT(iterations > 0u);
+    ASSERT(range > 0u);
     Grid2<u32> buffer(out.width(), out.height());
 
     const auto count_walls = [range, wall, &out](i64 x, i64 y) {
@@ -72,8 +72,8 @@ CaveGenerator::CaveGenerator(u64 seed)
 {}
 
 void CaveGenerator::generate(u32 x, u32 y, Chunk &chunk) {
-    u32 wall = find_terrain("stone"); assert(wall != nil);
-    u32 floor = find_terrain("dirt"); assert(floor != nil);
+    u32 wall = find_terrain("stone"); PRECONDITION(wall != nil);
+    u32 floor = find_terrain("dirt"); PRECONDITION(floor != nil);
 
     const auto hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
     Grid2<u32> cave(chunk_size, chunk_size);

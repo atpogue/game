@@ -1,4 +1,3 @@
-#include "engine/core/invariant.hh"
 #include "engine/core/random.hh"
 #include "world/grassland.hh"
 #include "world/terrain.hh"
@@ -19,14 +18,14 @@ void GrasslandGenerator::generate(u32 x, u32 y, Chunk& chunk) {
     };
     constexpr auto terrain_count = std::size(names);
     u32 terrain[terrain_count];
-    std::uniform_int_distribution<int> distribution{0, terrain_count-1};
 
     for (auto [name, id] : std::views::zip(names, terrain)) {
         auto found = find_terrain(name);
-        INVARIANT(found != nil, "terrain undefined");
+        PRECONDITION(found != nil, "terrain undefined");
         id = found;
     }
 
+    std::uniform_int_distribution<int> distribution{0, terrain_count-1};
     for (auto &tile : chunk) {
         tile.terrain = terrain[distribution(rng)];
     }

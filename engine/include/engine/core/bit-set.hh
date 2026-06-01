@@ -1,6 +1,6 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/types.hh"
-#include <cassert>
 #include <vector>
 
 // Similar to std::bitset but size doesn't need to be known at compile time.
@@ -18,15 +18,15 @@ struct BitSet {
     BitSet &operator=(BitSet &&) noexcept = default;
     ~BitSet() noexcept                    = default;
 
-    void set(u32 bit, bool value = true) noexcept {
-        assert(bit < size_);
-        if (value) { words_[bit / 64u] |=  (1ull << (bit % 64u)); ++count_; }
-        else       { words_[bit / 64u] &= ~(1ull << (bit % 64u)); --count_; }
+    void set(u32 idx, bool value = true) noexcept {
+        PRECONDITION(idx < size_);
+        if (value) { words_[idx / 64u] |=  (1ull << (idx % 64u)); ++count_; }
+        else       { words_[idx / 64u] &= ~(1ull << (idx % 64u)); --count_; }
     }
 
-    bool get(u32 bit) const noexcept {
-        assert(bit < size_);
-        return (words_[bit / 64u] >> (bit % 64u)) & 1ull;
+    bool get(u32 idx) const noexcept {
+        PRECONDITION(idx < size_);
+        return (words_[idx / 64u] >> (idx % 64u)) & 1ull;
     }
 
     bool any() const noexcept { return !none(); }
@@ -41,49 +41,49 @@ struct BitSet {
     u32 size() const noexcept { return size_; }
 
     BitSet &operator|=(const BitSet &other) noexcept {
-        assert(this != &other);
-        assert(size_ == other.size_);
+        PRECONDITION(this != &other);
+        PRECONDITION(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
             words_[i] |= other.words_[i];
         return *this;
     }
 
     BitSet operator|(const BitSet &other) const noexcept {
-        assert(this != &other);
+        PRECONDITION(this != &other);
         return BitSet(*this) |= other;
     }
 
     BitSet &operator&=(const BitSet &other) noexcept {
-        assert(this != &other);
-        assert(size_ == other.size_);
+        PRECONDITION(this != &other);
+        PRECONDITION(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
             words_[i] &= other.words_[i];
         return *this;
     }
 
     BitSet operator&(const BitSet &other) const noexcept {
-        assert(this != &other);
+        PRECONDITION(this != &other);
         return BitSet(*this) &= other;
     }
 
     BitSet &operator^=(const BitSet &other) noexcept {
-        assert(this != &other);
-        assert(size_ == other.size_);
+        PRECONDITION(this != &other);
+        PRECONDITION(size_ == other.size_);
         for (u32 i = 0u; i < size_; ++i)
             words_[i] ^= other.words_[i];
         return *this;
     }
 
     BitSet operator^(const BitSet &other) const noexcept {
-        assert(this != &other);
+        PRECONDITION(this != &other);
         return BitSet(*this) ^= other;
     }
 
     // Are all flipped bits in this set also flipped in the other set?
     // Assumes: The bitsets are the same size.
     bool operator==(const BitSet &other) const noexcept {
-        assert(this != &other);
-        assert(size_ == other.size_);
+        PRECONDITION(this != &other);
+        PRECONDITION(size_ == other.size_);
         return count_ == other.count_
             && words_ == other.words_;
     }

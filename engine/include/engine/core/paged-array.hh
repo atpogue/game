@@ -1,8 +1,8 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/types.hh"
 #include <bit>
 #include <bitset>
-#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -84,13 +84,17 @@ public:
         return page && page->occupied[slot_of(idx)];
     }
 
+    // Direct access to the element at the index without bounds-checking.
+    // The validity of the index is asserted in debug mode, and assumed (zero-cost overhead) in release mode.
     [[nodiscard]] reference operator[](u32 idx) noexcept {
-        assert(has(idx));
+        ASSERT(has(idx));
         return *get_page(idx)->at(slot_of(idx));
     }
 
+    // Direct access to the element at the index without bounds-checking.
+    // The validity of the index is asserted in debug mode, and assumed (zero-cost overhead) in release mode.
     [[nodiscard]] const_reference operator[](u32 idx) const noexcept {
-        assert(has(idx));
+        ASSERT(has(idx));
         return *get_page(idx)->at(slot_of(idx));
     }
 
@@ -109,10 +113,10 @@ public:
     /// Assumes: there is no element at [idx]
     template <typename... Args>
     reference emplace(u32 idx, Args&&... args) {
-        assert(idx != nil && "emplace on nil index");
+        PRECONDITION(idx != nil);
         Page &page = get_or_create_page(idx);
         u32 s = slot_of(idx);
-        assert(!page.occupied[s] && "emplace on existing element");
+        PRECONDITION(!page.occupied[s]);
         page.occupied.set(s, true);
         ++page.count;
         ++size_;
@@ -121,10 +125,10 @@ public:
 
     /// Assumes: there is an element at [idx]
     void erase(u32 idx) noexcept {
-        assert(idx != nil && "erase on nil index");
+        PRECONDITION(idx != nil);
         Page *page = get_page(idx);
         u32 s = slot_of(idx);
-        assert(page && page->occupied[s] && "erase on non-existing element");
+        PRECONDITION(page && page->occupied[s], "index must be occupied");
         std::destroy_at(page->at(s));
         page->occupied.set(s, false);
         --page->count;
@@ -182,9 +186,9 @@ private:
         }
 
         value_type operator*() const noexcept {
-            assert(owner_ && "dereferenced singular iterator");
-            assert(idx_ != nil && "dereferenced end iterator");
-            assert(owner_->has(idx_) && "dereferenced empty slot");
+            PRECONDITION(owner_, "dereference singular iterator");
+            PRECONDITION(idx_ != nil, "dereferenced end iterator");
+            INVARIANT(owner_->has(idx_), "dereferenced empty slot");
             return value_type{idx_, (*owner_)[idx_]};
         }
 
@@ -208,7 +212,7 @@ private:
         Iterator(OwnerPtr owner, u32 idx) noexcept
             : owner_(owner), idx_{idx}
         {
-            assert(owner_ && "constructed without parent container");
+            INVARIANT(owner_, "constructed without parent container");
             idx_ = owner_->find_occupied(idx_);
         }
 

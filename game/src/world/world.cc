@@ -1,4 +1,4 @@
-#include "engine/core/invariant.hh"
+#include "engine/core/error.hh"
 #include "engine/render/camera.hh"
 #include "world/terrain.hh"
 #include "world/world.hh"
@@ -10,13 +10,13 @@ World::World(u32 width, u32 height,
     , generator_(generator.release()), loader_(loader.release())
     , chunks_()
 {
-    INVARIANT(width_ != 0u && height_ != 0u, "constructing an empty world");
-    INVARIANT(generator_, "chunk generator is undefined");
-    INVARIANT(loader_, "chunk loader is undefined");
+    ASSERT(width_ != 0u && height_ != 0u);
+    PRECONDITION(generator_);
+    PRECONDITION(loader_);
 }
 
 Tile &World::operator[](u32 x, u32 y) {
-    assert(has(x, y));
+    ASSERT(has(x, y));
     return get_chunk(key_at(x, y))[x % chunk_size, y % chunk_size];
 }
 
@@ -54,7 +54,7 @@ void World::render(const Camera &camera, float tile_size) const {
         u32 x = coord.x, y = coord.y;
         wrap_around(x, y);
         auto tile = find(x, y);
-        assert(tile && "tile not found despite wrap around");
+        INVARIANT(tile, "tile not found despite wrap around");
         auto pixel = camera.view_coord_at({x, y}) * tile_size;
         get_terrain(tile->terrain).sprite.draw(pixel.x, pixel.y, camera.zoom);
     }

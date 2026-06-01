@@ -1,9 +1,8 @@
-#include "engine/render/textures.hh"
-#include "engine/core/invariant.hh"
+#include "engine/core/error.hh"
+#include "engine/core/string.hh"
 #include "engine/core/slot-map.hh"
-#include "render/internal.hh"
-#include <map>
-#include <string>
+#include "engine/render/textures.hh"
+#include "internal.hh"
 #include <string_view>
 #include <SDL3/SDL_log.h>
 
@@ -18,7 +17,7 @@ private:
 namespace { /////////////////////////////////////////////////////
     
     SlotMap<Texture> textures; 
-    std::map<std::string, Handle<Texture>, std::less<>> paths;
+    StringMap<Handle<Texture>> paths;
 
 } ///////////////////////////////////////////////////////////////
 
@@ -54,7 +53,7 @@ Handle<Texture> create_texture(SDL_Surface *surface) {
     }
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     auto handle = textures.emplace(texture);
-    INVARIANT(handle, "texture limit reached");
+    PANIC(handle, "texture limit reached");
     return handle;
 }
 
@@ -65,7 +64,7 @@ void destroy_texture(Handle<Texture> handle) {
 void draw_texture(Handle<Texture> handle, Rectangle source, Rectangle dest, Color tint) {
     auto renderer = get_renderer();
     SDL_Texture *texture = get_texture(handle);
-    assert(texture && "texture doesn't exist");
+    PRECONDITION(texture, "texture handle must be valid");
     SDL_SetTextureColorMod(texture, tint.r, tint.g, tint.b);
     SDL_RenderTexture(renderer, texture, &source, &dest);
 }

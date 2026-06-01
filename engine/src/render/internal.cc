@@ -1,4 +1,4 @@
-#include "render/internal.hh"
+#include "internal.hh"
 #include "engine/render/window.hh"
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_log.h>

@@ -9,13 +9,11 @@
 #include "world/terrain.hh"
 #include "world/grassland.hh"
 #include "registry.hh"
-#include <cassert>
 #include <glm/common.hpp>
 #include <random>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
-#include <print>
 
 namespace { ///////////////////////////////////////////////////////////////////////////////
 
@@ -42,17 +40,14 @@ WindowConfig app_window_config() {
 }
 
 static bool load_world(u32 x, u32 y) {
-    std::println("load world");
     GrasslandGenerator(seed).generate(x, y, chunk);
     return true;
 }
 
 bool load_player() {
-    std::println("load player");
     player.entity = registry.create();
-    assert(player.entity != Entity::null());
     registry.emplace<Pose>(player.entity, Vec2<float>{chunk_size * 0.5f, chunk_size * 0.5f});
-    assert(registry.has<Pose>(player.entity));
+    ASSERT(registry.has<Pose>(player.entity));
     return true;
 }
 
@@ -63,7 +58,6 @@ void process_input() {
 }
 
 bool app_init() {
-    std::println("init");
     camera.viewport = {800.f/tile_size, 600.f/tile_size};
     camera.zoom = 1.3f;
     return load_terrain()

@@ -1,7 +1,7 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/types.hh"
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <vector>
 
@@ -13,14 +13,14 @@ struct Grid3 {
         : width_{w}, height_{h}, depth_{d}
         , data(size_t{width_} * height_ * depth_)
     {
-        assert(width_ != 0u && height_ != 0u && depth_ != 0u);
+        ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
 
     Grid3(u32 w, u32 h, u32 d, const Type &value)
         : width_{w}, height_{h}, depth_{d}
         , data(size_t{width_} * height_ * depth_, value)
     {
-        assert(width_ != 0u && height_ != 0u && depth_ != 0u);
+        ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
 
     Grid3(const Grid3 &other) = default;
@@ -48,7 +48,7 @@ struct Grid3 {
     }
 
     constexpr size_t size() const {
-        assert(data.size() == size_t{width_} * height_ * depth_);
+        INVARIANT(data.size() == size_t{width_} * height_ * depth_);
         return data.size();
     }
 
@@ -56,8 +56,8 @@ struct Grid3 {
         return x < width_ && y < height_ && z < depth_;
     }
 
-    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { assert(has(x, y, z)); return data[index(x, y, z)]; }
-    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { assert(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
 
     constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
@@ -79,7 +79,7 @@ private:
 
     constexpr size_t index(u32 x, u32 y, u32 z) const {
         size_t i = x + (y * size_t{width_}) + (z * size_t{width_} * height_);
-        assert(i < data.size() && "invalid index");
+        INVARIANT(i < data.size() && "invalid index");
         return i;
     }
 
@@ -94,8 +94,8 @@ struct Grid3<Type, Width, Height, Depth> {
 
     constexpr bool has(u32 x, u32 y, u32 z) const { return x < Width && y < Height && z < Depth; }
 
-    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { assert(has(x, y, z)); return data[index(x, y, z)]; }
-    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { assert(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
 
     constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }

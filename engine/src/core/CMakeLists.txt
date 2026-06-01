@@ -1,1 +1,1 @@
-target_sources (${ENGINE} PRIVATE random.cc)
+target_sources (${ENGINE} PRIVATE random.cc error.cc)

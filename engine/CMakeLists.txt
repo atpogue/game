@@ -23,13 +23,19 @@ FetchContent_MakeAvailable (glm)
 
 add_library (${ENGINE})
 
-target_include_directories (${ENGINE} PUBLIC ${SDL3_INCLUDE_DIRS})
-
 target_include_directories (
     ${ENGINE}
+    PUBLIC ${SDL3_INCLUDE_DIRS}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    find_library(STDCXX_EXP NAMES stdc++exp)
+    if(STDCXX_EXP)
+        target_link_libraries(${ENGINE} PRIVATE ${STDCXX_EXP})
+        target_compile_definitions(${ENGINE} PRIVATE HAVE_STACKTRACE)
+    endif()
+endif()
 
 target_link_libraries (
     ${ENGINE}
@@ -40,3 +46,4 @@ target_link_libraries (
 target_compile_options (${ENGINE} PRIVATE -Wall -Wextra -Wpedantic)
 
 add_subdirectory (src)
+

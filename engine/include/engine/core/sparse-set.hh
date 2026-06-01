@@ -1,7 +1,7 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/types.hh"
 #include "engine/core/paged-array.hh"
-#include <cassert>
 #include <utility>
 #include <concepts>
 #include <vector>
@@ -38,9 +38,9 @@ struct SparseSet {
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     reference emplace(u32 key, Args &&... args) {
-        assert(key != nil                     && "unmet precondition: emplace at nil index");
-        assert(!lookup_.has(key)              && "unmet precondition: emplace on existing key");
-        assert(keys_.size() == values_.size() && "unmet invariant");
+        PRECONDITION(key != nil);
+        PRECONDITION(!has(key));
+        INVARIANT(keys_.size() == values_.size(), "key and value dense arrays must be the same size");
         lookup_.emplace(key, keys_.size());
         keys_.push_back(key);
         return values_.emplace_back(std::forward<Args>(args)...);
@@ -48,9 +48,9 @@ struct SparseSet {
 
     // assumptions: key is not nil, key is assigned to an element
     void erase(u32 key) noexcept(std::is_nothrow_move_assignable_v<Type>) {
-        assert(key != nil && "erase at nil index");
-        assert(has(key) && "erase on non-existent key");
-        assert(keys_.size() == values_.size() && "container in invalid state");
+        PRECONDITION(key != nil);
+        PRECONDITION(has(key));
+        INVARIANT(keys_.size() == values_.size(), "key and value dense arrays must be the same size");
 
         // swap the indexes of the given key and the key at the end
         if (u32 end = keys_.back(); key != end) {
@@ -69,8 +69,15 @@ struct SparseSet {
         values_.clear(); keys_.clear(); lookup_.clear();
     }
 
-    [[nodiscard]] const_reference operator[](u32 key) const noexcept { assert(has(key)); return values_[lookup_[key]]; }
-    [[nodiscard]]       reference operator[](u32 key)       noexcept { assert(has(key)); return values_[lookup_[key]]; }
+    [[nodiscard]] const_reference operator[](u32 key) const noexcept {
+        ASSERT(has(key));
+        return values_[lookup_[key]];
+    }
+
+    [[nodiscard]] reference operator[](u32 key) noexcept {
+        ASSERT(has(key));
+        return values_[lookup_[key]];
+    }
 
     [[nodiscard]] const_pointer get(u32 key) const noexcept { return has(key) ? &values_[lookup_[key]] : nullptr; }
     [[nodiscard]]       pointer get(u32 key)       noexcept { return has(key) ? &values_[lookup_[key]] : nullptr; }

@@ -1,5 +1,4 @@
 #pragma once
-#include "engine/core/invariant.hh"
 #include "engine/core/slot-map.hh"
 #include "engine/core/sparse-set.hh"
 #include "engine/core/type-info.hh"
@@ -41,20 +40,20 @@ struct Registry { //////////////////////////////////////////////////////////////
     template <typename T, typename... Args>
     requires std::constructible_from<T, Args...>
     T &emplace(Entity e, Args &&... args) {
-        assert(entities_.has(handle(e)) && "emplace on non-existent entity");
+        PRECONDITION(entities_.has(handle(e)), "entity must be live");
         return get_or_create_store<T>().emplace(index(e), std::forward<Args>(args)...);
     }
 
     template <typename T>
     void erase(Entity e) {
-        assert(entities_.has(handle(e)) && "erase on non-existent entity");
+        PRECONDITION(entities_.has(handle(e)), "entity must be live");
         if (auto store = get_store<T>()) store->erase(index(e));
     }
 
     bool is_alive(Entity e) const { return entities_.has(handle(e)); }
 
     void destroy(Entity e) {
-        assert(entities_.has(handle(e)) && "destroy on non-existent entity");
+        PRECONDITION(entities_.has(handle(e)), "entity must be live");
         const u32 i = index(e); 
         for (auto &store : stores_)
             if (store && store->has(i)) store->erase(i);
@@ -81,7 +80,7 @@ struct Registry { //////////////////////////////////////////////////////////////
 
     [[nodiscard]] Entity create() {
         auto handle = entities_.emplace();
-        INVARIANT(handle, "Entity limit reached!");
+        PANIC(handle, "Entity limit reached!");
         return (Handle<void>)handle;
     }
 
@@ -146,27 +145,27 @@ private:
     }
 
     bool has(Entity e, u32 i) const {
-        assert(i < stores_.size());
+        INVARIANT(i < stores_.size(), "component index must be valid");
         return stores_[i] ? stores_[i]->has(index(e)) : false;
     }
 
     template <typename T>
     [[nodiscard]] constexpr ComponentStore<T> *get_store() {
-        assert(Info::template index<T>() < stores_.size());
+        INVARIANT(Info::template index<T>() < stores_.size(), "component index must smaller than component count");
         auto &store = stores_[Info::template index<T>()];
         return static_cast<ComponentStore<T> *>(store.get());
     }
 
     template <typename T>
     [[nodiscard]] constexpr ComponentStore<T> *get_store() const {
-        assert(Info::template index<T>() < stores_.size());
+        INVARIANT(Info::template index<T>() < stores_.size(), "component index must smaller than component count");
         auto &store = stores_[Info::template index<T>()];
         return static_cast<ComponentStore<T> *>(store.get());
     }
 
     template <typename T>
     [[nodiscard]] ComponentStore<T> &get_or_create_store() {
-        assert(Info::template index<T>() < stores_.size());
+        INVARIANT(Info::template index<T>() < stores_.size(), "component index must smaller than component count");
         auto &store = stores_[Info::template index<T>()];
         if (!store) store = std::make_unique<ComponentStore<T>>();
         return *static_cast<ComponentStore<T> *>(store.get());

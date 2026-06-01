@@ -1,7 +1,7 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/types.hh"
 #include <array>
-#include <cassert>
 #include <cstddef>
 #include <vector>
 
@@ -12,13 +12,13 @@ struct Grid2 {
     Grid2(u32 w, u32 h)
         : width_{w}, height_{h}, data_(size_t{width_} * height_)
     {
-        assert(width_ != 0u && height_ != 0u);
+        ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
     }
 
     Grid2(u32 w, u32 h, const Type &value)
         : width_{w}, height_{h}, data_(size_t{width_} * height_, value)
     {
-        assert(width_ != 0u && height_ != 0u);
+        ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
     }
 
     Grid2(Grid2 &&other) noexcept
@@ -40,7 +40,7 @@ struct Grid2 {
     }
 
     constexpr size_t size() const {
-        assert(data_.size() == size_t{width_} * height_);
+        INVARIANT(data_.size() == size_t{width_} * height_, "size of data array must match grid dimensions");
         return data_.size();
     }
 
@@ -48,8 +48,8 @@ struct Grid2 {
         return x < width_ && y < height_;
     }
 
-    constexpr const Type &operator[](u32 x, u32 y) const { assert(has(x, y)); return data_[index(x, y)]; }
-    constexpr       Type &operator[](u32 x, u32 y)       { assert(has(x, y)); return data_[index(x, y)]; }
+    constexpr const Type &operator[](u32 x, u32 y) const { ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { ASSERT(has(x, y)); return data_[index(x, y)]; }
 
     constexpr const Type *get(u32 x, u32 y) const { return has(x,y) ? &data_[index(x,y)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y)       { return has(x,y) ? &data_[index(x,y)] : nullptr; }
@@ -85,7 +85,7 @@ private:
 
     constexpr size_t index(u32 x, u32 y) const {
         size_t i = x + (y * size_t{width_});
-        assert(i < data_.size() && "invalid index");
+        INVARIANT(i < data_.size(), "translated coordinates to invalid index");
         return i;
     }
 
@@ -100,8 +100,8 @@ struct Grid2<Type, Width, Height> {
 
     constexpr bool has(u32 x, u32 y) const { return x < Width && y < Height; }
 
-    constexpr const Type &operator[](u32 x, u32 y) const { assert(has(x, y)); return data_[index(x, y)]; }
-    constexpr       Type &operator[](u32 x, u32 y)       { assert(has(x, y)); return data_[index(x, y)]; }
+    constexpr const Type &operator[](u32 x, u32 y) const { ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { ASSERT(has(x, y)); return data_[index(x, y)]; }
 
     constexpr const Type *get(u32 x, u32 y) const { return has(x, y) ? &data_[index(x, y)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y)       { return has(x, y) ? &data_[index(x, y)] : nullptr; }

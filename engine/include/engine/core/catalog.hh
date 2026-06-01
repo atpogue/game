@@ -1,6 +1,6 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/string.hh"
-#include <cassert>
 #include <vector>
 
 template <typename Type>
@@ -24,24 +24,23 @@ struct Catalog {
     Catalog &operator=(const Catalog &) = delete;
     ~Catalog() noexcept = default;
 
-    // Assumptions: name doesn't already exist, maximum size not reached.
+    // Assumes: name doesn't already exist, maximum size not reached.
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     u32 emplace(Args &&... args) {
-        assert(data_.size() < UINT32_MAX && "maximum size reached");
+        // throw exception here instead of panic??
+        PANIC(data_.size() < UINT32_MAX, "maximum size reached");
         const u32 id = data_.size();
         Type &item = data_.emplace_back(std::forward<Args>(args)...);
         auto [_, added] = lookup_.emplace(item.name, id);
-        assert(added && "emplace on already assigned name");
+        PRECONDITION(added, "name must not be assigned to more than one element");
         return id;
     }
 
     void clear() noexcept { data_.clear(); lookup_.clear(); }
 
-    // Assumptions: ID is valid.
-    [[nodiscard]] const Type &operator[](u32 id) const noexcept { assert(has(id)); return data_[id]; }
-    // Assumptions: ID is valid.
-    [[nodiscard]]       Type &operator[](u32 id)       noexcept { assert(has(id)); return data_[id]; }
+    [[nodiscard]] const Type &operator[](u32 id) const noexcept { ASSERT(has(id)); return data_[id]; }
+    [[nodiscard]]       Type &operator[](u32 id)       noexcept { ASSERT(has(id)); return data_[id]; }
 
     // Returns null if the element doesn't exist.
     [[nodiscard]] const Type *get(std::string_view name) const {

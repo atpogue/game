@@ -1,7 +1,7 @@
 #pragma once
+#include "engine/core/error.hh"
 #include "engine/core/handle.hh"
 #include "engine/core/types.hh"
-#include <cassert>
 #include <concepts>
 #include <vector>
 
@@ -24,7 +24,7 @@ struct SlotMap {
         , size_{0u}
         , first_free_{nil}
     {
-        assert(limit > 0u && "constructed unusable slot map");
+        PRECONDITION(limit > 0u, "constructed unusable slot map");
     }
 
     SlotMap(SlotMap &&) noexcept = default;
@@ -39,13 +39,13 @@ struct SlotMap {
     template <typename... Args>
     requires std::constructible_from<Type, Args...>
     Handle<Type> replace(Handle<Type> handle, Args &&... args)
-    noexcept(std::is_nothrow_destructible_v<Type> && std::is_nothrow_constructible_v<Type, Args...>)
+    noexcept(std::is_nothrow_constructible_v<Type, Args...>)
     {
-        assert(handle && "replace on null handle");
+        PRECONDITION(handle, "handle must not be null");
         u32 i = locate(handle);
-        assert(i != nil && "replace on dead handle");
+        PRECONDITION(i != nil, "handle must be live");
         Slot &slot = slots_[i];
-        assert(slot.live);
+        INVARIANT(slot.live, "live handle to a dead slot");
         // doesn't require move constructible
         slot.value.~Type();
         new (&slot.value) Type(std::forward<Args>(args)...);
@@ -70,11 +70,11 @@ struct SlotMap {
     // Empty a slot and mark it for re-use, destroying the element if it exists.
     // Assumptions: handle is not null, handle has element.
     void erase(Handle<Type> handle) noexcept {
-        assert(handle && "erase on null handle");
+        PRECONDITION(handle, "handle must not be null");
         auto i = locate(handle);
-        assert(i != nil && "erase on dead handle");
+        PRECONDITION(i != nil, "handle must be live");
         Slot &slot = slots_[i];
-        assert(slot.live);
+        INVARIANT(slot.live, "live handle to a dead slot");
         ++slot.generation;
         slot.value.~Type();
         slot.live = false;
@@ -154,9 +154,9 @@ private:
         }
 
         reference operator*() const noexcept {
-            assert(owner_ && "dereferenced singular iterator");
-            assert(index_ < owner_->slots_.size() && "dereferenced end iterator");
-            assert(owner_->slots_[index_].live == true && "dereferenced dead slot");
+            PRECONDITION(owner_, "dereferenced singular iterator");
+            PRECONDITION(index_ < owner_->slots_.size(), "dereferenced end iterator");
+            INVARIANT(owner_->slots_[index_].live == true, "dereferenced dead slot");
             return {
                 {index_, owner_->slots_[index_].generation},
                 owner_->slots_[index_].value
@@ -164,7 +164,7 @@ private:
         }
 
         Iterator &operator++() noexcept {
-            assert(owner_ && "incremented singular iterator");
+            PRECONDITION(owner_, "incremented singular iterator");
             if (index_ >= owner_->slots_.size()) return *this;
             do { ++index_; }
             while (index_ < owner_->slots_.size() && !owner_->slots_[index_].live);
@@ -182,8 +182,8 @@ private:
         Iterator(OwnerPtr map, u32 index) noexcept
             : owner_{map}, index_{index}
         {
-            assert(owner_ && "constructed without parent container");
-            assert(index_ <= owner_->slots_.size() && "constructed with invalid index");
+            INVARIANT(owner_, "constructed without parent container");
+            INVARIANT(index_ <= owner_->slots_.size(), "constructed with invalid index");
         }
 
         OwnerPtr owner_;
@@ -289,8 +289,8 @@ private:
         } else {
             // re-use the slot
             first_free_ = slots_[i].next_free;
+            INVARIANT(!slots_[i].live, "live slot in free list");
         }
-        assert(!slots_[i].live);
         return i;
     }
 

@@ -1,5 +1,5 @@
 #include "engine/render/draw.hh"
-#include "render/internal.hh"
+#include "internal.hh"
 #include <SDL3/SDL_render.h>
 
 void draw_rectangle(SDL_FRect rect, SDL_Color color) {
