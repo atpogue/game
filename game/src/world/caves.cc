@@ -28,9 +28,9 @@ void generate_cave(
     u32 birth, u32 survival,
     u32 range, u32 iterations
 ) {
-    ASSERT(out.size() > 0u);
-    ASSERT(iterations > 0u);
-    ASSERT(range > 0u);
+    DEBUG_ASSERT(out.size() > 0u);
+    DEBUG_ASSERT(iterations > 0u);
+    DEBUG_ASSERT(range > 0u);
     Grid2<u32> buffer(out.width(), out.height());
 
     const auto count_walls = [range, wall, &out](i64 x, i64 y) {

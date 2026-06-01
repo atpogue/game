@@ -3,7 +3,7 @@
   
 namespace detail {
 
-    [[noreturn]] void fatal_error(
+    [[noreturn]] void panic(
         const char *category,
         const char *condition,
         const char *message,
@@ -12,21 +12,21 @@ namespace detail {
 
 } // namespace detail
 
-#define PASS_OR_ABORT(category, cond, ...)                          \
-    do {                                                            \
-        if (!(cond)) [[unlikely]]                                   \
-            detail::fatal_error(category, #cond, "" __VA_ARGS__);   \
+#define PANIC(category, cond, ...)                          \
+    do {                                                    \
+        if (!(cond)) [[unlikely]]                           \
+            detail::panic(category, #cond, "" __VA_ARGS__); \
     } while(0)
 
 // Always-on: aborts in both debug and release.
-#define PANIC(cond, ...)        PASS_OR_ABORT("PANIC", cond, ##__VA_ARGS__)
-#define PRECONDITION(cond, ...) PASS_OR_ABORT("PRECONDITION", cond, ##__VA_ARGS__)
-#define INVARIANT(cond, ...)    PASS_OR_ABORT("INVARIANT", cond, ##__VA_ARGS__)
+#define ASSERT(cond, ...)       PANIC("ASSERTION", cond, ##__VA_ARGS__)
+#define PRECONDITION(cond, ...) PANIC("PRECONDITION", cond, ##__VA_ARGS__)
+#define INVARIANT(cond, ...)    PANIC("INVARIANT", cond, ##__VA_ARGS__)
 
 // Debug-only: aborts in debug, zero-cost in release
 #ifdef NDEBUG
-    #define ASSERT(cond, ...) ((void)0)
+    #define DEBUG_ASSERT(cond, ...) ((void)0)
 #else
-    #define ASSERT(cond, ...) PASS_OR_ABORT("ASSERT", cond, ##__VA_ARGS__)
+    #define DEBUG_ASSERT(cond, ...) PANIC("ASSERTION", cond, ##__VA_ARGS__)
 #endif
 

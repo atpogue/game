@@ -70,12 +70,12 @@ struct SparseSet {
     }
 
     [[nodiscard]] const_reference operator[](u32 key) const noexcept {
-        ASSERT(has(key));
+        DEBUG_ASSERT(has(key));
         return values_[lookup_[key]];
     }
 
     [[nodiscard]] reference operator[](u32 key) noexcept {
-        ASSERT(has(key));
+        DEBUG_ASSERT(has(key));
         return values_[lookup_[key]];
     }
 

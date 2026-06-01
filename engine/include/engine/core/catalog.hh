@@ -29,7 +29,7 @@ struct Catalog {
     requires std::constructible_from<Type, Args...>
     u32 emplace(Args &&... args) {
         // throw exception here instead of panic??
-        PANIC(data_.size() < UINT32_MAX, "maximum size reached");
+        ASSERT(data_.size() < UINT32_MAX, "maximum size reached");
         const u32 id = data_.size();
         Type &item = data_.emplace_back(std::forward<Args>(args)...);
         auto [_, added] = lookup_.emplace(item.name, id);
@@ -39,8 +39,8 @@ struct Catalog {
 
     void clear() noexcept { data_.clear(); lookup_.clear(); }
 
-    [[nodiscard]] const Type &operator[](u32 id) const noexcept { ASSERT(has(id)); return data_[id]; }
-    [[nodiscard]]       Type &operator[](u32 id)       noexcept { ASSERT(has(id)); return data_[id]; }
+    [[nodiscard]] const Type &operator[](u32 id) const noexcept { DEBUG_ASSERT(has(id)); return data_[id]; }
+    [[nodiscard]]       Type &operator[](u32 id)       noexcept { DEBUG_ASSERT(has(id)); return data_[id]; }
 
     // Returns null if the element doesn't exist.
     [[nodiscard]] const Type *get(std::string_view name) const {

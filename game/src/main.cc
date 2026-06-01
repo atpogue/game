@@ -47,7 +47,7 @@ static bool load_world(u32 x, u32 y) {
 bool load_player() {
     player.entity = registry.create();
     registry.emplace<Pose>(player.entity, Vec2<float>{chunk_size * 0.5f, chunk_size * 0.5f});
-    ASSERT(registry.has<Pose>(player.entity));
+    DEBUG_ASSERT(registry.has<Pose>(player.entity));
     return true;
 }
 

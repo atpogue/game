@@ -53,7 +53,7 @@ Handle<Texture> create_texture(SDL_Surface *surface) {
     }
     SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST);
     auto handle = textures.emplace(texture);
-    PANIC(handle, "texture limit reached");
+    ASSERT(handle, "texture limit reached");
     return handle;
 }
 

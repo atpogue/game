@@ -13,14 +13,14 @@ struct Grid3 {
         : width_{w}, height_{h}, depth_{d}
         , data(size_t{width_} * height_ * depth_)
     {
-        ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
+        DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
 
     Grid3(u32 w, u32 h, u32 d, const Type &value)
         : width_{w}, height_{h}, depth_{d}
         , data(size_t{width_} * height_ * depth_, value)
     {
-        ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
+        DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
     }
 
     Grid3(const Grid3 &other) = default;
@@ -56,8 +56,8 @@ struct Grid3 {
         return x < width_ && y < height_ && z < depth_;
     }
 
-    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
-    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { DEBUG_ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { DEBUG_ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
 
     constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
@@ -94,8 +94,8 @@ struct Grid3<Type, Width, Height, Depth> {
 
     constexpr bool has(u32 x, u32 y, u32 z) const { return x < Width && y < Height && z < Depth; }
 
-    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
-    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr const Type &operator[](u32 x, u32 y, u32 z) const { DEBUG_ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
+    constexpr       Type &operator[](u32 x, u32 y, u32 z)       { DEBUG_ASSERT(has(x, y, z)); return data[index(x, y, z)]; }
 
     constexpr const Type *get(u32 x, u32 y, u32 z) const { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y, u32 z)       { return has(x, y, z) ? &data[index(x, y, z)] : nullptr; }

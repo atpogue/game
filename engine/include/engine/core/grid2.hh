@@ -12,13 +12,13 @@ struct Grid2 {
     Grid2(u32 w, u32 h)
         : width_{w}, height_{h}, data_(size_t{width_} * height_)
     {
-        ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
+        DEBUG_ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
     }
 
     Grid2(u32 w, u32 h, const Type &value)
         : width_{w}, height_{h}, data_(size_t{width_} * height_, value)
     {
-        ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
+        DEBUG_ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
     }
 
     Grid2(Grid2 &&other) noexcept
@@ -48,8 +48,8 @@ struct Grid2 {
         return x < width_ && y < height_;
     }
 
-    constexpr const Type &operator[](u32 x, u32 y) const { ASSERT(has(x, y)); return data_[index(x, y)]; }
-    constexpr       Type &operator[](u32 x, u32 y)       { ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr const Type &operator[](u32 x, u32 y) const { DEBUG_ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { DEBUG_ASSERT(has(x, y)); return data_[index(x, y)]; }
 
     constexpr const Type *get(u32 x, u32 y) const { return has(x,y) ? &data_[index(x,y)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y)       { return has(x,y) ? &data_[index(x,y)] : nullptr; }
@@ -100,8 +100,8 @@ struct Grid2<Type, Width, Height> {
 
     constexpr bool has(u32 x, u32 y) const { return x < Width && y < Height; }
 
-    constexpr const Type &operator[](u32 x, u32 y) const { ASSERT(has(x, y)); return data_[index(x, y)]; }
-    constexpr       Type &operator[](u32 x, u32 y)       { ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr const Type &operator[](u32 x, u32 y) const { DEBUG_ASSERT(has(x, y)); return data_[index(x, y)]; }
+    constexpr       Type &operator[](u32 x, u32 y)       { DEBUG_ASSERT(has(x, y)); return data_[index(x, y)]; }
 
     constexpr const Type *get(u32 x, u32 y) const { return has(x, y) ? &data_[index(x, y)] : nullptr; }
     constexpr       Type *get(u32 x, u32 y)       { return has(x, y) ? &data_[index(x, y)] : nullptr; }

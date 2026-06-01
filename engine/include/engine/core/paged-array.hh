@@ -87,14 +87,14 @@ public:
     // Direct access to the element at the index without bounds-checking.
     // The validity of the index is asserted in debug mode, and assumed (zero-cost overhead) in release mode.
     [[nodiscard]] reference operator[](u32 idx) noexcept {
-        ASSERT(has(idx));
+        DEBUG_ASSERT(has(idx));
         return *get_page(idx)->at(slot_of(idx));
     }
 
     // Direct access to the element at the index without bounds-checking.
     // The validity of the index is asserted in debug mode, and assumed (zero-cost overhead) in release mode.
     [[nodiscard]] const_reference operator[](u32 idx) const noexcept {
-        ASSERT(has(idx));
+        DEBUG_ASSERT(has(idx));
         return *get_page(idx)->at(slot_of(idx));
     }
 

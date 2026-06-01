@@ -10,13 +10,13 @@ World::World(u32 width, u32 height,
     , generator_(generator.release()), loader_(loader.release())
     , chunks_()
 {
-    ASSERT(width_ != 0u && height_ != 0u);
+    DEBUG_ASSERT(width_ != 0u && height_ != 0u);
     PRECONDITION(generator_);
     PRECONDITION(loader_);
 }
 
 Tile &World::operator[](u32 x, u32 y) {
-    ASSERT(has(x, y));
+    DEBUG_ASSERT(has(x, y));
     return get_chunk(key_at(x, y))[x % chunk_size, y % chunk_size];
 }
 

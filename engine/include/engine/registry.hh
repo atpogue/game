@@ -80,7 +80,7 @@ struct Registry { //////////////////////////////////////////////////////////////
 
     [[nodiscard]] Entity create() {
         auto handle = entities_.emplace();
-        PANIC(handle, "Entity limit reached!");
+        ASSERT(handle, "Entity limit reached!");
         return (Handle<void>)handle;
     }
 

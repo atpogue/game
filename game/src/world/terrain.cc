@@ -14,7 +14,7 @@ u32 find_terrain(std::string_view name) { return catalog.find(name); }
 bool load_terrain() {
     auto texture = create_texture("assets/kenney-1bitpack.png");
     // throw exception here??
-    PANIC(texture, "failed to load texture from PNG file");
+    ASSERT(texture, "failed to load texture from PNG file");
     return nil != catalog.emplace("grass-1",       make_sprite_1x1(texture, 5, 0, Color{59,216,114,255}))
         && nil != catalog.emplace("grass-2",       make_sprite_1x1(texture, 6, 0, Color{59,216,114,255}))
         && nil != catalog.emplace("grass-3",       make_sprite_1x1(texture, 7, 0, Color{59,216,114,255}))

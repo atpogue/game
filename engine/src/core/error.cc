@@ -6,7 +6,7 @@
 #include <stacktrace>
 #endif
 
-void detail::fatal_error(
+void detail::panic(
     const char *category,
     const char *condition,
     const char *message,
