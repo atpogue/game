@@ -1,6 +1,6 @@
 ## Building 
 
-### Requirements
+### Toolchain
 
 - A C++23 compiler: GCC 13+, Clang 17+, or MSVC 19.38+
 - [CMake](https://cmake.org/) 3.25+ 
@@ -9,8 +9,10 @@
 
 If not found on the system, dependencies will be fetched and built from source via CMake's `FetchContent`.
 
-- [SDL3](https://www.libsdl.org/)
-- [GLM](https://www.opengl.org/sdk/libs/GLM/)
+- [SDL3](https://github.com/libsdl-org/SDL) 3.4+
+- [GLM](https://github.com/g-truc/glm) 1.0+
+- [Catch2](https://github.com/catchorg/Catch2) 3.0+
+    - Optional. Only needed to build the unit tests.
 
 ### Commands
 

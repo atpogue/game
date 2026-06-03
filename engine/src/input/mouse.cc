@@ -1,10 +1,10 @@
 #include "engine/input/mouse.hh"
 
-bool Mouse::operator[](Uint8 btn) const { return btn >= BUTTON_COUNT ? state_.test(btn) : false; }
+bool Mouse::operator[](Uint8 btn) const { return btn < BUTTON_COUNT ? state_.test(btn) : false; }
 
-bool Mouse::was_pressed(Uint8 btn) const { return btn >= BUTTON_COUNT ? pressed_.test(btn) : false; }
+bool Mouse::was_pressed(Uint8 btn) const { return btn < BUTTON_COUNT ? pressed_.test(btn) : false; }
 
-bool Mouse::was_released(Uint8 btn) const { return btn >= BUTTON_COUNT ? released_.test(btn) : false; }
+bool Mouse::was_released(Uint8 btn) const { return btn < BUTTON_COUNT ? released_.test(btn) : false; }
 
 void Mouse::flush() { pressed_.reset(); released_.reset(); }
 

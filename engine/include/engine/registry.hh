@@ -37,6 +37,9 @@ struct Registry { //////////////////////////////////////////////////////////////
 
     Registry &operator=(const Registry &) = delete;
 
+    const EntityData *meta(Entity e) const { return entities_.get(handle(e)); }
+          EntityData *meta(Entity e)       { return entities_.get(handle(e)); }
+
     template <typename T, typename... Args>
     requires std::constructible_from<T, Args...>
     T &emplace(Entity e, Args &&... args) {
@@ -78,10 +81,11 @@ struct Registry { //////////////////////////////////////////////////////////////
             && (has(e, Info::template index<Ts>()) && ...);
     }
 
-    [[nodiscard]] Entity create() {
-        auto handle = entities_.emplace();
-        ASSERT(handle, "Entity limit reached!");
-        return (Handle<void>)handle;
+    template <typename... Args>
+    requires std::constructible_from<EntityData, Args...>
+    [[nodiscard]] Entity create(Args &&... args) {
+        auto handle = entities_.emplace(std::forward<Args>(args)...);
+        return handle.template with_tag<>();
     }
 
     [[nodiscard]] constexpr u32 capacity() const { return entities_.capacity(); }
@@ -110,7 +114,7 @@ struct Registry { //////////////////////////////////////////////////////////////
 
         Iterator &operator=(const Iterator &other) = default;
 
-        reference operator*() const { return {(Handle<void>)(*slot_).first, (*slot_).second}; }
+        reference operator*() const { return {(*slot_).first.template with_tag<>(), (*slot_).second}; }
 
         Iterator &operator++() { ++slot_; return *this; }
         Iterator operator++(int) { auto temp = *this; ++(*this); return temp; }
@@ -137,11 +141,10 @@ private:
 
     Registry(const Registry &) = default;
 
-    static constexpr u32 index(Entity e) { return ((Handle<void>)e).index; }
+    static constexpr u32 index(Entity e) noexcept { return e.to_handle().index; }
 
-    static constexpr Handle<EntityData> handle(Entity e) {
-        auto t = (Handle<void>)e;
-        return { t.index, t.generation };
+    static constexpr Handle<EntityData> handle(Entity e) noexcept {
+        return e.to_handle<EntityData>();
     }
 
     bool has(Entity e, u32 i) const {

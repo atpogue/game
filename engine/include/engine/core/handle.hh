@@ -4,22 +4,20 @@
 
 // Used to represent a reference that can become stale (referring a deleted element)
 // similar to the role of a weak pointer.
-template <typename Tag>
+template <typename Tag=void>
 struct Handle {
 
     u32 index      = nil;
     u32 generation = nil;
 
-    [[nodiscard]] static constexpr Handle<Tag> null() { return {nil, nil}; }
+    [[nodiscard]] static constexpr Handle<Tag> null() noexcept { return {nil, nil}; }
 
-    std::strong_ordering operator<=>(const Handle<Tag> &) const = default;
+    [[nodiscard]] std::strong_ordering operator<=>(const Handle<Tag> &) const noexcept = default;
 
-    constexpr operator Handle<void>() const { return {index, generation}; }
+    template <typename T=void>
+    [[nodiscard]] constexpr Handle<T> with_tag() const noexcept { return {index, generation}; }
 
-    template <typename T>
-    constexpr explicit operator Handle<T>() const { return {index, generation}; }
-
-    constexpr explicit operator bool() const { return *this != Handle<Tag>::null(); }
+    [[nodiscard]] constexpr explicit operator bool() const noexcept { return *this != Handle<Tag>::null(); }
 
 };
 

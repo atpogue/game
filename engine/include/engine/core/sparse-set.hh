@@ -47,7 +47,10 @@ struct SparseSet {
     }
 
     // assumptions: key is not nil, key is assigned to an element
-    void erase(u32 key) noexcept(std::is_nothrow_move_assignable_v<Type>) {
+    void erase(u32 key)
+    noexcept(std::is_nothrow_move_assignable_v<Type>)
+    requires (std::is_move_assignable_v<Type> || std::is_copy_assignable_v<Type>)
+    {
         PRECONDITION(key != nil);
         PRECONDITION(has(key));
         INVARIANT(keys_.size() == values_.size(), "key and value dense arrays must be the same size");
@@ -60,7 +63,7 @@ struct SparseSet {
             values_[idx] = std::move(values_.back());
         }
 
-        lookup_[key] = nil;
+        lookup_.erase(key);
         keys_.pop_back();
         values_.pop_back();
     }
@@ -123,7 +126,7 @@ private:
         Iterator operator++(int) noexcept { auto tmp = *this; ++(*this); return tmp; }
 
         bool operator==(const Iterator& other) const noexcept {
-            return owner_ == other.owner_ && idx_ = other.idx_;
+            return owner_ == other.owner_ && idx_ == other.idx_;
         }
 
         bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }

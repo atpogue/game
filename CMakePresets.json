@@ -18,7 +18,8 @@
       "displayName": "Debug",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_TESTS": "ON"
       }
     },
     {

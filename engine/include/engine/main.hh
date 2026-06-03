@@ -1,13 +1,14 @@
+#pragma once
 #define SDL_MAIN_USE_CALLBACKS
-#include "engine/core/types.hh"
-#include "render/internal.hh"
 #include "engine/render/window.hh"
 #include <iostream>
 #include <cmath>
-#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_timer.h>
+
+////////////////////////////////////////////////////////////////////////////////
+// These need to be defined by an external binary linking against the engine.
 
 WindowConfig app_window_config();
 bool app_init();
@@ -17,6 +18,9 @@ void app_render();
 void app_event(const SDL_Event &event);
 void app_quit();
 
+////////////////////////////////////////////////////////////////////////////////
+// These are internally defined by the engine in different compilation units.
+
 bool open_window(WindowConfig config);
 void close_window();
 bool engine_init();
@@ -24,14 +28,17 @@ bool engine_step();
 void engine_update(float dt);
 void engine_event(const SDL_Event &event);
 void engine_quit();
+SDL_Renderer *get_renderer();
 
-f32 time_seconds() { return (f32)(SDL_GetTicks()) / 1000.f; }
+////////////////////////////////////////////////////////////////////////////////
+
+inline f32 time_seconds() { return (f32)(SDL_GetTicks()) / 1000.f; }
 
 constexpr f32 step_size = 1.f / 30.f;
-f32 time_lag = 0.f;
-f32 time_prior = 0.f;
+inline f32 time_lag = 0.f;
+inline f32 time_prior = 0.f;
 
-SDL_AppResult SDL_AppInit(void ** /*appstate*/, int /*argc*/, char ** /*argv*/) {
+inline SDL_AppResult SDL_AppInit(void ** /*appstate*/, int /*argc*/, char ** /*argv*/) {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "Could not initialize SDL: " << SDL_GetError() << '\n';
         return SDL_APP_FAILURE;
@@ -45,7 +52,7 @@ SDL_AppResult SDL_AppInit(void ** /*appstate*/, int /*argc*/, char ** /*argv*/) 
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void * /*appstate*/) {
+inline SDL_AppResult SDL_AppIterate(void * /*appstate*/) {
     f32 time = time_seconds();
     f32 dt = time - time_prior;
     time_lag += dt;
@@ -71,7 +78,7 @@ SDL_AppResult SDL_AppIterate(void * /*appstate*/) {
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void * /*appstate*/, SDL_Event *event) {
+inline SDL_AppResult SDL_AppEvent(void * /*appstate*/, SDL_Event *event) {
     engine_event(*event);
     app_event(*event);
     switch (event->type) {
@@ -83,7 +90,7 @@ SDL_AppResult SDL_AppEvent(void * /*appstate*/, SDL_Event *event) {
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void * /*appstate*/, SDL_AppResult /*result*/) {
+inline void SDL_AppQuit(void * /*appstate*/, SDL_AppResult /*result*/) {
     app_quit();
     engine_quit();
     close_window();

@@ -89,7 +89,7 @@ struct SlotMap {
     }
 
     void clear() noexcept {
-        slots_.clear(); first_free_ = 0u; size_ = 0u;
+        slots_.clear(); first_free_ = nil; size_ = 0u;
     }
 
     // Get the full handle associated with the slot at the index.
@@ -165,9 +165,9 @@ private:
 
         Iterator &operator++() noexcept {
             PRECONDITION(owner_, "incremented singular iterator");
-            if (index_ >= owner_->slots_.size()) return *this;
-            do { ++index_; }
-            while (index_ < owner_->slots_.size() && !owner_->slots_[index_].live);
+            do {
+                ++index_;
+            } while (index_ < owner_->slots_.size() && !owner_->slots_[index_].live);
             return *this;
         }
 
@@ -208,8 +208,8 @@ public:
         return iterator(this, i);
     }
 
-    [[nodiscard]] const_iterator end() const noexcept { return const_iterator(this, size()); }
-    [[nodiscard]] iterator       end()       noexcept { return iterator(this, size()); }
+    [[nodiscard]] const_iterator end() const noexcept { return const_iterator(this, slots_.size()); }
+    [[nodiscard]] iterator       end()       noexcept { return iterator(this, slots_.size()); }
 
 private:
 
@@ -227,12 +227,14 @@ private:
             } else next_free = other.next_free;
         }
 
-        Slot& operator=(const Slot &other) noexcept(std::is_nothrow_copy_constructible_v<Type>) {
+        Slot &operator=(const Slot &other) noexcept(std::is_nothrow_copy_constructible_v<Type>) {
+            PRECONDITION(&other != this);
             live = other.live;
             generation = other.generation;
             if (live) {
                 new (&value) Type(other.value);
             } else next_free = other.next_free;
+            return *this;
         }
 
         Slot(Slot &&other) noexcept(std::is_nothrow_move_constructible_v<Type>)
@@ -245,12 +247,14 @@ private:
         }
 
         Slot &operator=(Slot &&other) noexcept(std::is_nothrow_move_constructible_v<Type>) {
+            PRECONDITION(&other != this);
             live = other.live;
             generation = other.generation;
             if (live) {
                 new (&value) Type(std::move(other.value));
                 other.live = false;
             } else next_free = other.next_free;
+            return *this;
         }
 
         ~Slot() noexcept { if (live) value.~Type(); }
@@ -288,8 +292,9 @@ private:
             slots_.emplace_back();
         } else {
             // re-use the slot
-            first_free_ = slots_[i].next_free;
+            INVARIANT(i < slots_.size(), "invalid index in free list");
             INVARIANT(!slots_[i].live, "live slot in free list");
+            first_free_ = slots_[i].next_free;
         }
         return i;
     }

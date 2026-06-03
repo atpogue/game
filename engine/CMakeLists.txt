@@ -2,10 +2,10 @@ include (FetchContent)
 
 FetchContent_Declare (
     SDL3
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-3.2.4
-    GIT_SHALLOW TRUE
-    FIND_PACKAGE_ARGS
+    GIT_REPOSITORY      https://github.com/libsdl-org/SDL.git
+    GIT_TAG             release-3.4.10
+    GIT_SHALLOW         TRUE
+    FIND_PACKAGE_ARGS   3.4.0
 )
 set (DSDL_SHARED ON)
 set (DSDL_STATIC OFF)
@@ -14,10 +14,10 @@ FetchContent_MakeAvailable (SDL3)
 
 FetchContent_Declare (
     glm
-    GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG 1.0.3
-    GIT_SHALLOW TRUE
-    FIND_PACKAGE_ARGS
+    GIT_REPOSITORY      https://github.com/g-truc/glm.git
+    GIT_TAG             1.0.3
+    GIT_SHALLOW         TRUE
+    FIND_PACKAGE_ARGS   1.0.0
 )
 FetchContent_MakeAvailable (glm)
 
@@ -46,4 +46,8 @@ target_link_libraries (
 target_compile_options (${ENGINE} PRIVATE -Wall -Wextra -Wpedantic)
 
 add_subdirectory (src)
+
+if (BUILD_TESTS)
+    add_subdirectory (tests)
+endif()
 

@@ -28,7 +28,7 @@ struct TypeList { //////////////////////////////////////////////////////////////
         static_assert(has<Type>(), "type not in TypeList");
         u32 i = 0;
         // short-circuits on first match; i lands on the matching position
-        ((std::is_same_v<Type, Types> ? true : (++i, false)) || ...);
+        (void)((std::is_same_v<Type, Types> || (++i, false)) || ...);
         return i;
     }
 

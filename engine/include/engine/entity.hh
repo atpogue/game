@@ -3,23 +3,26 @@
 
 struct Entity {
 
-    [[nodiscard]] static constexpr Entity null() { return Entity(); }
-
     Entity() = default;
 
-    Entity(const Entity &) = default;
-    Entity &operator=(const Entity &) = default;
+    constexpr Entity(const Entity &) noexcept = default;
+    constexpr Entity &operator=(const Entity &) noexcept = default;
 
-    Entity(Handle<void> handle) : handle_(handle) {}
-    Entity &operator=(const Handle<void> &handle) { handle_ = handle; return *this; }
+    constexpr Entity(Handle<> handle) noexcept : handle_(handle) {}
+    constexpr Entity &operator=(const Handle<> &handle) noexcept { handle_ = handle; return *this; }
 
-    auto operator<=>(const Entity &) const = default;
+    [[nodiscard]] constexpr auto operator<=>(const Entity &) const noexcept = default;
 
-    constexpr explicit operator Handle<void>() const { return handle_; }
+    template <typename Tag=void>
+    [[nodiscard]] constexpr Handle<Tag> to_handle() const noexcept {
+        return handle_.with_tag<Tag>();
+    }
 
 private:
 
-    Handle<void> handle_;
+    Handle<> handle_;
 
 };
+
+constexpr Entity nil_entity;
 

@@ -4,6 +4,7 @@
 #include "engine/core/random.hh"
 #include "engine/event.hh"
 #include "engine/core/math.hh"
+#include "engine/main.hh"
 #include "engine/render/camera.hh"
 #include "engine/render/window.hh"
 #include "world/terrain.hh"
