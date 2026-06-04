@@ -46,7 +46,7 @@ Handle<Texture> create_texture(std::string_view path) {
 }
 
 Handle<Texture> create_texture(SDL_Surface *surface) {
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(get_renderer(), surface);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(detail::get_renderer(), surface);
     if (!texture) {
         SDL_Log("Couldn't create static texture: %s", SDL_GetError());
         return Handle<Texture>::null();
@@ -62,7 +62,7 @@ void destroy_texture(Handle<Texture> handle) {
 }
 
 void draw_texture(Handle<Texture> handle, Rectangle source, Rectangle dest, Color tint) {
-    auto renderer = get_renderer();
+    auto renderer = detail::get_renderer();
     SDL_Texture *texture = get_texture(handle);
     PRECONDITION(texture, "texture handle must be valid");
     SDL_SetTextureColorMod(texture, tint.r, tint.g, tint.b);

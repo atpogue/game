@@ -2,7 +2,7 @@
 
 ### Toolchain
 
-- A C++23 compiler: GCC 13+, Clang 17+, or MSVC 19.38+
+- A C++23 compiler: GCC 14+, Clang 17+, or MSVC 19.38+
 - [CMake](https://cmake.org/) 3.25+ 
 
 ### Dependencies
@@ -11,8 +11,7 @@ If not found on the system, dependencies will be fetched and built from source v
 
 - [SDL3](https://github.com/libsdl-org/SDL) 3.4+
 - [GLM](https://github.com/g-truc/glm) 1.0+
-- [Catch2](https://github.com/catchorg/Catch2) 3.0+
-    - Optional. Only needed to build the unit tests.
+- [Catch2](https://github.com/catchorg/Catch2) 3.0+ (Optional, needed to build unit tests)
 
 ### Commands
 

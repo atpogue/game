@@ -8,6 +8,8 @@ namespace {
     SDL_Renderer *renderer;
 }
 
+namespace detail {
+
 SDL_Renderer *get_renderer() {
     return renderer;
 }
@@ -33,3 +35,4 @@ void close_window() {
     SDL_DestroyWindow(window);
 }
 
+} // namespace detail

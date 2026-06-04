@@ -1,7 +1,12 @@
 #include <SDL3/SDL_events.h>
-#include <SDL3/SDL_timer.h>
+#include "engine/time.hh"
+
+////////////////////////////////////////////////////////////////////////////////
+// These are internally defined in different compilation units.
 
 void destroy_all_textures();
+
+namespace detail { /////////////////////////////////////////////////////////////
 
 // initialize all subsystems
 bool engine_init() {
@@ -13,7 +18,7 @@ void engine_step() {
 }
 
 // progress animations, effects, and user-interface elements
-void engine_update(float /*dt*/) {
+void engine_update(nanoseconds /*dt*/) {
 }
 
 // dispatch events to interested subsystems
@@ -29,4 +34,6 @@ void engine_event(const SDL_Event &event) {
 void engine_quit() {
     destroy_all_textures();
 }
+
+} // namespace detail //////////////////////////////////////////////////////////
 
