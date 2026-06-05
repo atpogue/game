@@ -1,6 +1,5 @@
 #pragma once
 #include "action/result.hh"
-#include "registry.hh"
 #include <glm/vec2.hpp>
 
 struct MoveAction {
@@ -10,5 +9,8 @@ struct MoveAction {
 
 };
 
-ActionResult act(GameRegistry &r, Entity e, MoveAction &move);
+struct Context;
+struct Entity;
+
+ActionResult act(Context ctx, Entity e, MoveAction &move);
 

@@ -9,19 +9,29 @@
 // TODO: ability to query all entity with a series of components
 
 // Type-erased interface to component storage.
+// Operations that don't require the registry to have the store's type.
 struct AnyComponentStore {
     virtual ~AnyComponentStore() noexcept = default;
     virtual bool has(u32 index) const = 0;
     virtual void erase(u32 index) = 0;
+    virtual std::unique_ptr<AnyComponentStore> clone() const = 0;
 };
 
 template <typename Type>
 struct ComponentStore : AnyComponentStore, SparseSet<Type> {
+
+    ComponentStore(SparseSet<Type> &&other) noexcept : SparseSet<Type>(std::move(other)) {}
+    ComponentStore() = default;
+    ComponentStore(ComponentStore &&) noexcept = default;
+    ~ComponentStore() noexcept = default;
+
     bool has(u32 i) const override { return SparseSet<Type>::has(i); }
     void erase(u32 i) override { SparseSet<Type>::erase(i); }
-};
+    std::unique_ptr<AnyComponentStore> clone() const override {
+        return std::make_unique<ComponentStore<Type>>(SparseSet<Type>::copy());
+    }
 
-// Use assertions to check internal logic, invariants to check external input.
+};
 
 // Assumptions: [TypeInfo::count] is fixed after Registry construction.
 template <TypeInfo Info, typename EntityData = Nothing>
@@ -135,11 +145,20 @@ struct Registry { //////////////////////////////////////////////////////////////
     [[nodiscard]] Iterator end()   const { return Iterator(entities_.end()); }
 
     // Explicit copy to prevent unintended implicit copy construction.
+    // Won't work if any of the component types are not copy constructible.
     [[nodiscard]] Registry copy() const { return *this; }
 
 private:
 
-    Registry(const Registry &) = default;
+    Registry(const Registry &other)
+        : entities_(other.entities_.copy())
+        , stores_(Info::count())
+    {
+        INVARIANT(entities_.size() == other.entities_.size());
+        for (auto i = 0u; i < Info::count(); ++i) {
+            if (other.stores_[i]) stores_[i] = other.stores_[i]->clone();
+        }
+    }
 
     static constexpr u32 index(Entity e) noexcept { return e.to_handle().index; }
 

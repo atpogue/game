@@ -1,5 +1,8 @@
 #pragma once
-#include "registry.hh"
+#include "engine/core/types.hh"
+
+struct Context;
+struct Entity;
 
 struct Command {
     u32 id;
@@ -20,5 +23,5 @@ Command make_path_command(u32 id, f32 x, f32 y);
 // TODO: more informative command submission error (std::expected?)
 
 // can be rejected if the entity doesn't have the components to execute the command
-bool try_submit_command(GameRegistry &, Entity, const Command &);
+bool try_submit_command(Context ctx, Entity e, Command cmd);
 

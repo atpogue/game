@@ -1,5 +1,6 @@
 #pragma once
 #include "sprite.hh"
+#include "engine/core/catalog.hh"
 #include <string>
 
 struct Terrain {
@@ -11,7 +12,5 @@ struct Terrain {
     } flag = Flag::None;
 };
 
-bool load_terrain();
-u32 find_terrain(std::string_view name);
-const Terrain &get_terrain(u32 id); // assumes the ID is valid
+Catalog<Terrain> load_terrain();
 

@@ -87,7 +87,9 @@ struct SparseSet {
 
     [[nodiscard]] u32 size() const noexcept { return values_.size(); }
 
-    [[nodiscard]] SparseSet copy() const requires std::is_copy_constructible_v<Type> { return *this; }
+    [[nodiscard]] SparseSet copy() const requires std::is_copy_constructible_v<Type> {
+        return *this;
+    }
 
     const auto &keys() const noexcept { return keys_; }
 
@@ -159,7 +161,14 @@ public:
 
 private:
 
-    SparseSet(const SparseSet &) requires std::is_copy_constructible_v<Type> = default;
+    SparseSet(const SparseSet &other)
+    requires std::is_copy_constructible_v<Type>
+        : values_(other.values_)
+        , keys_(other.keys_)
+        , lookup_(other.lookup_.copy())
+    {
+        INVARIANT(other.lookup_.size() == other.lookup_.size());
+    }
 
     // Invariants:
     // - values_ and keys_ and lookup_ are all the same size
