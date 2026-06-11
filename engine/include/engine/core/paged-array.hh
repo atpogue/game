@@ -239,6 +239,8 @@ private:
 
     PagedArray(const PagedArray &other)
     requires std::is_copy_constructible_v<Type>
+        : pages_()
+        , size_{other.size_}
     {
         pages_.resize(other.pages_.size());
         for (u32 i = 0; i < other.pages_.size(); ++i) {
@@ -251,7 +253,6 @@ private:
             for (u32 j = 0; j < PageSize; ++j)
                 if (src.occupied[j]) std::construct_at(dst.at(j), *src.at(j));
         }
-        size_ = other.size_;
     }
 
     Page *get_page(u32 idx) noexcept {
@@ -273,7 +274,7 @@ private:
     }
 
     std::vector<std::unique_ptr<Page>> pages_;
-    u32 size_ = 0;
+    u32 size_ = 0u;
 
 };
 

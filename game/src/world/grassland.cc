@@ -1,17 +1,17 @@
 #include "engine/core/random.hh"
 #include "world/grassland.hh"
-#include "world/terrain.hh"
+#include "context.hh"
 #include <random>
 
-GrasslandGenerator::GrasslandGenerator(u64 seed, const Catalog<Terrain> &terrain) 
+GrasslandGenerator::GrasslandGenerator(const Context ctx, u64 seed) 
     : seed_{seed}
     , terrain_{
-        terrain.find("grass-1"),
-        terrain.find("grass-2"),
-        terrain.find("grass-3"),
-        terrain.find("grass-tall"),
-        terrain.find("dirt"),
-        terrain.find("rocks"),
+        ctx.codex.terrain.find("grass-1"),
+        ctx.codex.terrain.find("grass-2"),
+        ctx.codex.terrain.find("grass-3"),
+        ctx.codex.terrain.find("grass-tall"),
+        ctx.codex.terrain.find("dirt"),
+        ctx.codex.terrain.find("rocks"),
     }
 {
     for (auto id : terrain_) {

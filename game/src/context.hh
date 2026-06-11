@@ -1,5 +1,5 @@
 #pragma once
-#include "definition.hh"
+#include "codex.hh"
 #include "engine/core/type-info.hh"
 #include "engine/registry.hh"
 #include "world/chunk.hh"
@@ -12,7 +12,7 @@ struct MoveAction;
 using Components = TypeList<Pose, MoveAction>;
 
 struct Context {
-    const GameDefinition &def;
+    const Codex &codex;
     Registry<Components> &entities;
     Chunk &chunk;
 };

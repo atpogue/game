@@ -5,14 +5,14 @@
 // Shouldn't be mutated outside of simulation systems and the command-action pipeline.
 struct GameState { ///////////////////////////////////////////////////
 
-    GameDefinition def;
+    Codex codex;
     Registry<Components> entities;
     Chunk chunk; // TODO: multi-chunk world with lazy-loading
 
     // Explciit copy to prevent unintended and expensive implicit copies.
     GameState copy() const {
         return {
-            .def = def.copy(),
+            .codex = codex.copy(),
             .entities = entities.copy(),
             .chunk = chunk,
         };
@@ -20,7 +20,7 @@ struct GameState { ///////////////////////////////////////////////////
 
     Context context() {
         return {
-            .def = def,
+            .codex = codex,
             .entities = entities,
             .chunk = chunk
         };

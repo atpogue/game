@@ -18,7 +18,7 @@ struct AnyComponentStore {
 };
 
 template <typename Type>
-struct ComponentStore : AnyComponentStore, SparseSet<Type> {
+struct ComponentStore final : AnyComponentStore, SparseSet<Type> {
 
     ComponentStore(SparseSet<Type> &&other) noexcept : SparseSet<Type>(std::move(other)) {}
     ComponentStore() = default;

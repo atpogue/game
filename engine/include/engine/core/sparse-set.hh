@@ -167,7 +167,7 @@ private:
         , keys_(other.keys_)
         , lookup_(other.lookup_.copy())
     {
-        INVARIANT(other.lookup_.size() == other.lookup_.size());
+        INVARIANT(lookup_.size() == other.lookup_.size());
     }
 
     // Invariants:

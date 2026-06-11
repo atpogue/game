@@ -1,3 +1,5 @@
+find_package(Lua 5.4 REQUIRED)
+
 include (FetchContent)
 
 FetchContent_Declare (
@@ -25,6 +27,7 @@ add_library (${ENGINE})
 
 target_include_directories (
     ${ENGINE}
+    PUBLIC ${LUA_INCLUDE_DIR}
     PUBLIC ${SDL3_INCLUDE_DIRS}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
@@ -39,6 +42,7 @@ endif()
 
 target_link_libraries (
     ${ENGINE}
+    PUBLIC ${LUA_LIBRARIES}
     PUBLIC SDL3::SDL3
     PUBLIC glm::glm
 )

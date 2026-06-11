@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
-struct GameDefinition;
+struct Context;
 struct Camera;
 
 struct World {
@@ -23,7 +23,7 @@ struct World {
 
     constexpr bool has(u32 x, u32 y) const { return x  < width_ && y < height_; }
 
-    void render(const GameDefinition &def, const Camera &camera, float tile_size) const;
+    void render(const Context ctx, const Camera &camera, float tile_size) const;
 
     Tile &operator[](u32 x, u32 y);
 

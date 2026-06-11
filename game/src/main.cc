@@ -27,11 +27,11 @@ struct AppState { //////////////////////////////////////////////////////////////
 }; ////////////////////////////////////////////////////////////////////////////////////////
 
 
-void load_chunk(Context ctx, Chunk &chunk) {
+void load_chunk(const Context ctx, Chunk &chunk) {
     static const u64 seed = random_seed();
     static SplitMix64 rng(seed);
     std::uniform_int_distribution<u32> dist{0u, chunk_size-1u};
-    GrasslandGenerator(seed, ctx.def.terrain).generate(dist(rng), dist(rng), chunk);
+    GrasslandGenerator(ctx, seed).generate(dist(rng), dist(rng), chunk);
 }
 
 Entity load_player(Context ctx) {
@@ -55,13 +55,9 @@ AppConfig app_config() {
 }
 
 AppState *app_start(int /*argc*/, char *[] /*argv*/) {
-    GameState state {
-        .def = {
-            .terrain = load_terrain(),
-        },
-        .entities = {},
-        .chunk = {},
-    };
+    GameState state;
+    if (!load_content(state.codex, "content/terrain.lua"))
+        return nullptr;
     auto ctx = state.context();
     load_chunk(ctx, state.chunk);
     Entity player = load_player(ctx);
@@ -97,7 +93,7 @@ void app_update(AppState &app, nanoseconds) {
 }
 
 void app_render(AppState &app) {
-    app.state.chunk.render(app.state.def, app.camera, tile_size);
+    app.state.chunk.render(app.state.context(), app.camera, tile_size);
 }
 
 void app_event(AppState &app, const SDL_Event &event) {

@@ -1,17 +1,56 @@
-#include "engine/render/textures.hh"
+#include "codex.hh"
+#include "engine/core/defer.hh"
+#include "lua.hh"
 #include "world/terrain.hh"
+#include <lua.hpp>
 
-Catalog<Terrain> load_terrain() {
-    auto texture = create_texture("assets/kenney-1bitpack.png");
-    // throw an io exception here??
-    ASSERT(texture, "failed to load texture from PNG file");
-    Catalog<Terrain> catalog;
-    catalog.emplace("grass-1",       make_sprite_1x1(texture, 5, 0, Color{59,216,114,255}));
-    catalog.emplace("grass-2",       make_sprite_1x1(texture, 6, 0, Color{59,216,114,255}));
-    catalog.emplace("grass-3",       make_sprite_1x1(texture, 7, 0, Color{59,216,114,255}));
-    catalog.emplace("grass-tall",    make_sprite_1x1(texture, 0, 2, Color{59,216,114,255}));
-    catalog.emplace("dirt",          make_sprite_1x1(texture, 2, 0, Color{121,70,75,255}));
-    catalog.emplace("rocks",         make_sprite_1x1(texture, 2, 0, Color{206,197,183,255}));
-    return catalog;
+// terrain "name" { sprite = {} }
+static int parse_terrain_table(lua_State *L) {
+    INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
+    INVARIANT(lua_isstring(L, lua_upvalueindex(2)));
+    auto out = static_cast<Catalog<Terrain> *>(lua_touserdata(L, lua_upvalueindex(1)));
+    auto name = lua_tostring(L, lua_upvalueindex(2));
+
+    do {
+        // arg 1: definition table
+        if (!lua_istable(L, 1)) {
+            lua::push_fstring(L, "terrain '{}': expected table, found {}", name, lua_typename(L, lua_type(L, 1)));
+            break;
+        }
+        int terrain = lua_gettop(L);
+
+        auto sprite = lua::parse_sprite_table(L, terrain, "sprite");
+        if (!sprite) {
+            lua::push_string(L, sprite.error().msg);
+            break;
+        }
+        DEFER(lua_pop(L, 1));
+
+        out->emplace(name, *sprite);
+        return 0;
+    } while (false);
+    
+    // this will unwind the stack without calling C++ destructors
+    return lua_error(L);
+}
+
+static int build_terrain(lua_State *L) {
+    INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
+    // arg 1: name string
+    if (!lua_isstring(L, 1)) {
+        lua_pushstring(L, std::format("terrain: expected string, found {}", 
+            lua_typename(L, lua_type(L, 1))).data());
+        return lua_error(L);
+    }
+    lua_pushvalue(L, lua_upvalueindex(1));
+    lua_pushvalue(L, 1); // name
+    lua_pushcclosure(L, parse_terrain_table, 2);
+    return 1;
+}
+
+void lua::add_terrain_global(lua_State *L, Codex &codex) {
+    lua_pushlightuserdata(L, &codex.terrain);
+    lua_pushcclosure(L, build_terrain, 1);
+    lua_setglobal(L, "terrain");
 }
 

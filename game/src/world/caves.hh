@@ -2,14 +2,13 @@
 #include "engine/core/types.hh"
 #include "engine/core/grid2.hh"
 #include "world/chunk.hh"
-#include "world/terrain.hh"
 
 // cellular automata rule used for cave generation
 void generate_cave(Grid2<u32> &out, u32 wall, u32 floor,
                    u32 birth, u32 survival, u32 range, u32 iterations);
 
 struct CaveGenerator : ChunkGenerator {
-    CaveGenerator(u64 seed, const Catalog<Terrain> &terrain);
+    CaveGenerator(const Context ctx, u64 seed);
     void generate(u32 x, u32 y, Chunk &chunk) override;
 private:
     u64 seed_;

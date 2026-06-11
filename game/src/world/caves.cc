@@ -1,6 +1,6 @@
+#include "context.hh"
 #include "engine/core/grid2.hh"
 #include "engine/core/random.hh"
-#include "world/terrain.hh"
 #include "world/caves.hh"
 #include <random>
 #include <utility>
@@ -67,10 +67,10 @@ void generate_cave(
     }
 }
 
-CaveGenerator::CaveGenerator(u64 seed, const Catalog<Terrain> &terrain)
+CaveGenerator::CaveGenerator(const Context ctx, u64 seed)
     : seed_{seed}
-    , wall_{terrain.find("stone")}
-    , floor_{terrain.find("jirt")}
+    , wall_{ctx.def.terrain.find("stone")}
+    , floor_{ctx.def.terrain.find("dirt")}
 {
     PRECONDITION(wall_ != nil);
     PRECONDITION(floor_ != nil);

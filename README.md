@@ -4,6 +4,7 @@
 
 - A C++23 compiler: GCC 14+, Clang 17+, or MSVC 19.38+
 - [CMake](https://cmake.org/) 3.25+ 
+- [Lua](https://www.lua.org/) 5.4+
 
 ### Dependencies
 

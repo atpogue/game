@@ -6,9 +6,9 @@
 //      would allow callers do register their own definitions
 //      without requiring knowledge of them in this file
 
-// Immutable simulation state.
-// Populated during loading.
-struct GameDefinition { /////////////////////////////////////////////
+// A simulation rulebook that defines what exists and how what exists should behave.
+struct Codex {
+    // Alternative names: Rulebook, GameContent, Resources
 
     Catalog<Terrain> terrain;
     // TODO: Catalog<Item> items;
@@ -16,11 +16,13 @@ struct GameDefinition { /////////////////////////////////////////////
     // TODO: Catalog<Structure> structures;
 
     // Explciit copy to prevent unintended and expensive implicit copies.
-    GameDefinition copy() const {
+    Codex copy() const {
         return {
             .terrain = terrain.copy(),
         };
     }
 
-}; ///////////////////////////////////////////////////////////////////
+};
+
+bool load_content(Codex &codex, std::string_view path);
 
