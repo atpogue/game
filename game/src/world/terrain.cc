@@ -1,7 +1,8 @@
 #include "codex.hh"
 #include "engine/core/defer.hh"
-#include "lua.hh"
+#include "engine/core/lua.hh"
 #include "world/terrain.hh"
+#include "sprite.hh"
 #include <lua.hpp>
 
 // terrain "name" { sprite = {} }
@@ -19,7 +20,7 @@ static int parse_terrain_table(lua_State *L) {
         }
         int terrain = lua_gettop(L);
 
-        auto sprite = lua::parse_sprite_table(L, terrain, "sprite");
+        auto sprite = lua::try_get_sprite(L, terrain, "sprite");
         if (!sprite) {
             lua::push_string(L, sprite.error().msg);
             break;
@@ -48,7 +49,7 @@ static int build_terrain(lua_State *L) {
     return 1;
 }
 
-void lua::add_terrain_global(lua_State *L, Codex &codex) {
+void lua::add_terrain_builder(lua_State *L, Codex &codex) {
     lua_pushlightuserdata(L, &codex.terrain);
     lua_pushcclosure(L, build_terrain, 1);
     lua_setglobal(L, "terrain");

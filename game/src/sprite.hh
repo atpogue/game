@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/render/textures.hh"
+#include "engine/core/error.hh"
 
 struct Sprite {
 
@@ -13,4 +14,8 @@ struct Sprite {
 };
 
 Sprite make_sprite_1x1(Handle<Texture> atlas, f32 x, f32 y, Color color);
+
+struct lua_State;
+
+namespace lua { Result<Sprite> try_get_sprite(lua_State *L, int idx, std::string_view field); }
 

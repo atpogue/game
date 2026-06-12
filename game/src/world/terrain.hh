@@ -11,6 +11,6 @@ struct lua_State;
 struct Codex;
 
 namespace lua {
-    void add_terrain_global(lua_State *L, Codex &codex);
+    void add_terrain_builder(lua_State *L, Codex &codex);
 }
 

@@ -14,8 +14,7 @@ static int handle_error(lua_State *L) {
 
 Error lua::make_content_error(lua_State *L, int found, int expected) {
     return {
-        .type = Error::Type::Content,
-        .msg = std::format("expected {}, found {}", lua_typename(L, expected), lua_typename(L, found))
+        std::format("expected {}, found {}", lua_typename(L, expected), lua_typename(L, found))
     };
 }
 
@@ -125,18 +124,12 @@ Result<void> lua::do_file(lua_State *L, std::string_view path, unsigned argc, un
 
     int error = luaL_loadfile(L, path.data()); 
     if (error != LUA_OK) [[unlikely]] {
-        return std::unexpected<Error>({
-            .type = Error::Type(error),
-            .msg = pop_string(L)
-        });
+        return std::unexpected<Error>(pop_string(L));
     }
 
     error = lua_pcall(L, argc, resultc, handler);
     if (error != LUA_OK) [[unlikely]] {
-        return std::unexpected<Error>({
-            .type = Error::Type(error),
-            .msg = pop_string(L)
-        });
+        return std::unexpected<Error>(pop_string(L));
     }
 
     return {};

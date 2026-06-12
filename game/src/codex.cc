@@ -1,5 +1,5 @@
 #include "codex.hh"
-#include "lua.hh"
+#include "engine/core/lua.hh"
 #include "world/terrain.hh"
 #include <lua.hpp>
 #include <SDL3/SDL_log.h>
@@ -8,7 +8,7 @@ bool load_content(Codex &codex, std::string_view path) {
     lua_State *L = luaL_newstate();
     ASSERT(L != nullptr, "failed to create lua state");
 
-    lua::add_terrain_global(L, codex);
+    lua::add_terrain_builder(L, codex);
 
     auto result = lua::do_file(L, path);
     if (!result) {
