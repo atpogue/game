@@ -7,8 +7,8 @@ struct SDL_Renderer;
 
 namespace detail {
 
-    SDL_Texture *get_texture(Handle<Texture> handle);
-    SDL_Renderer *get_renderer();
+  SDL_Texture*  get_texture(Handle<Texture> handle);
+  SDL_Renderer* get_renderer();
 
-}
+} // namespace detail
 

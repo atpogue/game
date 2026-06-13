@@ -52,6 +52,6 @@ target_compile_options (${ENGINE} PRIVATE -Wall -Wextra -Wpedantic)
 add_subdirectory (src)
 
 if (BUILD_TESTS)
-    add_subdirectory (tests)
+    add_subdirectory (tests EXCLUDE_FROM_ALL)
 endif()
 

@@ -3,9 +3,9 @@
 
 // TODO: rotation
 
-struct Pose {
+struct Pose
+{
 
-    glm::vec2 position;
-
+  glm::vec2 position;
 };
 

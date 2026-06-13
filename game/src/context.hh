@@ -1,8 +1,9 @@
 #pragma once
 #include "codex.hh"
+#include "world/chunk.hh"
+
 #include "engine/core/type-info.hh"
 #include "engine/registry.hh"
-#include "world/chunk.hh"
 
 struct Pose;
 struct MoveAction;
@@ -11,9 +12,10 @@ struct MoveAction;
 //  but still allows for determinism
 using Components = TypeList<Pose, MoveAction>;
 
-struct Context {
-    const Codex &codex;
-    Registry<Components> &entities;
-    Chunk &chunk;
+struct Context
+{
+  const Codex&          codex;
+  Registry<Components>& entities;
+  Chunk&                chunk;
 };
 

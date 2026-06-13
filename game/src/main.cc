@@ -1,68 +1,77 @@
+#include "engine/main.hh"
+
 #include "action/move.hh"
 #include "component/pose.hh"
 #include "director.hh"
-#include "engine/core/random.hh"
-#include "engine/core/math.hh"
-#include "engine/event.hh"
-#include "engine/main.hh"
-#include "engine/render/camera.hh"
 #include "state.hh"
 #include "world/grassland.hh"
+
+#include "engine/core/math.hh"
+#include "engine/core/random.hh"
+#include "engine/event.hh"
+#include "engine/render/camera.hh"
+
 #include <random>
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
 
-struct AppState { /////////////////////////////////////////////////////////////////////////
-    
-    GameState state;
+struct AppState
+{ /////////////////////////////////////////////////////////////////////////
 
-    struct {
-        Entity entity;
-        PlayerDirector director;
-    } player;
+  GameState state;
 
-    Camera camera;
+  struct
+  {
+    Entity         entity;
+    PlayerDirector director;
+  } player;
+
+  Camera camera;
 
 }; ////////////////////////////////////////////////////////////////////////////////////////
 
-
-void load_chunk(const Context ctx, Chunk &chunk) {
-    static const u64 seed = random_seed();
-    static SplitMix64 rng(seed);
-    std::uniform_int_distribution<u32> dist{0u, chunk_size-1u};
-    GrasslandGenerator(ctx, seed).generate(dist(rng), dist(rng), chunk);
+void load_chunk(const Context ctx, Chunk& chunk)
+{
+  static const u64                   seed = random_seed();
+  static SplitMix64                  rng(seed);
+  std::uniform_int_distribution<u32> dist{0u, chunk_size - 1u};
+  GrasslandGenerator(ctx, seed).generate(dist(rng), dist(rng), chunk);
 }
 
-Entity load_player(Context ctx) {
-    Entity e = ctx.entities.create();
-    ctx.entities.emplace<Pose>(e, Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
-    DEBUG_ASSERT(ctx.entities.has<Pose>(e));
-    return e;
+Entity load_player(Context ctx)
+{
+  Entity e = ctx.entities.create();
+  ctx.entities.emplace<Pose>(e, Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
+  DEBUG_ASSERT(ctx.entities.has<Pose>(e));
+  return e;
 }
 
-void process_input(AppState &app) {
-    for (auto command : app.player.director.generate()) {
-        try_submit_command(app.state.context(), app.player.entity, command);
-    }
+void process_input(AppState& app)
+{
+  for (auto command : app.player.director.generate()) {
+    try_submit_command(app.state.context(), app.player.entity, command);
+  }
 }
 
-AppConfig app_config() {
-    return {
-        .step_rate = 32,
-        .window = { .title = "My Game", .width = 800, .height = 600 },
-    };
+AppConfig app_config()
+{
+  return {
+    .step_rate = 32,
+    .window    = {.title = "My Game", .width = 800, .height = 600},
+  };
 }
 
-AppState *app_start(int /*argc*/, char *[] /*argv*/) {
-    GameState state;
-    if (!load_content(state.codex, "content/terrain.lua"))
-        return nullptr;
-    auto ctx = state.context();
-    load_chunk(ctx, state.chunk);
-    Entity player = load_player(ctx);
+AppState* app_start(int /*argc*/, char*[] /*argv*/)
+{
+  GameState state;
+  if (!load_content(state.codex, "content/terrain.lua")) return nullptr;
+  auto ctx = state.context();
+  load_chunk(ctx, state.chunk);
+  Entity player = load_player(ctx);
 
-    return new AppState{
+  return new AppState{
         .state = std::move(state),
         .player = { .entity = player, .director = {} },
         .camera = {
@@ -73,52 +82,46 @@ AppState *app_start(int /*argc*/, char *[] /*argv*/) {
     };
 }
 
-void app_step(AppState &app) {
-    process_input(app);
-    if (auto action = app.state.entities.get<MoveAction>(app.player.entity)) {
-        switch (act(app.state.context(), app.player.entity, *action)) {
-        case ActionResult::Canceled:
-        case ActionResult::Complete:
-            app.state.entities.erase<MoveAction>(app.player.entity);
-            break;
-        case ActionResult::Ongoing:
-            break;
-        }
+void app_step(AppState& app)
+{
+  process_input(app);
+  if (auto action = app.state.entities.get<MoveAction>(app.player.entity)) {
+    switch (act(app.state.context(), app.player.entity, *action)) {
+    case ActionResult::Canceled:
+    case ActionResult::Complete: app.state.entities.erase<MoveAction>(app.player.entity); break;
+    case ActionResult::Ongoing:  break;
     }
+  }
 }
 
-void app_update(AppState &app, nanoseconds) {
-    auto pose = app.state.entities.get<Pose>(app.player.entity);
-    if (pose) app.camera.position = pose->position;
+void app_update(AppState& app, nanoseconds)
+{
+  auto pose = app.state.entities.get<Pose>(app.player.entity);
+  if (pose) app.camera.position = pose->position;
 }
 
-void app_render(AppState &app) {
-    app.state.chunk.render(app.state.context(), app.camera, tile_size);
+void app_render(AppState& app)
+{
+  app.state.chunk.render(app.state.context(), app.camera, tile_size);
 }
 
-void app_event(AppState &app, const SDL_Event &event) {
-    app.player.director.event(event);
-    switch (event.type) {
-    case SDL_EVENT_MOUSE_WHEEL:
-        app.camera.zoom = glm::clamp(app.camera.zoom + 0.5f * event.wheel.y, 0.7f, 1.9f);
-        break;
-    case SDL_EVENT_KEY_DOWN:
-        switch (event.key.scancode) {
-        case SDL_SCANCODE_ESCAPE:
-        case SDL_SCANCODE_Q:
-            push_event(make_quit_event());
-            break;
-        case SDL_SCANCODE_SPACE:
-            load_chunk(app.state.context(), app.state.chunk);
-            break;
-        default:
-            break;
-        }
-        break;
+void app_event(AppState& app, const SDL_Event& event)
+{
+  app.player.director.event(event);
+  switch (event.type) {
+  case SDL_EVENT_MOUSE_WHEEL:
+    app.camera.zoom = glm::clamp(app.camera.zoom + 0.5f * event.wheel.y, 0.7f, 1.9f);
+    break;
+  case SDL_EVENT_KEY_DOWN:
+    switch (event.key.scancode) {
+    case SDL_SCANCODE_ESCAPE:
+    case SDL_SCANCODE_Q:      push_event(make_quit_event()); break;
+    case SDL_SCANCODE_SPACE:  load_chunk(app.state.context(), app.state.chunk); break;
+    default:                  break;
     }
+    break;
+  }
 }
 
-void app_quit(AppState *app) {
-    delete app;
-}
+void app_quit(AppState* app) { delete app; }
 

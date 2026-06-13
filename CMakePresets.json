@@ -17,9 +17,20 @@
       "name": "debug",
       "displayName": "Debug",
       "inherits": "base",
+      "binaryDir": "${sourceDir}/build/debug",
       "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/debug/install",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/debug",
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "lint",
+      "displayName": "Lint",
+      "inherits": "debug",
+      "cacheVariables": {
+        "ENABLE_CLANG_TIDY": "ON"
       }
     },
     {

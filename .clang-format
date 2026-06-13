@@ -1,0 +1,125 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AlignOperands:   AlignAfterOperator
+AlignConsecutiveAssignments:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveBitFields:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveDeclarations:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveMacros:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveShortCaseStatements:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCaseArrows: true
+  AlignCaseColons: false
+AlignConsecutiveTableGenBreakingDAGArgColons:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveTableGenCondOperatorColons:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AlignConsecutiveTableGenDefinitionColons:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  AlignFunctionDeclarations: true
+  AlignFunctionPointers: false
+  PadOperators:    true
+AllowAllArgumentsOnNextLine: true
+AllowBreakBeforeNoexceptSpecifier: OnlyWithParen
+AlignEscapedNewlines: Left
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+AllowShortNamespacesOnASingleLine: true
+BreakAdjacentStringLiterals: false
+BreakArrays:          false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      true
+  AfterControlStatement: MultiLine
+  AfterEnum:       false
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterStruct:     true
+  AfterUnion:      true
+  BeforeCatch:     false
+  BeforeElse:      false
+BreakBeforeBinaryOperators: All
+BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: BeforeComma
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+ColumnLimit:     100
+EmptyLineAfterAccessModifier: Always
+EmptyLineBeforeAccessModifier: Always
+IndentRequiresClause: false
+InsertNewlineAtEOF: true
+JavaScriptQuotes: Single
+KeepEmptyLines:
+  AtEndOfFile:     true
+  AtStartOfBlock:  true
+  AtStartOfFile:   true
+NamespaceIndentation: All
+PointerAlignment: Left
+IncludeBlocks:   Regroup
+SortIncludes:    CaseSensitive
+IncludeIsMainRegex: '$'
+IncludeCategories:
+  # third-party libs with a path prefix
+  - Regex:    '^<(SDL3|glm|catch2)/'
+    Priority: 4
+  # lua (angle-bracket, no path: lua.hpp / lualib.h / lauxlib.h / luaconf.h)
+  - Regex:    '^<(lua|lauxlib)'
+    Priority: 4
+  # engine library headers
+  - Regex:    '^"engine/'
+    Priority: 2
+  # C++ standard library: angle-bracket, no slash, no extension
+  - Regex:    '^<[^/.]+>$'
+    Priority: 3
+  # anything else quoted = local game headers
+  - Regex:    '^"'
+    Priority: 1
+...
+

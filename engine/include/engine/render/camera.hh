@@ -1,45 +1,46 @@
 #pragma once
-#include <glm/vec2.hpp>
 #include <iterator>
 
-struct Camera {
+#include <glm/vec2.hpp>
 
-    glm::vec2 position, viewport;
-    float zoom = 1.0f;
+struct Camera
+{
 
-    glm::vec2 view_coord_at(glm::vec2 world_coord) const;
-    glm::vec2 world_coord_at(glm::vec2 view_coord) const;
+  glm::vec2 position, viewport;
+  float     zoom = 1.0f;
 
-    bool contains(glm::vec2 world_coord) const;
+  glm::vec2 view_coord_at(glm::vec2 world_coord) const;
+  glm::vec2 world_coord_at(glm::vec2 view_coord) const;
 
-    struct Iterator {
+  bool contains(glm::vec2 world_coord) const;
 
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = glm::vec2;
+  struct Iterator
+  {
 
-        Iterator(const Iterator &other) = default;
-        Iterator &operator=(const Iterator &other) = default;
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = glm::vec2;
 
-        glm::vec2 operator*() const;
+    Iterator(const Iterator& other)            = default;
+    Iterator& operator=(const Iterator& other) = default;
 
-        Iterator &operator++();
-        Iterator operator++(int);
+    glm::vec2 operator*() const;
 
-        bool operator==(const Iterator &other) const;
+    Iterator& operator++();
+    Iterator  operator++(int);
 
-    private:
+    bool operator==(const Iterator& other) const;
 
-        friend struct Camera;
+  private:
 
-        Iterator(glm::vec2 min, glm::vec2 max, glm::vec2 start);
+    friend struct Camera;
 
-        float min_x, max_x;
-        glm::vec2 position;
+    Iterator(glm::vec2 min, glm::vec2 max, glm::vec2 start);
 
-    };
+    float     min_x, max_x;
+    glm::vec2 position;
+  };
 
-    Iterator begin() const;
-    Iterator end() const;
-
+  Iterator begin() const;
+  Iterator end() const;
 };
 

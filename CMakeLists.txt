@@ -6,6 +6,7 @@ set (ENGINE engine)
 set (GAME ${PROJECT_NAME})
 
 option (BUILD_TESTS "Build tests" OFF)
+option (ENABLE_CLANG_TIDY "Run clang-tidy on build" OFF)
 
 include (FetchContent)
 
@@ -23,4 +24,10 @@ endif ()
 
 add_subdirectory (game)
 add_subdirectory (engine)
+
+if (ENABLE_CLANG_TIDY)
+    find_program (CLANG_TIDY_EXE NAMES clang-tidy REQUIRED)
+    set_target_properties (${ENGINE} PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    set_target_properties (${GAME}   PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+endif ()
 
