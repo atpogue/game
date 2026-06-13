@@ -1,7 +1,6 @@
 #pragma once
-#include "engine/core/error.hh"
-#include "engine/core/types.hh"
-
+#include "core/panic.hh"
+#include "core/types.hh"
 #include <bit>
 #include <bitset>
 #include <memory>

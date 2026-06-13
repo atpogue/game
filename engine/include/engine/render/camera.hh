@@ -1,7 +1,6 @@
 #pragma once
-#include <iterator>
-
 #include <glm/vec2.hpp>
+#include <iterator>
 
 struct Camera
 {

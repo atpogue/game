@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/types.hh"
+#include "core/types.hh"
 
 struct WindowConfig
 {

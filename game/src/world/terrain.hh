@@ -1,6 +1,5 @@
 #pragma once
 #include "sprite.hh"
-
 #include <string>
 
 struct Terrain

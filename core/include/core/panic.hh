@@ -1,7 +1,5 @@
 #pragma once
-#include <expected>
 #include <source_location>
-#include <string>
 
 namespace detail {
 
@@ -27,11 +25,4 @@ namespace detail {
 #else
 #define DEBUG_ASSERT(cond, ...) PANIC("ASSERTION", cond __VA_OPT__(, ) __VA_ARGS__)
 #endif
-
-struct Error
-{
-  std::string msg;
-};
-
-template <typename Type> using Result = std::expected<Type, Error>;
 

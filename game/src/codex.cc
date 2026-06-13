@@ -1,9 +1,6 @@
 #include "codex.hh"
-
+#include "core/lua.hh"
 #include "world/terrain.hh"
-
-#include "engine/core/lua.hh"
-
 #include <SDL3/SDL_log.h>
 #include <lua.hpp>
 

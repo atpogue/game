@@ -1,5 +1,4 @@
 #include "engine/event.hh"
-
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_timer.h>
 

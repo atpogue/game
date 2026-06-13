@@ -1,8 +1,6 @@
-#include "engine/core/error.hh"
-
-#include <cstdlib>
-
+#include "core/panic.hh"
 #include <SDL3/SDL_log.h>
+#include <cstdlib>
 
 #ifdef HAVE_STACKTRACE
 #include <stacktrace>

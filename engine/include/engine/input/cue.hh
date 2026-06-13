@@ -1,7 +1,6 @@
 #pragma once
-#include "engine/core/bitmask.hh"
-#include "engine/core/types.hh"
-
+#include "core/bitmask.hh"
+#include "core/types.hh"
 #include <SDL3/SDL_scancode.h>
 
 // It's not clear that this is necessary

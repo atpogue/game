@@ -9,7 +9,7 @@ target_include_directories(test-engine PRIVATE ${catch2_INCLUDE_DIRS}/src)
 
 target_link_libraries(
     test-engine
-    PRIVATE ${ENGINE}
+    PRIVATE ${CORE}
     PRIVATE Catch2::Catch2WithMain
 )
 

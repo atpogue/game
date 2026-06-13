@@ -1,7 +1,6 @@
 #include "engine/render/camera.hh"
-
-#include "engine/core/error.hh"
-#include "engine/core/math.hh"
+#include "core/math.hh"
+#include "core/panic.hh"
 
 Vec2f Camera::view_coord_at(Vec2f world_coord) const
 {

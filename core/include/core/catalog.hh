@@ -1,7 +1,6 @@
 #pragma once
-#include "engine/core/error.hh"
-#include "engine/core/string.hh"
-
+#include "core/panic.hh"
+#include "core/string.hh"
 #include <vector>
 
 template <typename Type>

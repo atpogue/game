@@ -1,7 +1,6 @@
 #pragma once
-#include "engine/core/error.hh"
-#include "engine/core/types.hh"
-
+#include "core/panic.hh"
+#include "core/types.hh"
 #include <vector>
 
 // Similar to std::bitset but size doesn't need to be known at compile time.

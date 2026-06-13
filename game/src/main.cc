@@ -1,21 +1,17 @@
 #include "engine/main.hh"
-
 #include "action/move.hh"
 #include "component/pose.hh"
+#include "core/math.hh"
+#include "core/random.hh"
 #include "director.hh"
-#include "state.hh"
-#include "world/grassland.hh"
-
-#include "engine/core/math.hh"
-#include "engine/core/random.hh"
 #include "engine/event.hh"
 #include "engine/render/camera.hh"
-
-#include <random>
-
+#include "state.hh"
+#include "world/grassland.hh"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
+#include <random>
 
 struct AppState
 { /////////////////////////////////////////////////////////////////////////

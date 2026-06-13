@@ -1,14 +1,12 @@
 #pragma once
-#include "engine/core/error.hh"
-#include "engine/core/types.hh"
-
+#include "core/error.hh"
+#include "core/types.hh"
 #include <concepts>
 #include <expected>
 #include <format>
+#include <lua.hpp>
 #include <string>
 #include <variant>
-
-#include <lua.hpp>
 
 // helper functions for Lua's C API
 namespace lua {

@@ -1,12 +1,9 @@
 #pragma once
 #include "command.hh"
-
 #include "engine/input/keyboard.hh"
 #include "engine/input/mouse.hh"
-
-#include <generator>
-
 #include <SDL3/SDL_events.h>
+#include <generator>
 
 // TODO: polling of action results
 

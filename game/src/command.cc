@@ -1,8 +1,6 @@
 #include "command.hh"
-
 #include "component/pose.hh"
 #include "context.hh"
-
 #include <glm/geometric.hpp>
 
 Command make_move_command(u32 id, f32 x, f32 y)

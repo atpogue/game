@@ -1,9 +1,8 @@
 #pragma once
 #include "codex.hh"
+#include "core/registry.hh"
+#include "core/type-info.hh"
 #include "world/chunk.hh"
-
-#include "engine/core/type-info.hh"
-#include "engine/registry.hh"
 
 struct Pose;
 struct MoveAction;

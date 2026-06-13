@@ -1,7 +1,6 @@
 #pragma once
-#include <bitset>
-
 #include <SDL3/SDL_events.h>
+#include <bitset>
 
 struct Keyboard
 {

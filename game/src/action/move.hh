@@ -1,6 +1,5 @@
 #pragma once
 #include "action/result.hh"
-
 #include <glm/vec2.hpp>
 
 struct MoveAction

@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.25)
 
 project (game VERSION 0.0.1 LANGUAGES CXX)
 
+set (CORE core)
 set (ENGINE engine)
 set (GAME ${PROJECT_NAME})
 
@@ -22,8 +23,9 @@ if (BUILD_TESTS)
     FetchContent_MakeAvailable (Catch2)
 endif ()
 
-add_subdirectory (game)
+add_subdirectory (core)
 add_subdirectory (engine)
+add_subdirectory (game)
 
 if (ENABLE_CLANG_TIDY)
     find_program (CLANG_TIDY_EXE NAMES clang-tidy REQUIRED)

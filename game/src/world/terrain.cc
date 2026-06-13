@@ -1,11 +1,8 @@
 #include "world/terrain.hh"
-
 #include "codex.hh"
+#include "core/defer.hh"
+#include "core/lua.hh"
 #include "sprite.hh"
-
-#include "engine/core/defer.hh"
-#include "engine/core/lua.hh"
-
 #include <lua.hpp>
 
 // terrain "name" { sprite = {} }

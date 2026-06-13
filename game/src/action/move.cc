@@ -1,8 +1,6 @@
 #include "action/move.hh"
-
 #include "component/pose.hh"
 #include "context.hh"
-
 #include <glm/geometric.hpp>
 
 ActionResult act(Context ctx, Entity e, MoveAction& move)

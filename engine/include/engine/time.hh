@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/types.hh"
+#include "core/types.hh"
 
 using hertz       = u64;
 using nanoseconds = u64;

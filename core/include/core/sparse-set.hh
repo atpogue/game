@@ -1,8 +1,7 @@
 #pragma once
-#include "engine/core/error.hh"
-#include "engine/core/paged-array.hh"
-#include "engine/core/types.hh"
-
+#include "core/paged-array.hh"
+#include "core/panic.hh"
+#include "core/types.hh"
 #include <concepts>
 #include <utility>
 #include <vector>

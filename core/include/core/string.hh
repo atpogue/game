@@ -1,6 +1,5 @@
 #pragma once
-#include "engine/core/hash.hh"
-
+#include "core/hash.hh"
 #include <string>
 #include <unordered_map>
 

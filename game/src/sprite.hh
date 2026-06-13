@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/error.hh"
+#include "core/error.hh"
 #include "engine/render/textures.hh"
 
 struct Sprite

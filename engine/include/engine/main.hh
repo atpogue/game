@@ -5,12 +5,10 @@
 #define SDL_MAIN_USE_CALLBACKS
 #include "engine/render/window.hh"
 #include "engine/time.hh"
-
-#include <iostream>
-
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_timer.h>
+#include <iostream>
 
 struct AppConfig
 {

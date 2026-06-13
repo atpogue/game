@@ -1,9 +1,7 @@
 #include "sprite.hh"
-
+#include "core/defer.hh"
+#include "core/lua.hh"
 #include "world/tile.hh"
-
-#include "engine/core/defer.hh"
-#include "engine/core/lua.hh"
 
 Sprite make_sprite_1x1(Handle<Texture> atlas, f32 x, f32 y, Color color)
 {

@@ -1,10 +1,8 @@
 #pragma once
-#include "engine/core/handle.hh"
+#include "core/handle.hh"
 #include "engine/render/draw.hh"
-
-#include <string_view>
-
 #include <SDL3/SDL_render.h>
+#include <string_view>
 
 struct Texture;
 

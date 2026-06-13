@@ -1,10 +1,7 @@
 #include "world/caves.hh"
-
 #include "context.hh"
-
-#include "engine/core/grid2.hh"
-#include "engine/core/random.hh"
-
+#include "core/grid2.hh"
+#include "core/random.hh"
 #include <random>
 #include <ranges>
 #include <utility>

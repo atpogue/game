@@ -1,9 +1,6 @@
 #include "world/grassland.hh"
-
 #include "context.hh"
-
-#include "engine/core/random.hh"
-
+#include "core/random.hh"
 #include <random>
 
 GrasslandGenerator::GrasslandGenerator(const Context ctx, u64 seed)

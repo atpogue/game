@@ -1,6 +1,5 @@
 #pragma once
-#include "engine/core/types.hh"
-
+#include "core/types.hh"
 #include <compare>
 
 // Used to represent a reference that can become stale (referring a deleted

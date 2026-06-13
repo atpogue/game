@@ -1,7 +1,6 @@
 #pragma once
+#include "core/catalog.hh"
 #include "world/terrain.hh"
-
-#include "engine/core/catalog.hh"
 
 // TODO: registry like type-erased structure for definitions?
 //      would allow callers do register their own definitions

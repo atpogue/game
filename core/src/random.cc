@@ -1,7 +1,5 @@
-#include "engine/core/random.hh"
-
-#include "engine/core/types.hh"
-
+#include "core/random.hh"
+#include "core/types.hh"
 #include <random>
 
 namespace {

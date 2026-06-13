@@ -1,7 +1,5 @@
 #include "world/chunk.hh"
-
 #include "context.hh"
-
 #include "engine/render/camera.hh"
 
 void Chunk::render(const Context ctx, const Camera& camera, float tile_size) const

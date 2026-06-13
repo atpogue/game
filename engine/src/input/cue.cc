@@ -1,5 +1,4 @@
 #include "engine/input/cue.hh"
-
 #include "engine/input/keyboard.hh"
 #include "engine/input/mouse.hh"
 

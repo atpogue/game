@@ -1,8 +1,6 @@
 #include "world/world.hh"
-
 #include "context.hh"
-
-#include "engine/core/error.hh"
+#include "core/panic.hh"
 #include "engine/render/camera.hh"
 
 World::World(u32 width, u32 height, std::unique_ptr<ChunkGenerator> generator,

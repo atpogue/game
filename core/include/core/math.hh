@@ -1,6 +1,5 @@
 #pragma once
-#include "engine/core/types.hh"
-
+#include "core/types.hh"
 #include <glm/common.hpp>
 
 template <typename Type> using Vec2 = glm::vec<2, Type>;

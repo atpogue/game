@@ -102,24 +102,8 @@ KeepEmptyLines:
   AtStartOfFile:   true
 NamespaceIndentation: All
 PointerAlignment: Left
-IncludeBlocks:   Regroup
+IncludeBlocks:   Merge
 SortIncludes:    CaseSensitive
 IncludeIsMainRegex: '$'
-IncludeCategories:
-  # third-party libs with a path prefix
-  - Regex:    '^<(SDL3|glm|catch2)/'
-    Priority: 4
-  # lua (angle-bracket, no path: lua.hpp / lualib.h / lauxlib.h / luaconf.h)
-  - Regex:    '^<(lua|lauxlib)'
-    Priority: 4
-  # engine library headers
-  - Regex:    '^"engine/'
-    Priority: 2
-  # C++ standard library: angle-bracket, no slash, no extension
-  - Regex:    '^<[^/.]+>$'
-    Priority: 3
-  # anything else quoted = local game headers
-  - Regex:    '^"'
-    Priority: 1
 ...
 

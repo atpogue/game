@@ -1,14 +1,10 @@
 #include "engine/render/textures.hh"
-
+#include "core/panic.hh"
+#include "core/slot-map.hh"
+#include "core/string.hh"
 #include "internal.hh"
-
-#include "engine/core/error.hh"
-#include "engine/core/slot-map.hh"
-#include "engine/core/string.hh"
-
-#include <string_view>
-
 #include <SDL3/SDL_log.h>
+#include <string_view>
 
 struct Texture
 {

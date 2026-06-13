@@ -1,10 +1,7 @@
-#include "engine/core/lua.hh"
-
-#include "engine/core/defer.hh"
-#include "engine/core/error.hh"
-
+#include "core/lua.hh"
+#include "core/defer.hh"
+#include "core/panic.hh"
 #include <format>
-
 #include <lauxlib.h>
 #include <lualib.h>
 

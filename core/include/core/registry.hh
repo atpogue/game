@@ -1,9 +1,8 @@
 #pragma once
-#include "engine/core/slot-map.hh"
-#include "engine/core/sparse-set.hh"
-#include "engine/core/type-info.hh"
-#include "engine/entity.hh"
-
+#include "core/entity.hh"
+#include "core/slot-map.hh"
+#include "core/sparse-set.hh"
+#include "core/type-info.hh"
 #include <memory>
 #include <vector>
 

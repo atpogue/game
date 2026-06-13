@@ -1,18 +1,15 @@
-#include "world/caves.hh"
-#include "world/terrain.hh"
-
-#include "engine/core/random.hh"
+#include "core/random.hh"
 #include "engine/event.hh"
 #include "engine/input/keyboard.hh"
 #include "engine/render/camera.hh"
 #include "engine/render/draw.hh"
 #include "engine/render/window.hh"
-
-#include <cassert>
-#include <random>
-
+#include "world/caves.hh"
+#include "world/terrain.hh"
 #include <SDL3/SDL.h>
+#include <cassert>
 #include <glm/common.hpp>
+#include <random>
 
 namespace { ///////////////////////////////////////////////////////////////////////////////
 

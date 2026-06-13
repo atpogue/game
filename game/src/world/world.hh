@@ -1,7 +1,6 @@
 #pragma once
 #include "world/chunk.hh"
 #include "world/tile.hh"
-
 #include <memory>
 #include <unordered_map>
 
