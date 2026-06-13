@@ -1,0 +1,12 @@
+name: Format
+on: [push, pull_request]
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get install -y clang-format
+      - name: Check formatting
+        run: find . -name '*.cc' -o -name '*.hh' | xargs clang-format -i --dry-run --Werror
+

@@ -66,5 +66,12 @@
       "configurePreset": "relwithdebinfo",
       "jobs": 0
     }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "output": { "outputOnFailure": true }
+    }
   ]
 }
