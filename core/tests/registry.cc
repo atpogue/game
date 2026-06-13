@@ -10,10 +10,12 @@ namespace { ////////////////////////////////////////////////////////////////////
   {
     float x = 0.f, y = 0.f;
   };
+
   struct Velocity
   {
     float dx = 0.f, dy = 0.f;
   };
+
   struct Health
   {
     int hp = 100;
@@ -23,17 +25,13 @@ namespace { ////////////////////////////////////////////////////////////////////
   {
     static inline int instances = 0;
     int               value;
-    explicit Counted(int v = 0)
-      : value{v}
-    {
-      ++instances;
-    }
-    Counted(const Counted& o)
-      : value{o.value}
-    {
-      ++instances;
-    }
-    Counted& operator=(const Counted& o) = default;
+
+    explicit Counted(int v = 0) : value{v} { ++instances; }
+
+    Counted(Counted const& o) : value{o.value} { ++instances; }
+
+    Counted& operator=(Counted const& o) = default;
+
     ~Counted() { --instances; }
   };
 
@@ -43,12 +41,10 @@ namespace { ////////////////////////////////////////////////////////////////////
   };
 
   using Components = TypeList<Position, Velocity, Health, Counted>;
-
 } // namespace
 
 TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
 {
-
   Registry<Components, Meta> r;
 
   SECTION("creating entities")
@@ -67,7 +63,6 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
   {
     std::array<Entity, 10> entities;
     for (auto& e : entities) e = r.create();
-
     for (u32 i = 0; i < 10; ++i) {
       REQUIRE(r.size() == 10u - i);
       auto e = entities[i];
@@ -112,7 +107,6 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
     r.emplace<Health>(e);
     REQUIRE(r.has<Counted>(e));
     REQUIRE(Counted::instances == 1);
-
     r.erase<Counted>(e);
     REQUIRE_FALSE(r.has<Counted>(e));
     REQUIRE(r.get<Counted>(e) == nullptr);
@@ -153,7 +147,6 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
     r.emplace<Counted>(e, 739);
     REQUIRE(r.get<Counted>(e)->value == 739);
   }
-
   SECTION("variadic has")
   {
     Entity e = r.create();
@@ -171,11 +164,9 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
     int count = 0;
     for (auto [e, _] : r) ++count;
     REQUIRE(count == 0);
-
     Entity a = r.create(), b = r.create(), c = r.create(), d = r.create();
     bool   saw_a = false, saw_b = false, saw_c = false, saw_d = false;
     r.destroy(d);
-
     for (auto [e, _] : r) {
       ++count;
       if (e == a) saw_a = true;
@@ -183,7 +174,6 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
       if (e == c) saw_c = true;
       if (e == d) saw_d = true;
     }
-
     REQUIRE(count == 3);
     REQUIRE(saw_a);
     REQUIRE(saw_b);
@@ -198,11 +188,9 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
     r.emplace<Counted>(r.create());
     REQUIRE(Counted::instances == 2u);
     REQUIRE(r.size() == 2u);
-
     r.clear();
     REQUIRE(r.size() == 0u);
     REQUIRE(Counted::instances == 0u);
-
     // registry is usable after clear
     r.emplace<Counted>(r.create());
     REQUIRE(Counted::instances == 1u);
@@ -220,4 +208,3 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
     REQUIRE(meta->name == "Hello!");
   }
 }
-

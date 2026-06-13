@@ -6,29 +6,23 @@
 #include <vector>
 
 // 3D grid stored on the heap whose size is unknown at comptile time
-template <typename Type, u32 Width, u32 Height = 0u, u32 Depth = 0u> struct Grid3
+template <typename Type, u32 Width, u32 Height = 0u, u32 Depth = 0u>
+struct Grid3
 {
-
   Grid3(u32 w, u32 h, u32 d)
-    : width_{w}
-    , height_{h}
-    , depth_{d}
-    , data(size_t{width_} * height_ * depth_)
+    : width_{w}, height_{h}, depth_{d}, data(size_t{width_} * height_ * depth_)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
   }
 
-  Grid3(u32 w, u32 h, u32 d, const Type& value)
-    : width_{w}
-    , height_{h}
-    , depth_{d}
-    , data(size_t{width_} * height_ * depth_, value)
+  Grid3(u32 w, u32 h, u32 d, Type const& value)
+    : width_{w}, height_{h}, depth_{d}, data(size_t{width_} * height_ * depth_, value)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
   }
 
-  Grid3(const Grid3& other)            = default;
-  Grid3& operator=(const Grid3& other) = default;
+  Grid3(Grid3 const& other)            = default;
+  Grid3& operator=(Grid3 const& other) = default;
 
   Grid3(Grid3&& other) noexcept
     : width_{other.width_}
@@ -62,34 +56,40 @@ template <typename Type, u32 Width, u32 Height = 0u, u32 Depth = 0u> struct Grid
 
   constexpr bool has(u32 x, u32 y, u32 z) const { return x < width_ && y < height_ && z < depth_; }
 
-  constexpr const Type& operator[](u32 x, u32 y, u32 z) const
+  constexpr Type const& operator[](u32 x, u32 y, u32 z) const
   {
     DEBUG_ASSERT(has(x, y, z));
     return data[index(x, y, z)];
   }
+
   constexpr Type& operator[](u32 x, u32 y, u32 z)
   {
     DEBUG_ASSERT(has(x, y, z));
     return data[index(x, y, z)];
   }
 
-  constexpr const Type* get(u32 x, u32 y, u32 z) const
+  constexpr Type const* get(u32 x, u32 y, u32 z) const
   {
     return has(x, y, z) ? &data[index(x, y, z)] : nullptr;
   }
+
   constexpr Type* get(u32 x, u32 y, u32 z)
   {
     return has(x, y, z) ? &data[index(x, y, z)] : nullptr;
   }
 
   constexpr auto begin() const { return data.begin(); }
+
   constexpr auto begin() { return data.begin(); }
 
   constexpr auto end() const { return data.end(); }
+
   constexpr auto end() { return data.end(); }
 
   constexpr u32 width() const { return width_; }
+
   constexpr u32 height() const { return height_; }
+
   constexpr u32 depth() const { return depth_; }
 
 private:
@@ -107,42 +107,47 @@ private:
 
 // 3D grid whose size is known at comptile time
 template <typename Type, u32 Width, u32 Height, u32 Depth>
-requires(Width > 0u && Height > 0u && Depth > 0u)
+requires (Width > 0u && Height > 0u && Depth > 0u)
 struct Grid3<Type, Width, Height, Depth>
 {
-
   constexpr size_t size() const { return size_t{Width} * Height * Depth; }
 
   constexpr bool has(u32 x, u32 y, u32 z) const { return x < Width && y < Height && z < Depth; }
 
-  constexpr const Type& operator[](u32 x, u32 y, u32 z) const
+  constexpr Type const& operator[](u32 x, u32 y, u32 z) const
   {
     DEBUG_ASSERT(has(x, y, z));
     return data[index(x, y, z)];
   }
+
   constexpr Type& operator[](u32 x, u32 y, u32 z)
   {
     DEBUG_ASSERT(has(x, y, z));
     return data[index(x, y, z)];
   }
 
-  constexpr const Type* get(u32 x, u32 y, u32 z) const
+  constexpr Type const* get(u32 x, u32 y, u32 z) const
   {
     return has(x, y, z) ? &data[index(x, y, z)] : nullptr;
   }
+
   constexpr Type* get(u32 x, u32 y, u32 z)
   {
     return has(x, y, z) ? &data[index(x, y, z)] : nullptr;
   }
 
   constexpr auto begin() const { return data.begin(); }
+
   constexpr auto begin() { return data.begin(); }
 
   constexpr auto end() const { return data.end(); }
+
   constexpr auto end() { return data.end(); }
 
   constexpr u32 width() const { return Width; }
+
   constexpr u32 height() const { return Height; }
+
   constexpr u32 depth() const { return Depth; }
 
 private:
@@ -154,4 +159,3 @@ private:
     return x + (y * size_t{Width}) + (z * size_t{Width} * Height);
   }
 };
-

@@ -3,7 +3,7 @@
 #include "core/random.hh"
 #include <random>
 
-GrasslandGenerator::GrasslandGenerator(const Context ctx, u64 seed)
+GrasslandGenerator::GrasslandGenerator(Context const ctx, u64 seed)
   : seed_{seed}
   , terrain_{
       ctx.codex.terrain.find("grass-1"), ctx.codex.terrain.find("grass-2"),
@@ -16,9 +16,8 @@ GrasslandGenerator::GrasslandGenerator(const Context ctx, u64 seed)
 
 void GrasslandGenerator::generate(u32 x, u32 y, Chunk& chunk)
 {
-  const auto                         hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
+  auto const                         hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
   Xoshiro256ss                       rng{hash};
   std::uniform_int_distribution<u32> distribution{0u, (u32)std::size(terrain_) - 1u};
   for (auto& tile : chunk) { tile.terrain = terrain_[distribution(rng)]; }
 }
-

@@ -13,7 +13,7 @@ Command make_path_command(u32 id, f32 x, f32 y)
   return Command{id, Command::Type::Path, {.path = {x, y}}};
 }
 
-static bool try_submit_command(Context ctx, Entity e, const Command::Move& cmd)
+static bool try_submit_command(Context ctx, Entity e, Command::Move const& cmd)
 {
   auto pose = ctx.entities.get<Pose>(e);
   if (!pose) return false;
@@ -21,9 +21,9 @@ static bool try_submit_command(Context ctx, Entity e, const Command::Move& cmd)
   return true;
 }
 
-static bool try_submit_command(Context, Entity, const Command::Path&) { return false; }
+static bool try_submit_command(Context, Entity, Command::Path const&) { return false; }
 
-bool try_submit_command(Context ctx, Entity e, const Command cmd)
+bool try_submit_command(Context ctx, Entity e, Command const cmd)
 {
   if (!ctx.entities.is_alive(e)) return false;
   switch (cmd.type) {
@@ -32,4 +32,3 @@ bool try_submit_command(Context ctx, Entity e, const Command cmd)
   }
   return false;
 }
-

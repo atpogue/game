@@ -1,6 +1,5 @@
 #pragma once
 #include "core/types.hh"
-
 using hertz       = u64;
 using nanoseconds = u64;
 using seconds     = u64;
@@ -16,11 +15,7 @@ using seconds     = u64;
 
 struct TimeStep
 {
-
-  constexpr explicit TimeStep(u64 size)
-    : size_{size}
-    , lag_{0u}
-    , age_{0u}
+  constexpr explicit TimeStep(u64 size) : size_{size}, lag_{0u}, age_{0u}
   {
     // allow a step size of 0?
   }
@@ -36,8 +31,10 @@ struct TimeStep
     return steps;
   }
 
-  [[nodiscard]] u64           lag() const noexcept { return lag_; }
-  [[nodiscard]] u64           age() const noexcept { return age_; }
+  [[nodiscard]] u64 lag() const noexcept { return lag_; }
+
+  [[nodiscard]] u64 age() const noexcept { return age_; }
+
   [[nodiscard]] constexpr u64 size() const noexcept { return size_; }
 
   void reset(u64 size)
@@ -56,9 +53,7 @@ struct TimeStep
 private:
 
   // made with nanoseconds in mind by the unit is arbitrary
-
   u64 size_; // this should not change after construction unless reseting
   u64 lag_;
   u64 age_;
 };
-

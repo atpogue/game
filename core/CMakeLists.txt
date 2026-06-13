@@ -1,5 +1,4 @@
 find_package(Lua 5.4 REQUIRED)
-
 include (FetchContent)
 
 FetchContent_Declare (
@@ -33,11 +32,9 @@ target_link_libraries (
     PUBLIC ${LUA_LIBRARIES}
 )
 
-target_compile_options (${CORE} PRIVATE -Wall -Wextra -Wpedantic)
-
 add_subdirectory (src)
 
 if (BUILD_TESTS)
-    add_subdirectory (tests EXCLUDE_FROM_ALL)
+    add_subdirectory (tests)
 endif()
 

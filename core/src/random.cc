@@ -20,8 +20,8 @@ Xoshiro256ss::Xoshiro256ss(u64 seed)
 
 u64 Xoshiro256ss::operator()()
 {
-  const u64 result  = rotl(s[1] * 5, 7) * 9;
-  const u64 t       = s[1] << 17;
+  u64 const result  = rotl(s[1] * 5, 7) * 9;
+  u64 const t       = s[1] << 17;
   s[2]             ^= s[0];
   s[3]             ^= s[1];
   s[1]             ^= s[2];
@@ -30,4 +30,3 @@ u64 Xoshiro256ss::operator()()
   s[3]              = rotl(s[3], 45);
   return result;
 }
-

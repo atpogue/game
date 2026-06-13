@@ -6,17 +6,14 @@
 // Similar to std::bitset but size doesn't need to be known at compile time.
 struct BitSet
 {
-
   explicit BitSet(u32 size = 0u, bool fill = false)
-    : words_((size + 63u) / 64u, (u64)fill)
-    //: bytes_(size/64u+1u, 0u)
-    , size_(size)
+    : words_((size + 63u) / 64u, (u64)fill), size_(size)
   {
   }
 
-  BitSet(const BitSet&)                = default;
+  BitSet(BitSet const&)                = default;
   BitSet(BitSet&&) noexcept            = default;
-  BitSet& operator=(const BitSet&)     = default;
+  BitSet& operator=(BitSet const&)     = default;
   BitSet& operator=(BitSet&&) noexcept = default;
   ~BitSet() noexcept                   = default;
 
@@ -49,7 +46,7 @@ struct BitSet
 
   u32 size() const noexcept { return size_; }
 
-  BitSet& operator|=(const BitSet& other) noexcept
+  BitSet& operator|=(BitSet const& other) noexcept
   {
     PRECONDITION(this != &other);
     PRECONDITION(size_ == other.size_);
@@ -57,13 +54,13 @@ struct BitSet
     return *this;
   }
 
-  BitSet operator|(const BitSet& other) const noexcept
+  BitSet operator|(BitSet const& other) const noexcept
   {
     PRECONDITION(this != &other);
     return BitSet(*this) |= other;
   }
 
-  BitSet& operator&=(const BitSet& other) noexcept
+  BitSet& operator&=(BitSet const& other) noexcept
   {
     PRECONDITION(this != &other);
     PRECONDITION(size_ == other.size_);
@@ -71,13 +68,13 @@ struct BitSet
     return *this;
   }
 
-  BitSet operator&(const BitSet& other) const noexcept
+  BitSet operator&(BitSet const& other) const noexcept
   {
     PRECONDITION(this != &other);
     return BitSet(*this) &= other;
   }
 
-  BitSet& operator^=(const BitSet& other) noexcept
+  BitSet& operator^=(BitSet const& other) noexcept
   {
     PRECONDITION(this != &other);
     PRECONDITION(size_ == other.size_);
@@ -85,7 +82,7 @@ struct BitSet
     return *this;
   }
 
-  BitSet operator^(const BitSet& other) const noexcept
+  BitSet operator^(BitSet const& other) const noexcept
   {
     PRECONDITION(this != &other);
     return BitSet(*this) ^= other;
@@ -93,14 +90,14 @@ struct BitSet
 
   // Are all flipped bits in this set also flipped in the other set?
   // Assumes: The bitsets are the same size.
-  bool operator==(const BitSet& other) const noexcept
+  bool operator==(BitSet const& other) const noexcept
   {
     PRECONDITION(this != &other);
     PRECONDITION(size_ == other.size_);
     return count_ == other.count_ && words_ == other.words_;
   }
 
-  bool operator!=(const BitSet& other) const noexcept { return !(*this == other); }
+  bool operator!=(BitSet const& other) const noexcept { return !(*this == other); }
 
 private:
 
@@ -108,4 +105,3 @@ private:
   u32              size_;
   u32              count_; // allows for quicker comparison
 };
-

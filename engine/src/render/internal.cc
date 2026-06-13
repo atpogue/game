@@ -9,7 +9,6 @@ namespace {
 } // namespace
 
 namespace detail {
-
   SDL_Renderer* get_renderer() { return renderer; }
 
   bool open_window(WindowConfig config)
@@ -19,13 +18,11 @@ namespace detail {
       SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
       return false;
     }
-
     renderer = SDL_CreateRenderer(window, NULL);
     if (!renderer) {
       SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create renderer: %s\n", SDL_GetError());
       return false;
     }
-
     return true;
   }
 
@@ -34,5 +31,4 @@ namespace detail {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
   }
-
 } // namespace detail

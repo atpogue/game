@@ -12,14 +12,11 @@
 #include <random>
 
 namespace { ///////////////////////////////////////////////////////////////////////////////
-
   constexpr u32 cave_width = 64u, cave_height = 64u;
   u32           iterations = 0u;
-
-  Camera      camera;
-  Keyboard    keyboard;
-  Grid2<u32>* cave = nullptr;
-
+  Camera        camera;
+  Keyboard      keyboard;
+  Grid2<u32>*   cave = nullptr;
 } // namespace
 
 WindowConfig app_window_config()
@@ -73,7 +70,7 @@ void app_render()
   }
 }
 
-void app_event(const SDL_Event& event)
+void app_event(SDL_Event const& event)
 {
   keyboard.event(event);
   switch (event.type) {
@@ -93,4 +90,3 @@ void app_event(const SDL_Event& event)
 }
 
 void app_quit() { delete cave; }
-

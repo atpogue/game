@@ -14,8 +14,7 @@
 #include <random>
 
 struct AppState
-{ /////////////////////////////////////////////////////////////////////////
-
+{
   GameState state;
 
   struct
@@ -25,12 +24,11 @@ struct AppState
   } player;
 
   Camera camera;
+};
 
-}; ////////////////////////////////////////////////////////////////////////////////////////
-
-void load_chunk(const Context ctx, Chunk& chunk)
+void load_chunk(Context const ctx, Chunk& chunk)
 {
-  static const u64                   seed = random_seed();
+  static u64 const                   seed = random_seed();
   static SplitMix64                  rng(seed);
   std::uniform_int_distribution<u32> dist{0u, chunk_size - 1u};
   GrasslandGenerator(ctx, seed).generate(dist(rng), dist(rng), chunk);
@@ -66,16 +64,14 @@ AppState* app_start(int /*argc*/, char*[] /*argv*/)
   auto ctx = state.context();
   load_chunk(ctx, state.chunk);
   Entity player = load_player(ctx);
-
   return new AppState{
-        .state = std::move(state),
-        .player = { .entity = player, .director = {} },
-        .camera = {
-            .position = {0.f, 0.f},
-            .viewport = {800.f/tile_size, 600.f/tile_size},
-            .zoom = 1.3f,
-        },
-    };
+    .state  = std::move(state),
+    .player = {.entity = player,     .director = {}                       },
+    .camera = {
+               .position = {0.f, 0.f},
+               .viewport = {800.f / tile_size, 600.f / tile_size},.zoom     = 1.3f,
+               },
+  };
 }
 
 void app_step(AppState& app)
@@ -101,7 +97,7 @@ void app_render(AppState& app)
   app.state.chunk.render(app.state.context(), app.camera, tile_size);
 }
 
-void app_event(AppState& app, const SDL_Event& event)
+void app_event(AppState& app, SDL_Event const& event)
 {
   app.player.director.event(event);
   switch (event.type) {
@@ -116,8 +112,8 @@ void app_event(AppState& app, const SDL_Event& event)
     default:                  break;
     }
     break;
+  default: break;
   }
 }
 
 void app_quit(AppState* app) { delete app; }
-

@@ -1,12 +1,24 @@
-name: Format
-on: [push, pull_request]
+name: Check Format
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.cc'
+      - '**.hh'
+  push:
+    branches: [ main ]
+    paths:
+      - '**.cc'
+      - '**.hh'
 jobs:
   format:
     runs-on: ubuntu-latest
+    container: fedora:43
     steps:
       - uses: actions/checkout@v4
-      - name: Install clang-format
-        run: sudo apt-get install -y clang-format
-      - name: Check formatting
-        run: find . -name '*.cc' -o -name '*.hh' | xargs clang-format -i --dry-run --Werror
+      - name: Install Dependencies
+        run: dnf install -y clang-tools-extra
+      - name: Check Formatting
+        run: clang-format --version && find . -name '*.cc' -o -name '*.hh' | xargs clang-format --dry-run --Werror
 

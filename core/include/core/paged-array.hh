@@ -11,30 +11,29 @@
 // destroyed on erase. Useful anywhere you want access to arbitrary indices
 // without committing to a single large flat allocation.
 template <typename Type, u32 PageSize>
-requires(PageSize > 1u) && (std::has_single_bit(PageSize))
+requires (PageSize > 1u) && (std::has_single_bit(PageSize))
 struct PagedArray
 {
-
   using size_type       = u32;
   using value_type      = Type;
   using reference       = Type&;
-  using const_reference = const Type&;
+  using const_reference = Type const&;
   using pointer         = Type*;
-  using const_pointer   = const Type*;
+  using const_pointer   = Type const*;
 
 private:
 
   struct Page
   { ///////////////////////////////////////////////////////////////////////
-
     Page()                       = default;
-    Page(const Page&)            = delete;
-    Page& operator=(const Page&) = delete;
+    Page(Page const&)            = delete;
+    Page& operator=(Page const&) = delete;
 
-    Type*       at(u32 i) noexcept { return std::launder(reinterpret_cast<Type*>(storage) + i); }
-    const Type* at(u32 i) const noexcept
+    Type* at(u32 i) noexcept { return std::launder(reinterpret_cast<Type*>(storage) + i); }
+
+    Type const* at(u32 i) const noexcept
     {
-      return std::launder(reinterpret_cast<const Type*>(storage) + i);
+      return std::launder(reinterpret_cast<Type const*>(storage) + i);
     }
 
     ~Page() noexcept
@@ -49,26 +48,25 @@ private:
     alignas(Type) std::byte storage[PageSize * sizeof(Type)];
     std::bitset<PageSize> occupied;
     u32                   count = 0u;
-
   }; //////////////////////////////////////////////////////////////////////////////////
 
   static constexpr u32 shift = std::bit_width(PageSize) - 1; // log2(PageSize)
   static constexpr u32 mask  = PageSize - 1;
 
   static constexpr u32 index_of(u32 page, u32 slot) { return (page << shift) | slot; }
+
   static constexpr u32 page_of(u32 idx) noexcept { return idx >> shift; }
+
   static constexpr u32 slot_of(u32 idx) noexcept { return idx & mask; }
 
 public:
 
   PagedArray()                             = default;
-  PagedArray& operator=(const PagedArray&) = delete;
+  PagedArray& operator=(PagedArray const&) = delete;
   ~PagedArray()                            = default;
 
   // Note: is noexcept without requiring the Type to be move constructible
-  PagedArray(PagedArray&& other) noexcept
-    : pages_(std::move(other.pages_))
-    , size_(other.size_)
+  PagedArray(PagedArray&& other) noexcept : pages_(std::move(other.pages_)), size_(other.size_)
   {
     other.size_ = 0u;
   }
@@ -91,7 +89,7 @@ public:
 
   bool has(u32 idx) const noexcept
   {
-    const Page* page = get_page(idx);
+    Page const* page = get_page(idx);
     return page && page->occupied[slot_of(idx)];
   }
 
@@ -122,13 +120,14 @@ public:
 
   [[nodiscard]] const_pointer get(u32 idx) const noexcept
   {
-    const Page* page = get_page(idx);
+    Page const* page = get_page(idx);
     u32         s    = slot_of(idx);
     return (page && page->occupied[s]) ? page->at(s) : nullptr;
   }
 
   /// Assumes: there is no element at [idx]
-  template <typename... Args> reference emplace(u32 idx, Args&&... args)
+  template <typename... Args>
+  reference emplace(u32 idx, Args&&... args)
   {
     PRECONDITION(idx != nil);
     Page& page = get_or_create_page(idx);
@@ -160,8 +159,7 @@ public:
     size_ = 0;
   }
 
-  [[nodiscard]] PagedArray copy() const
-  requires std::is_copy_constructible_v<Type>
+  [[nodiscard]] PagedArray copy() const requires std::is_copy_constructible_v<Type>
   {
     return *this;
   }
@@ -176,7 +174,7 @@ private:
     auto p = page_of(idx);
     auto s = slot_of(idx);
     while (p < pages_.size()) {
-      const auto& page = pages_[p];
+      auto const& page = pages_[p];
       if (page) {
         while (s < PageSize) {
           if (page->occupied[s]) return index_of(p, s);
@@ -191,12 +189,12 @@ private:
 
   // Any insert that causes pages_ to reallocate invalidates all iterators.
   // Erase only invalidates iterators to the erased element.
-  template <bool IsConst> struct Iterator
+  template <bool IsConst>
+  struct Iterator
   { ////////////////////////////////////////////////////////////////////
-
-    using OwnerPtr      = std::conditional_t<IsConst, const PagedArray*, PagedArray*>;
-    using ReferenceType = std::conditional_t<IsConst, const Type&, Type&>;
-    using PageType      = std::conditional_t<IsConst, const Page, Page>;
+    using OwnerPtr      = std::conditional_t<IsConst, PagedArray const*, PagedArray*>;
+    using ReferenceType = std::conditional_t<IsConst, Type const&, Type&>;
+    using PageType      = std::conditional_t<IsConst, Page const, Page>;
 
   public:
 
@@ -206,14 +204,9 @@ private:
     using value_type        = std::pair<u32, ReferenceType>;
     using reference         = value_type;
 
-    Iterator()
-      : owner_{nullptr}
-      , idx_{nil}
-    {
-    }
+    Iterator() : owner_{nullptr}, idx_{nil} {}
 
-    operator Iterator<true>() const noexcept
-    requires(!IsConst)
+    operator Iterator<true>() const noexcept requires (!IsConst)
     {
       return Iterator<true>(owner_, idx_);
     }
@@ -239,20 +232,18 @@ private:
       return it;
     }
 
-    bool operator==(const Iterator& other) const noexcept
+    bool operator==(Iterator const& other) const noexcept
     {
       return owner_ == other.owner_ && idx_ == other.idx_;
     }
 
-    bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }
+    bool operator!=(Iterator const& other) const noexcept { return !(*this == other); }
 
   private:
 
     friend struct PagedArray<Type, PageSize>;
 
-    Iterator(OwnerPtr owner, u32 idx) noexcept
-      : owner_(owner)
-      , idx_{idx}
+    Iterator(OwnerPtr owner, u32 idx) noexcept : owner_(owner), idx_{idx}
     {
       INVARIANT(owner_, "constructed without parent container");
       idx_ = owner_->find_occupied(idx_);
@@ -260,7 +251,6 @@ private:
 
     OwnerPtr owner_;
     u32      idx_;
-
   }; //////////////////////////////////////////////////////////////////////////////////
 
 public:
@@ -269,25 +259,26 @@ public:
   using const_iterator = Iterator<true>;
 
   const_iterator cbegin() const noexcept { return const_iterator(this, 0u); }
+
   const_iterator cend() const noexcept { return const_iterator(this, nil); }
 
-  iterator       begin() noexcept { return iterator(this, 0u); }
+  iterator begin() noexcept { return iterator(this, 0u); }
+
   const_iterator begin() const noexcept { return cbegin(); }
 
-  iterator       end() noexcept { return iterator(this, nil); }
+  iterator end() noexcept { return iterator(this, nil); }
+
   const_iterator end() const noexcept { return cend(); }
 
 private:
 
-  PagedArray(const PagedArray& other)
-  requires std::is_copy_constructible_v<Type>
-    : pages_()
-    , size_{other.size_}
+  PagedArray(PagedArray const& other) requires std::is_copy_constructible_v<Type>
+    : pages_(), size_{other.size_}
   {
     pages_.resize(other.pages_.size());
     for (u32 i = 0; i < other.pages_.size(); ++i) {
       if (!other.pages_[i]) continue;
-      const Page& src = *other.pages_[i];
+      Page const& src = *other.pages_[i];
       pages_[i]       = std::make_unique<Page>();
       Page& dst       = *pages_[i];
       dst.occupied    = src.occupied;
@@ -303,7 +294,7 @@ private:
     return (p < pages_.size()) ? pages_[p].get() : nullptr;
   }
 
-  const Page* get_page(u32 idx) const noexcept
+  Page const* get_page(u32 idx) const noexcept
   {
     u32 p = page_of(idx);
     return (p < pages_.size()) ? pages_[p].get() : nullptr;
@@ -321,4 +312,3 @@ private:
   std::vector<std::unique_ptr<Page>> pages_;
   u32                                size_ = 0u;
 };
-

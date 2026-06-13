@@ -18,4 +18,3 @@ SDL_Event make_quit_event()
   event.quit.timestamp = SDL_GetTicksNS();
   return event;
 }
-

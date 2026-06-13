@@ -2,7 +2,7 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_timer.h>
 
-void MainMenu::event(const SDL_Event&) {}
+void MainMenu::event(SDL_Event const&) {}
 
 void MainMenu::update(f32 dt) { time_ += dt; }
 
@@ -14,4 +14,3 @@ void MainMenu::render(SDL_Renderer* renderer)
   SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);
   SDL_RenderClear(renderer);
 }
-

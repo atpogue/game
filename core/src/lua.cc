@@ -4,7 +4,6 @@
 #include <format>
 #include <lauxlib.h>
 #include <lualib.h>
-
 using namespace lua;
 
 static int handle_error(lua_State* L)
@@ -137,13 +136,9 @@ Result<void> lua::do_file(lua_State* L, std::string_view path, unsigned argc, un
   lua_pushcfunction(L, handle_error);
   int handler = lua_gettop(L);
   DEFER(lua_remove(L, handler));
-
   int error = luaL_loadfile(L, path.data());
   if (error != LUA_OK) [[unlikely]] { return std::unexpected<Error>(pop_string(L)); }
-
   error = lua_pcall(L, argc, resultc, handler);
   if (error != LUA_OK) [[unlikely]] { return std::unexpected<Error>(pop_string(L)); }
-
   return {};
 }
-

@@ -23,13 +23,18 @@ void Mouse::reset()
 }
 
 float Mouse::x() const { return x_; }
+
 float Mouse::y() const { return y_; }
+
 float Mouse::dx() const { return dx_; }
+
 float Mouse::dy() const { return dy_; }
+
 float Mouse::wheel_dx() const { return wdx_; }
+
 float Mouse::wheel_dy() const { return wdy_; }
 
-void Mouse::event(const SDL_Event& event)
+void Mouse::event(SDL_Event const& event)
 {
   switch (event.type) {
   case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -56,4 +61,3 @@ void Mouse::event(const SDL_Event& event)
     break;
   }
 }
-

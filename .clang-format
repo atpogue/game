@@ -1,109 +1,102 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
+AlignAfterOpenBracket: BlockIndent
 AlignOperands:   AlignAfterOperator
+AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
+    Enabled:         true
+    AlignCompound:   true
+    PadOperators:    true
 AlignConsecutiveBitFields:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
+    Enabled:         true
+    AlignCompound:   true
+    PadOperators:    true
 AlignConsecutiveDeclarations:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
+    Enabled:         true
+    AlignCompound:   true
+    # AlignFunctionDeclarations: true
+    PadOperators:    true
 AlignConsecutiveMacros:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
+    Enabled:         true
+    AlignCompound:   true
+    PadOperators:    true
 AlignConsecutiveShortCaseStatements:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCaseArrows: true
-  AlignCaseColons: false
-AlignConsecutiveTableGenBreakingDAGArgColons:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
-AlignConsecutiveTableGenCondOperatorColons:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
-AlignConsecutiveTableGenDefinitionColons:
-  Enabled:         true
-  AcrossEmptyLines: false
-  AcrossComments:  false
-  AlignCompound:   true
-  AlignFunctionDeclarations: true
-  AlignFunctionPointers: false
-  PadOperators:    true
+    Enabled:         true
 AllowAllArgumentsOnNextLine: true
 AllowBreakBeforeNoexceptSpecifier: OnlyWithParen
 AlignEscapedNewlines: Left
 AllowShortBlocksOnASingleLine: Always
+AllowShortCaseExpressionOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortNamespacesOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
-AllowShortNamespacesOnASingleLine: true
+AlwaysBreakTemplateDeclarations: true
 BreakAdjacentStringLiterals: false
 BreakArrays:          false
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterClass:      true
-  AfterControlStatement: MultiLine
-  AfterEnum:       false
-  AfterFunction:   true
-  AfterNamespace:  false
-  AfterStruct:     true
-  AfterUnion:      true
-  BeforeCatch:     false
-  BeforeElse:      false
+    AfterClass:      true
+    AfterControlStatement: MultiLine
+    AfterEnum:       false
+    AfterFunction:   true
+    AfterNamespace:  false
+    AfterStruct:     true
+    AfterUnion:      true
+    BeforeCatch:     false
+    BeforeElse:      false
+BinPackParameters: OnePerLine
+BitFieldColonSpacing: Both
 BreakBeforeBinaryOperators: All
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
+BreakStringLiterals: true
 ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2
 ColumnLimit:     100
 EmptyLineAfterAccessModifier: Always
 EmptyLineBeforeAccessModifier: Always
-IndentRequiresClause: false
-InsertNewlineAtEOF: true
 JavaScriptQuotes: Single
 KeepEmptyLines:
-  AtEndOfFile:     true
-  AtStartOfBlock:  true
-  AtStartOfFile:   true
+    AtEndOfFile: true
+    AtStartOfBlock: false
+    AtStartOfFile: false
+MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PointerAlignment: Left
+PackConstructorInitializers: NextLine
+QualifierAlignment: Right
+IndentAccessModifiers: false
+IndentCaseBlocks: true
+IndentCaseLabels: false
+IndentExportBlock: true
+IndentExternBlock: true
+IndentPPDirectives: BeforeHash
+IndentRequiresClause: false
+IntegerLiteralSeparator:
+    Decimal: 3
 IncludeBlocks:   Merge
-SortIncludes:    CaseSensitive
 IncludeIsMainRegex: '$'
+InsertNewlineAtEOF: true
+LambdaBodyIndentation: Signature
+ReflowComments: Always
+RequiresClausePosition: WithPreceding
+RequiresExpressionIndentation: OuterScope
+SeparateDefinitionBlocks: Always
+SortIncludes:    CaseSensitive
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+    AfterControlStatements: true
+    AfterNot: true
+    AfterPlacementOperator: true
+    AfterRequiresInClause: true
+    AfterRequiresInExpression: true
+SpaceBeforeRangeBasedForLoopColon: true
+UseTab: Never
 ...
 

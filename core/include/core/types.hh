@@ -15,4 +15,3 @@ using f32 = float;
 using f64 = double;
 
 constexpr u32 nil = UINT32_MAX;
-

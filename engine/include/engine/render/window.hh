@@ -3,7 +3,6 @@
 
 struct WindowConfig
 {
-  const char* title;
+  char const* title;
   u16         width, height;
 };
-

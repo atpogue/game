@@ -3,8 +3,12 @@
 #include "core/panic.hh"
 #include "engine/render/camera.hh"
 
-World::World(u32 width, u32 height, std::unique_ptr<ChunkGenerator> generator,
-             std::unique_ptr<ChunkLoader> loader)
+World::World(
+  u32                             width,
+  u32                             height,
+  std::unique_ptr<ChunkGenerator> generator,
+  std::unique_ptr<ChunkLoader>    loader
+)
   : width_{width}
   , height_{height}
   , generator_(generator.release())
@@ -28,14 +32,14 @@ Tile* World::get(u32 x, u32 y)
   return &get_chunk(key_at(x, y))[x % chunk_size, y % chunk_size];
 }
 
-const Tile* World::find(u32 x, u32 y) const
+Tile const* World::find(u32 x, u32 y) const
 {
   if (!has(x, y)) return nullptr;
   auto chunk = find_chunk(key_at(x, y));
   return chunk ? chunk->get(x % chunk_size, y % chunk_size) : nullptr;
 }
 
-const Chunk* World::find_chunk(u64 key) const
+Chunk const* World::find_chunk(u64 key) const
 {
   if (auto it = chunks_.find(key); it != chunks_.end()) return &it->second;
   return nullptr;
@@ -55,7 +59,7 @@ Chunk& World::get_chunk(u64 key)
   return chunk;
 }
 
-void World::render(const Context ctx, const Camera& camera, float tile_size) const
+void World::render(Context const ctx, Camera const& camera, float tile_size) const
 {
   for (auto coord : camera) {
     u32 x = coord.x, y = coord.y;
@@ -66,4 +70,3 @@ void World::render(const Context ctx, const Camera& camera, float tile_size) con
     ctx.codex.terrain[tile->terrain].sprite.draw(pixel.x, pixel.y, camera.zoom);
   }
 }
-

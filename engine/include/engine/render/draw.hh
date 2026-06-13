@@ -2,7 +2,6 @@
 #include "core/types.hh"
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_rect.h>
-
 using Color     = SDL_Color;
 using Rectangle = SDL_FRect;
 
@@ -12,4 +11,3 @@ constexpr SDL_Color hex_color(u32 rgba)
 }
 
 void draw_rectangle(SDL_FRect rect, SDL_Color color);
-

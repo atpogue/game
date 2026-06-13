@@ -21,16 +21,23 @@
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/debug/install",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/debug",
-        "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_TESTS": "ON"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "lint",
-      "displayName": "Lint",
+      "name": "clang-debug",
       "inherits": "debug",
+      "generator": "Ninja",
       "cacheVariables": {
-        "ENABLE_CLANG_TIDY": "ON"
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "gcc-debug",
+      "inherits": "debug",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -57,6 +64,16 @@
       "jobs": 0
     },
     {
+      "name": "clang-debug",
+      "configurePreset": "clang-debug",
+      "jobs": 0
+    },
+    {
+      "name": "gcc-debug",
+      "configurePreset": "gcc-debug",
+      "jobs": 0
+    },
+    {
       "name": "release",
       "configurePreset": "release",
       "jobs": 0
@@ -71,6 +88,16 @@
     {
       "name": "debug",
       "configurePreset": "debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "clang-debug",
+      "configurePreset": "clang-debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "gcc-debug",
+      "configurePreset": "gcc-debug",
       "output": { "outputOnFailure": true }
     }
   ]

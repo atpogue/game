@@ -1,6 +1,6 @@
 #include "director.hh"
 
-void PlayerDirector::event(const SDL_Event& e)
+void PlayerDirector::event(SDL_Event const& e)
 {
   mouse.event(e);
   keyboard.event(e);
@@ -14,8 +14,6 @@ std::generator<Command> PlayerDirector::generate()
   if (keyboard[SDL_SCANCODE_A]) x -= 0.1f;
   if (keyboard[SDL_SCANCODE_D]) x += 0.1f;
   if (x != 0.f || y != 0.f) co_yield make_move_command(next_id++, x, y);
-
   mouse.flush();
   keyboard.flush();
 }
-

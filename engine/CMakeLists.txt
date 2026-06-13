@@ -26,7 +26,5 @@ target_link_libraries (
     PUBLIC SDL3::SDL3
 )
 
-target_compile_options (${ENGINE} PRIVATE -Wall -Wextra -Wpedantic)
-
 add_subdirectory (src)
 

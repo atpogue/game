@@ -3,7 +3,8 @@
 #include <concepts>
 #include <functional>
 
-template <typename Type> struct TransparentHash
+template <typename Type>
+struct TransparentHash
 {
   using is_transparent = void;
 
@@ -28,4 +29,3 @@ constexpr u64 hash_combine(u64 seed, u64 value)
 {
   return seed ^ (split_mix(value) + 0x9e3779b97f4a7c15ULL + (seed << 12) + (seed >> 4));
 }
-

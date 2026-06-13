@@ -2,10 +2,12 @@
 #include <source_location>
 
 namespace detail {
-
-  [[noreturn]] void panic(const char* category, const char* condition, const char* message,
-                          std::source_location location = std::source_location::current());
-
+  [[noreturn]] void panic(
+    char const*          category,
+    char const*          condition,
+    char const*          message,
+    std::source_location location = std::source_location::current()
+  );
 } // namespace detail
 
 #define PANIC(category, cond, ...)                    \
@@ -21,8 +23,7 @@ namespace detail {
 
 // Debug-only: aborts in debug, zero-cost in release
 #ifdef NDEBUG
-#define DEBUG_ASSERT(cond, ...) ((void)0)
+  #define DEBUG_ASSERT(cond, ...) ((void)0)
 #else
-#define DEBUG_ASSERT(cond, ...) PANIC("ASSERTION", cond __VA_OPT__(, ) __VA_ARGS__)
+  #define DEBUG_ASSERT(cond, ...) PANIC("ASSERTION", cond __VA_OPT__(, ) __VA_ARGS__)
 #endif
-

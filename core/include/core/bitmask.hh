@@ -30,4 +30,3 @@
     using U = std::underlying_type_t<T>;                                          \
     return (static_cast<U>(mask) & static_cast<U>(flag)) == static_cast<U>(flag); \
   }
-

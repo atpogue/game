@@ -4,25 +4,21 @@
 #include <vector>
 
 template <typename Type>
-concept Named = requires(const Type& type) {
+concept Named = requires (Type const& type) {
   { type.name } -> std::convertible_to<std::string_view>;
 };
 
 // An append-only, lookup-by-name set of elements with ID's for quick runtime
 // reference.
-template <Named Type> struct Catalog
+template <Named Type>
+struct Catalog
 {
-
-  Catalog(u32 capacity)
-    : Catalog()
-  {
-    reserve(capacity);
-  }
+  Catalog(u32 capacity) : Catalog() { reserve(capacity); }
 
   Catalog()                              = default;
   Catalog(Catalog&&) noexcept            = default;
   Catalog& operator=(Catalog&&) noexcept = default;
-  Catalog& operator=(const Catalog&)     = delete;
+  Catalog& operator=(Catalog const&)     = delete;
   ~Catalog() noexcept                    = default;
 
   // Assumes: name doesn't already exist, maximum size not reached.
@@ -32,7 +28,7 @@ template <Named Type> struct Catalog
   {
     // throw exception here instead of panic??
     ASSERT(data_.size() < UINT32_MAX, "maximum size reached");
-    const u32 id    = data_.size();
+    u32 const id    = data_.size();
     Type&     item  = data_.emplace_back(std::forward<Args>(args)...);
     auto [_, added] = lookup_.emplace(item.name, id);
     PRECONDITION(added, "name must not be assigned to more than one element");
@@ -45,11 +41,12 @@ template <Named Type> struct Catalog
     lookup_.clear();
   }
 
-  [[nodiscard]] const Type& operator[](u32 id) const noexcept
+  [[nodiscard]] Type const& operator[](u32 id) const noexcept
   {
     DEBUG_ASSERT(has(id));
     return data_[id];
   }
+
   [[nodiscard]] Type& operator[](u32 id) noexcept
   {
     DEBUG_ASSERT(has(id));
@@ -57,7 +54,7 @@ template <Named Type> struct Catalog
   }
 
   // Returns null if the element doesn't exist.
-  [[nodiscard]] const Type* get(std::string_view name) const
+  [[nodiscard]] Type const* get(std::string_view name) const
   {
     auto id = find(name);
     return id != nil ? &data_[id] : nullptr;
@@ -87,30 +84,28 @@ template <Named Type> struct Catalog
     lookup_.reserve(n);
   }
 
-  [[nodiscard]] Catalog copy() const
-  requires std::is_copy_constructible_v<Type>
-  {
-    return *this;
-  }
+  [[nodiscard]] Catalog copy() const requires std::is_copy_constructible_v<Type> { return *this; }
 
   using iterator       = std::vector<Type>::iterator;
   using const_iterator = std::vector<Type>::const_iterator;
 
   [[nodiscard]] const_iterator cbegin() const noexcept { return data_.begin(); }
-  [[nodiscard]] iterator       begin() noexcept { return data_.begin(); }
+
+  [[nodiscard]] iterator begin() noexcept { return data_.begin(); }
+
   [[nodiscard]] const_iterator begin() const noexcept { return cbegin(); }
 
   [[nodiscard]] const_iterator cend() const noexcept { return data_.end(); }
-  [[nodiscard]] iterator       end() noexcept { return data_.end(); }
+
+  [[nodiscard]] iterator end() noexcept { return data_.end(); }
+
   [[nodiscard]] const_iterator end() const noexcept { return cend(); }
 
 private:
 
-  Catalog(const Catalog&)
-  requires std::is_copy_constructible_v<Type>
+  Catalog(Catalog const&) requires std::is_copy_constructible_v<Type>
   = default;
 
   std::vector<Type> data_;
   StringMap<u32>    lookup_;
 };
-

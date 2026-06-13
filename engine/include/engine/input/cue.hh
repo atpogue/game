@@ -2,19 +2,15 @@
 #include "core/bitmask.hh"
 #include "core/types.hh"
 #include <SDL3/SDL_scancode.h>
-
 // It's not clear that this is necessary
-
 struct Keyboard;
 struct Mouse;
-
 // Button state
 enum class On : u8 {
   Press   = 1 << 0,
   Release = 1 << 1,
   Repeat  = 1 << 2,
 };
-
 // Keyboard input modifiers
 enum class With : u8 {
   None  = 0,
@@ -22,7 +18,6 @@ enum class With : u8 {
   Shift = 1 << 1,
   Alt   = 1 << 2,
 };
-
 DEFINE_ENUM_BITWISE_OPERATORS(On)
 DEFINE_ENUM_BITWISE_OPERATORS(With)
 
@@ -32,7 +27,7 @@ struct KeyboardCue
   SDL_Scancode key;
   With         with = With::None;
   On           on   = On::Press;
-  bool         operator()(const Keyboard& kb) const;
+  bool         operator()(Keyboard const& kb) const;
 };
 
 // Represents mouse input. Used to associate buttons with commands.
@@ -41,7 +36,6 @@ struct MouseCue
   Uint8 button;
   With  with = With::None;
   On    on   = On::Press;
-  bool  operator()(const Mouse& m) const;
-  bool  operator()(const Mouse& m, const Keyboard& kb) const;
+  bool  operator()(Mouse const& m) const;
+  bool  operator()(Mouse const& m, Keyboard const& kb) const;
 };
-

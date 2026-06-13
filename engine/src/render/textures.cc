@@ -8,11 +8,10 @@
 
 struct Texture
 {
-  explicit Texture(SDL_Texture* t)
-    : data{t}
-  {
-  }
+  explicit Texture(SDL_Texture* t) : data{t} {}
+
   ~Texture() { SDL_DestroyTexture(data); }
+
   SDL_Texture* get() const { return data; }
 
 private:
@@ -21,10 +20,8 @@ private:
 };
 
 namespace { /////////////////////////////////////////////////////
-
   SlotMap<Texture>           textures;
   StringMap<Handle<Texture>> paths;
-
 } // namespace
 
 // needs happen before SDL quit
@@ -37,7 +34,6 @@ SDL_Texture* get_texture(Handle<Texture> handle)
 }
 
 /// PUBLIC API //////////////////////////////////////////////////
-
 Handle<Texture> create_texture(std::string_view path)
 {
   if (auto it = paths.find(path); it != paths.end()) return it->second;
@@ -75,4 +71,3 @@ void draw_texture(Handle<Texture> handle, Rectangle source, Rectangle dest, Colo
   SDL_SetTextureColorMod(texture, tint.r, tint.g, tint.b);
   SDL_RenderTexture(renderer, texture, &source, &dest);
 }
-

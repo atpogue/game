@@ -6,19 +6,17 @@
 #include <generator>
 
 // TODO: polling of action results
-
 // Generates commands to pass to Actors
 struct Director
 {
-  virtual void                    event(const SDL_Event& e) = 0;
+  virtual void                    event(SDL_Event const& e) = 0;
   virtual std::generator<Command> generate()                = 0;
   virtual ~Director()                                       = default;
 };
 
 struct PlayerDirector : Director
 {
-
-  void                    event(const SDL_Event& e) override;
+  void                    event(SDL_Event const& e) override;
   std::generator<Command> generate() override;
 
 private:
@@ -27,4 +25,3 @@ private:
   Mouse    mouse;
   u32      next_id = 0u;
 };
-

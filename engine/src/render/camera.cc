@@ -41,9 +41,7 @@ Camera::Iterator Camera::end() const
 }
 
 Camera::Iterator::Iterator(Vec2f min, Vec2f max, Vec2f start)
-  : min_x{min.x}
-  , max_x{max.x}
-  , position{start}
+  : min_x{min.x}, max_x{max.x}, position{start}
 {
 }
 
@@ -65,8 +63,7 @@ Camera::Iterator Camera::Iterator::operator++(int)
   return temp;
 }
 
-bool Camera::Iterator::operator==(const Iterator& other) const
+bool Camera::Iterator::operator==(Iterator const& other) const
 {
   return position == other.position;
 }
-

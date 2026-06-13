@@ -19,7 +19,7 @@ void Keyboard::reset()
   state_.reset();
 }
 
-void Keyboard::event(const SDL_Event& event)
+void Keyboard::event(SDL_Event const& event)
 {
   switch (event.type) {
   case SDL_EVENT_KEY_DOWN:
@@ -32,4 +32,3 @@ void Keyboard::event(const SDL_Event& event)
     break;
   }
 }
-

@@ -8,4 +8,3 @@
 template <typename Type>
 using StringMap
   = std::unordered_map<std::string, Type, TransparentHash<std::string_view>, std::equal_to<>>;
-

@@ -1,0 +1,14 @@
+---
+# Enable/Disable specific check categories
+Checks: >
+  -*,
+  bugprone-*,
+  cert-*,
+  performance-*
+# readability-*
+# modernize-*,
+# cppcoreguidelines-*,
+# WarningsAsErrors: '*'
+# Provide compilation arguments if needed (usually handled automatically by CMake)
+ExtraArgs: []
+...

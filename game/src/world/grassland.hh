@@ -3,12 +3,11 @@
 
 struct GrasslandGenerator : ChunkGenerator
 {
-  GrasslandGenerator(const Context ctx, u64 seed);
+  GrasslandGenerator(Context const ctx, u64 seed);
   void generate(u32 x, u32 y, Chunk& chunk) override;
 
 private:
 
-  const u64 seed_;
-  const u32 terrain_[6];
+  u64 const seed_;
+  u32 const terrain_[6];
 };
-

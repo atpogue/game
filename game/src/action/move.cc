@@ -10,4 +10,3 @@ ActionResult act(Context ctx, Entity e, MoveAction& move)
   pose->position += glm::normalize(move.direction);
   return ActionResult::Complete;
 }
-

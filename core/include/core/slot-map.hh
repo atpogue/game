@@ -7,28 +7,24 @@
 
 // Use assertions such that unexpected/invalid use fails loudly in debug mode,
 // but comes at zero-cost and assumes full trust in release mode.
-
-template <typename Type> struct SlotMap
+template <typename Type>
+struct SlotMap
 {
   using size_type       = u32;
   using value_type      = Type;
   using reference       = Type&;
-  using const_reference = const Type&;
+  using const_reference = Type const&;
   using pointer         = Type*;
-  using const_pointer   = const Type*;
+  using const_pointer   = Type const*;
 
-  explicit SlotMap(u32 limit = UINT32_MAX)
-    : slots_()
-    , limit_{limit}
-    , size_{0u}
-    , first_free_{nil}
+  explicit SlotMap(u32 limit = UINT32_MAX) : slots_(), limit_{limit}, size_{0u}, first_free_{nil}
   {
     PRECONDITION(limit > 0u, "constructed unusable slot map");
   }
 
   SlotMap(SlotMap&&) noexcept            = default;
   SlotMap& operator=(SlotMap&&) noexcept = default;
-  SlotMap& operator=(const SlotMap&)     = delete;
+  SlotMap& operator=(SlotMap const&)     = delete;
   ~SlotMap() noexcept                    = default;
 
   // Replace the element in the slot and increment the generation, invalidating
@@ -38,8 +34,9 @@ template <typename Type> struct SlotMap
   // Assumptions: handle is not null, handle has element.
   template <typename... Args>
   requires std::constructible_from<Type, Args...>
-  Handle<Type> replace(Handle<Type> handle, Args&&... args)
-    noexcept(std::is_nothrow_constructible_v<Type, Args...>)
+  Handle<Type> replace(
+    Handle<Type> handle, Args&&... args
+  ) noexcept(std::is_nothrow_constructible_v<Type, Args...>)
   {
     PRECONDITION(handle, "handle must not be null");
     u32 i = locate(handle);
@@ -132,20 +129,20 @@ template <typename Type> struct SlotMap
   void reserve(u32 n) { slots_.reserve(n); }
 
   // Explicit copy to prevent unintended implicit copy construction.
-  [[nodiscard]] SlotMap copy() const
-  requires std::is_nothrow_copy_constructible_v<Type>
+  [[nodiscard]] SlotMap copy() const requires std::is_nothrow_copy_constructible_v<Type>
   {
     return *this;
   }
 
 private:
 
-  template <bool IsConst> struct Iterator
+  template <bool IsConst>
+  struct Iterator
   { ////////////////////////////////////////////////////////////////////////////////////////////////
   private:
 
-    using ReferenceType = std::conditional_t<IsConst, const Type&, Type&>;
-    using OwnerPtr      = std::conditional_t<IsConst, const SlotMap*, SlotMap*>;
+    using ReferenceType = std::conditional_t<IsConst, Type const&, Type&>;
+    using OwnerPtr      = std::conditional_t<IsConst, SlotMap const*, SlotMap*>;
 
   public:
 
@@ -156,17 +153,12 @@ private:
     using reference         = value_type;
     using pointer           = void; // proxy; no operator-> provided
 
-    Iterator()
-      : owner_{nullptr}
-      , index_{0u}
-    {
-    }
+    Iterator() : owner_{nullptr}, index_{0u} {}
 
-    Iterator(const Iterator& other)            = default;
-    Iterator& operator=(const Iterator& other) = default;
+    Iterator(Iterator const& other)            = default;
+    Iterator& operator=(Iterator const& other) = default;
 
-    operator Iterator<true>() const noexcept
-    requires(!IsConst)
+    operator Iterator<true>() const noexcept requires (!IsConst)
     {
       return Iterator<true>(owner_, index_);
     }
@@ -176,7 +168,10 @@ private:
       PRECONDITION(owner_, "dereferenced singular iterator");
       PRECONDITION(index_ < owner_->slots_.size(), "dereferenced end iterator");
       INVARIANT(owner_->slots_[index_].live == true, "dereferenced dead slot");
-      return {{index_, owner_->slots_[index_].generation}, owner_->slots_[index_].value};
+      return {
+        {index_, owner_->slots_[index_].generation},
+        owner_->slots_[index_].value
+      };
     }
 
     Iterator& operator++() noexcept
@@ -195,15 +190,13 @@ private:
       return temp;
     }
 
-    bool operator==(const Iterator&) const noexcept = default;
+    bool operator==(Iterator const&) const noexcept = default;
 
   private:
 
     friend struct SlotMap<Type>;
 
-    Iterator(OwnerPtr map, u32 index) noexcept
-      : owner_{map}
-      , index_{index}
+    Iterator(OwnerPtr map, u32 index) noexcept : owner_{map}, index_{index}
     {
       INVARIANT(owner_, "constructed without parent container");
       INVARIANT(index_ <= owner_->slots_.size(), "constructed with invalid index");
@@ -211,7 +204,6 @@ private:
 
     OwnerPtr owner_;
     u32      index_;
-
   }; ///////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
@@ -234,34 +226,28 @@ public:
   }
 
   [[nodiscard]] const_iterator end() const noexcept { return const_iterator(this, slots_.size()); }
-  [[nodiscard]] iterator       end() noexcept { return iterator(this, slots_.size()); }
+
+  [[nodiscard]] iterator end() noexcept { return iterator(this, slots_.size()); }
 
 private:
 
-  SlotMap(const SlotMap&)
-  requires std::is_copy_constructible_v<Type>
+  SlotMap(SlotMap const&) requires std::is_copy_constructible_v<Type>
   = default;
 
   struct Slot
   { ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    Slot() noexcept
-      : live(false)
-      , generation(0u)
-      , next_free(nil)
-    {
-    }
+    Slot() noexcept : live(false), generation(0u), next_free(nil) {}
 
-    Slot(const Slot& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
-      : live(other.live)
-      , generation(other.generation)
+    Slot(Slot const& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
+      : live(other.live), generation(other.generation)
     {
       if (live) {
         new (&value) Type(other.value);
       } else next_free = other.next_free;
     }
 
-    Slot& operator=(const Slot& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
+    Slot& operator=(Slot const& other) noexcept(std::is_nothrow_copy_constructible_v<Type>)
     {
       PRECONDITION(&other != this);
       live       = other.live;
@@ -273,8 +259,7 @@ private:
     }
 
     Slot(Slot&& other) noexcept(std::is_nothrow_move_constructible_v<Type>)
-      : live(other.live)
-      , generation(other.generation)
+      : live(other.live), generation(other.generation)
     {
       if (live) {
         new (&value) Type(std::move(other.value));
@@ -311,7 +296,6 @@ private:
       u32  next_free;
       Type value;
     };
-
   }; ///////////////////////////////////////////////////////////////////////////////////////////////
 
   [[nodiscard]] u32 locate(Handle<Type> handle) const noexcept
@@ -345,4 +329,3 @@ private:
   u32               size_;
   u32               first_free_;
 };
-
