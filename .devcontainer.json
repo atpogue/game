@@ -1,0 +1,26 @@
+{
+  "name": "game",
+  "image": "fedora:43",
+  "onCreateCommand": "dnf install -y clang clang-tools-extra cmake ninja-build catch catch-devel lua lua-devel glm-devel SDL3 SDL3-devel gdb git",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cmake-tools"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "clangd.arguments": [
+          "--compile-commands-dir=${workspaceFolder}/build/debug",
+          "--clang-tidy",
+          "--background-index",
+          "--header-insertion=never"
+        ],
+        "cmake.configurePreset": "clang-debug",
+        "cmake.buildPreset": "clang-debug",
+        "cmake.testPreset": "clang-debug"
+      }
+    }
+  },
+  "postCreateCommand": "cmake --preset clang-debug -DBUILD_TESTS=ON"
+}
