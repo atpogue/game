@@ -99,11 +99,10 @@ inline SDL_AppResult SDL_AppIterate(void* appstate)
   dt = dt > from_hertz(4u) ? from_hertz(4u) : dt;
   detail::engine_update(dt);
   app_update(state, dt);
-  auto renderer = detail::get_renderer();
-  SDL_SetRenderDrawColor(renderer, 73, 49, 62, SDL_ALPHA_OPAQUE);
-  SDL_RenderClear(renderer);
+  // The window/scene clears happen inside `scene_begin`/`scene_present`, which
+  // `app_render` drives via the engine render API.
   app_render(state);
-  SDL_RenderPresent(renderer);
+  SDL_RenderPresent(detail::get_renderer());
   detail::time_prior = now;
   return SDL_APP_CONTINUE;
 }

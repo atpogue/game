@@ -1,23 +1,29 @@
 #include "engine/render/camera.hh"
 #include "core/math.hh"
 #include "core/panic.hh"
+#include "internal.hh"
 
-Vec2f Camera::view_coord_at(Vec2f world_coord) const
+// Places a world tile at 1:1 in the off-screen scene target (zoom is applied
+// later, once, by `scene_present`), centred on the oversized target.
+Vec2f Camera::view_coord_at(Vec2f world_coord, float tile_size) const
 {
-  return (world_coord - position) * zoom + viewport * 0.5f;
+  return (world_coord - position) * tile_size + detail::scene_size() * 0.5f;
 }
 
-Vec2f Camera::world_coord_at(Vec2f view_coord) const
+// Inverse of `view_coord_at`. A mouse-pick path must first map the window pixel
+// to a scene pixel: `scene_xy = src.xy + mouse_px / zoom`.
+Vec2f Camera::world_coord_at(Vec2f scene_pixel, float tile_size) const
 {
-  return (view_coord - viewport * 0.5f) / zoom + position;
+  return (scene_pixel - detail::scene_size() * 0.5f) / tile_size + position;
 }
 
+// The visible half-extent in tiles: `viewport` is the view at zoom 1, so the
+// actual visible area shrinks as `zoom` grows. This drives culling.
 bool Camera::contains(Vec2f world_coord) const
 {
-  Vec2f half       = viewport * 0.5f;
-  auto  view_coord = (world_coord - position) * zoom + half;
-  return view_coord.x >= 0.f && view_coord.x <= viewport.x && view_coord.y >= 0.f
-      && view_coord.y <= viewport.y;
+  Vec2f half = (viewport * 0.5f) / zoom;
+  Vec2f rel  = world_coord - position;
+  return rel.x >= -half.x && rel.x <= half.x && rel.y >= -half.y && rel.y <= half.y;
 }
 
 Camera::Iterator Camera::begin() const

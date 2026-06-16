@@ -8,7 +8,7 @@ void Chunk::render(Context const ctx, Camera const& camera, float tile_size) con
     u32  x = coord.x, y = coord.y;
     auto tile = get(x, y);
     if (!tile) continue;
-    auto pixel = camera.view_coord_at({x, y}) * tile_size;
-    ctx.codex.terrain[tile->terrain].sprite.draw(pixel.x, pixel.y, camera.zoom);
+    auto pixel = camera.view_coord_at({x, y}, tile_size);
+    ctx.codex.terrain[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
   }
 }

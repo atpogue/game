@@ -11,3 +11,9 @@ constexpr SDL_Color hex_color(u32 rgba)
 }
 
 void draw_rectangle(SDL_FRect rect, SDL_Color color);
+
+/// Begin drawing the world into the off-screen scene target at 1:1 (no zoom).
+void scene_begin();
+
+/// Blit the scene target to the window, scaled by the camera `zoom`.
+void scene_present(float zoom);

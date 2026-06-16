@@ -6,6 +6,7 @@
 #include "director.hh"
 #include "engine/event.hh"
 #include "engine/render/camera.hh"
+#include "engine/render/draw.hh"
 #include "state.hh"
 #include "world/grassland.hh"
 #include <SDL3/SDL.h>
@@ -53,7 +54,7 @@ AppConfig app_config()
 {
   return {
     .step_rate = 32,
-    .window    = {.title = "My Game", .width = 800, .height = 600},
+    .window    = {.title = "My Game", .width = 800, .height = 600, .min_zoom = 0.7f},
   };
 }
 
@@ -69,7 +70,8 @@ AppState* app_start(int /*argc*/, char*[] /*argv*/)
     .player = {.entity = player,     .director = {}                       },
     .camera = {
                .position = {0.f, 0.f},
-               .viewport = {800.f / tile_size, 600.f / tile_size},.zoom     = 1.3f,
+               .viewport = {800.f / tile_size, 600.f / tile_size},
+               .zoom     = 1.3f,
                },
   };
 }
@@ -94,7 +96,9 @@ void app_update(AppState& app, nanoseconds)
 
 void app_render(AppState& app)
 {
+  scene_begin();
   app.state.chunk.render(app.state.context(), app.camera, tile_size);
+  scene_present(app.camera.zoom);
 }
 
 void app_event(AppState& app, SDL_Event const& event)
