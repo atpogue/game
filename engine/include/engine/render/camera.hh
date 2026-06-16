@@ -4,10 +4,14 @@
 
 struct Camera
 {
+  // `viewport`: the visible area in tiles at zoom 1 — the cull region.
+  //   The tile iterator yields tiles within `viewport / zoom` of `position`.
   glm::vec2 position, viewport;
   float     zoom = 1.0f;
-  glm::vec2 view_coord_at(glm::vec2 world_coord) const;
-  glm::vec2 world_coord_at(glm::vec2 view_coord) const;
+  // Maps a world tile coordinate to its pixel position in the off-screen scene
+  // target (the world is centred in it), and the inverse.
+  glm::vec2 view_coord_at(glm::vec2 world_coord, float tile_size) const;
+  glm::vec2 world_coord_at(glm::vec2 scene_pixel, float tile_size) const;
   bool      contains(glm::vec2 world_coord) const;
 
   struct Iterator

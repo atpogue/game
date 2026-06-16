@@ -21,7 +21,7 @@ namespace { ////////////////////////////////////////////////////////////////////
 
 WindowConfig app_window_config()
 {
-  return {.title = "Cave Generation Demo", .width = 800, .height = 600};
+  return {.title = "Cave Generation Demo", .width = 800, .height = 600, .min_zoom = 0.7f};
 }
 
 static void new_cave()
@@ -60,14 +60,16 @@ void app_update(float) {}
 
 void app_render()
 {
+  scene_begin();
   for (auto coord : camera) {
     u32  x = coord.x, y = coord.y;
     auto tile = cave->get(x, y);
     if (!tile) continue;
-    auto      pixel = camera.view_coord_at({x, y}) * tile_size;
+    auto      pixel = camera.view_coord_at({x, y}, tile_size);
     SDL_Color color = (*tile == 1u) ? hex_color(0x000000) : hex_color(0xFFFFFF);
-    draw_rectangle({pixel.x, pixel.y, tile_size * camera.zoom, tile_size * camera.zoom}, color);
+    draw_rectangle({pixel.x, pixel.y, tile_size, tile_size}, color);
   }
+  scene_present(camera.zoom);
 }
 
 void app_event(SDL_Event const& event)
