@@ -1,4 +1,8 @@
-## Building 
+# (unnamed)
+
+This is the early development of a game and engine built from scratch in C++23. Current progress includes a working game loop, custom ECS registry, cache-friendly data structures, a command to action pipeline, lua integration, and a clean engine/game division. Upcoming features include cross-platform shader support via SDL3 GPU API, and heightmap terrain generation with erosion.
+
+## Building
 
 ### Toolchain
 
