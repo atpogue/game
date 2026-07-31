@@ -1,7 +1,7 @@
-#include "engine/render/textures.hh"
 #include "core/panic.hh"
 #include "core/slot-map.hh"
 #include "core/string.hh"
+#include "engine/render/textures.hh"
 #include "internal.hh"
 #include <SDL3/SDL_log.h>
 #include <string_view>
@@ -29,7 +29,7 @@ void destroy_all_textures() { textures.clear(); }
 
 SDL_Texture* get_texture(Handle<Texture> handle)
 {
-  Texture* texture = textures.get(handle);
+  Texture* texture = textures.try_get(handle);
   return texture ? texture->get() : nullptr;
 }
 

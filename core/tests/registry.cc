@@ -1,5 +1,4 @@
 #include "core/registry.hh"
-#include "core/entity.hh"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <set>
@@ -35,7 +34,7 @@ namespace { ////////////////////////////////////////////////////////////////////
     ~Counted() { --instances; }
   };
 
-  struct Meta
+  struct Entity
   {
     std::string name;
   };
@@ -45,128 +44,152 @@ namespace { ////////////////////////////////////////////////////////////////////
 
 TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
 {
-  Registry<Components, Meta> r;
+  BasicRegistry<Entity, Components> r;
 
   SECTION("creating entities")
   {
-    std::set<Entity> entities;
+    std::set<Handle<Entity>> entities;
     for (u32 i = 0; i < 10; ++i) {
-      auto [e, is_unique] = entities.emplace(r.create());
+      auto [h, is_unique] = entities.emplace(r.create());
       REQUIRE(is_unique);
-      REQUIRE_FALSE(*e == nil_entity);
+      REQUIRE(*h != Handle<Entity>::null());
       REQUIRE(r.size() == i + 1u);
-      REQUIRE(r.is_alive(*e));
+      REQUIRE(r.valid(*h));
     }
   }
 
   SECTION("destroying entities")
   {
-    std::array<Entity, 10> entities;
-    for (auto& e : entities) e = r.create();
-    for (u32 i = 0; i < 10; ++i) {
+    std::array<Handle<Entity>, 10> entities;
+    for (auto& h : entities) h = r.create();
+    for (u32 i = 0u; i < 10u; ++i) {
       REQUIRE(r.size() == 10u - i);
-      auto e = entities[i];
-      r.destroy(e);
-      REQUIRE_FALSE(r.is_alive(e));
+      auto const h = entities[i];
+      r.destroy(h);
+      REQUIRE(r.valid(h) == false);
     }
     REQUIRE(r.size() == 0u);
   }
 
   SECTION("polling non-existent entity")
   {
-    Entity e = GENERATE(Handle<>{}, Handle<>{48u, 29u});
-    REQUIRE_FALSE(r.is_alive(e));
-    REQUIRE_FALSE(r.has<Position>(e));
-    REQUIRE(r.get<Position>(e) == nullptr);
+    auto h = GENERATE(Handle<Entity>{}, Handle<Entity>{48u, 29u});
+    REQUIRE(r.valid(h) == false);
+    REQUIRE(r.has<Position>(h) == false);
+    REQUIRE(r.try_get<Position>(h) == nullptr);
   }
 
   SECTION("polling non-existent component")
   {
-    Entity e = r.create();
+    auto h = r.create();
     GENERATE(1, 2, 3);
-    REQUIRE_FALSE(r.has<Position>(e));
-    REQUIRE(r.get<Position>(e) == nullptr);
+    REQUIRE(r.has<Position>(h) == false);
+    REQUIRE(r.try_get<Position>(h) == nullptr);
   }
 
-  SECTION("emplacing component")
+  SECTION("emplacing components")
   {
-    Entity   e   = r.create();
-    Counted& ref = r.emplace<Counted>(e, 381);
-    REQUIRE(Counted::instances == 1u);
-    REQUIRE(r.has<Counted>(e));
+    auto h = r.create();
+
+    // emplace constructs the component type in-place
+    auto& ref = r.emplace<Counted>(h, 381);
     REQUIRE(ref.value == 381);
-    Counted* ptr = r.get<Counted>(e);
-    REQUIRE_FALSE(ptr == nullptr);
+    REQUIRE(Counted::instances == 1u);
+
+    // entity should have ownership of the component
+    REQUIRE(r.has<Counted>(h));
+
+    // the address of the owned component should match the one constructed
+    Counted* ptr = r.try_get<Counted>(h);
+    REQUIRE(ptr != nullptr);
     REQUIRE(ptr == &ref);
+  }
+
+  SECTION("mutating components")
+  {
+    auto h = r.create();
+
+    // emplace returns an mutable reference to constructed component
+    auto& p = r.emplace<Position>(h, 0.f, 0.f);
+    p.x     = 99.f;
+    REQUIRE(r.get<Position>(h).x == 99.f);
+
+    // get returns an mutable reference to existing component
+    r.get<Position>(h).y = 381.f;
+    REQUIRE(r.get<Position>(h).y == 381.f);
   }
 
   SECTION("erasing component")
   {
-    Entity e = r.create();
-    r.emplace<Counted>(e);
-    r.emplace<Health>(e);
-    REQUIRE(r.has<Counted>(e));
-    REQUIRE(Counted::instances == 1);
-    r.erase<Counted>(e);
-    REQUIRE_FALSE(r.has<Counted>(e));
-    REQUIRE(r.get<Counted>(e) == nullptr);
+    auto h = r.create();
+    r.emplace<Counted>(h);
+    r.emplace<Health>(h);
+
+    r.erase<Counted>(h);
+    REQUIRE(r.has<Counted>(h) == false);
+    REQUIRE(r.try_get<Counted>(h) == nullptr);
+
     // destructor should have been called
     REQUIRE(Counted::instances == 0u);
+
     // erasing one component should not affect other components
-    REQUIRE(r.has<Health>(e));
+    REQUIRE(r.has<Health>(h));
+
+    // component may be emplaced again after erase
+    r.emplace<Counted>(h);
+    REQUIRE(r.has<Counted>(h));
+    REQUIRE(r.try_get<Counted>(h) != nullptr);
+    REQUIRE(Counted::instances == 1u);
   }
 
-  SECTION("components should be tied to entity lifetime")
+  SECTION("component lifetime")
   {
-    Entity e = r.create();
-    r.emplace<Position>(e);
-    r.emplace<Velocity>(e);
-    r.emplace<Health>(e);
-    r.destroy(e);
-    REQUIRE_FALSE(r.has<Position>(e));
-    REQUIRE_FALSE(r.has<Velocity>(e));
-    REQUIRE_FALSE(r.has<Health>(e));
-    REQUIRE(r.get<Position>(e) == nullptr);
-    REQUIRE(r.get<Velocity>(e) == nullptr);
-    REQUIRE(r.get<Health>(e) == nullptr);
+    auto h = r.create();
+    r.emplace<Position>(h);
+    r.emplace<Velocity>(h);
+    r.emplace<Health>(h);
+    r.destroy(h);
+
+    // components should be tied to entity lifetime
+    REQUIRE(r.has<Position>(h) == false);
+    REQUIRE(r.has<Velocity>(h) == false);
+    REQUIRE(r.has<Health>(h) == false);
+    REQUIRE(r.try_get<Position>(h) == nullptr);
+    REQUIRE(r.try_get<Velocity>(h) == nullptr);
+    REQUIRE(r.try_get<Health>(h) == nullptr);
   }
 
-  SECTION("modifying component")
+  SECTION("all")
   {
-    Entity e = r.create();
-    r.emplace<Position>(e, 0.f, 0.f);
-    r.get<Position>(e)->x = 99.f;
-    REQUIRE(r.get<Position>(e)->x == 99.f);
+    Handle<Entity> h = r.create();
+    REQUIRE_FALSE(r.all<Position, Velocity>(h));
+    r.emplace<Position>(h);
+    REQUIRE_FALSE(r.all<Position, Velocity>(h));
+    r.emplace<Velocity>(h);
+    REQUIRE(r.all<Position, Velocity>(h));
   }
 
-  SECTION("emplace after erase")
+  SECTION("any")
   {
-    Entity e = r.create();
-    r.emplace<Counted>(e);
-    r.erase<Counted>(e);
-    r.emplace<Counted>(e, 739);
-    REQUIRE(r.get<Counted>(e)->value == 739);
-  }
-  SECTION("variadic has")
-  {
-    Entity e = r.create();
-    r.emplace<Position>(e);
-    REQUIRE_FALSE(r.has<Position, Velocity>(e));
-    r.emplace<Velocity>(e);
-    REQUIRE(r.has<Position, Velocity>(e));
-    r.erase<Velocity>(e);
-    REQUIRE_FALSE((r.has<Position, Velocity>(e)));
+    Handle<Entity> h = r.create();
+    REQUIRE_FALSE(r.any<Position, Velocity>(h));
+    r.emplace<Position>(h);
+    REQUIRE(r.any<Position, Velocity>(h));
+    r.emplace<Velocity>(h);
+    REQUIRE(r.any<Position, Velocity>(h));
   }
 
   SECTION("iterating")
   {
     // iterating empty registry
     int count = 0;
-    for (auto [e, _] : r) ++count;
+    for (auto [h, _] : r) ++count;
     REQUIRE(count == 0);
-    Entity a = r.create(), b = r.create(), c = r.create(), d = r.create();
-    bool   saw_a = false, saw_b = false, saw_c = false, saw_d = false;
-    r.destroy(d);
+
+    Handle<Entity> a = r.create(), b = r.create(), c = r.create(), d = r.create();
+    bool           saw_a = false, saw_b = false, saw_c = false, saw_d = false;
+
+    // all entities are present in iteration
     for (auto [e, _] : r) {
       ++count;
       if (e == a) saw_a = true;
@@ -174,37 +197,49 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
       if (e == c) saw_c = true;
       if (e == d) saw_d = true;
     }
-    REQUIRE(count == 3);
+    REQUIRE(count == 4);
     REQUIRE(saw_a);
     REQUIRE(saw_b);
     REQUIRE(saw_c);
-    // destroyed entity should be absent from iteration
+
+    // destroyed entities are absent in iteration
+    saw_b = false;
+    saw_d = false;
+    count = 0;
+    r.destroy(b);
+    r.destroy(d);
+    for (auto [e, _] : r) {
+      ++count;
+      if (e == b) saw_b = true;
+      if (e == d) saw_d = true;
+    }
+    REQUIRE(count == 2);
+    REQUIRE_FALSE(saw_b);
     REQUIRE_FALSE(saw_d);
   }
 
-  SECTION("clearing")
+  SECTION("clear")
   {
     r.emplace<Counted>(r.create());
     r.emplace<Counted>(r.create());
-    REQUIRE(Counted::instances == 2u);
-    REQUIRE(r.size() == 2u);
+
     r.clear();
     REQUIRE(r.size() == 0u);
     REQUIRE(Counted::instances == 0u);
+
     // registry is usable after clear
     r.emplace<Counted>(r.create());
     REQUIRE(Counted::instances == 1u);
     REQUIRE(r.size() == 1u);
   }
 
-  SECTION("setting and polling per entity meta-data")
+  SECTION("entity meta-data")
   {
-    Entity e = r.create("Hello!");
-    for (auto [_, meta] : r) REQUIRE(meta.name == "Hello!");
+    Handle<Entity> h = r.create("foo");
+    for (auto [_, e] : r) REQUIRE(e.name == "foo");
     // meta-data is independent, per-entity
-    (void)r.create("George");
-    Meta* meta = r.meta(e);
-    REQUIRE_FALSE(meta == nullptr);
-    REQUIRE(meta->name == "Hello!");
+    (void)r.create("bar");
+    Entity const& e = r[h];
+    REQUIRE(e.name == "foo");
   }
 }

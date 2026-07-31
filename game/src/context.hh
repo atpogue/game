@@ -1,17 +1,14 @@
 #pragma once
+#include "action/move.hh"
 #include "codex.hh"
+#include "component/pose.hh"
 #include "core/registry.hh"
-#include "core/type-info.hh"
+#include "types.hh"
 #include "world/chunk.hh"
-struct Pose;
-struct MoveAction;
-// TODO: type info that doesn't require types to be known at compile-time
-//  but still allows for determinism
-using Components = TypeList<Pose, MoveAction>;
 
 struct Context
 {
-  Codex const&          codex;
-  Registry<Components>& entities;
-  Chunk&                chunk;
+  Codex const& codex;
+  Registry&    entities;
+  Chunk&       chunk;
 };

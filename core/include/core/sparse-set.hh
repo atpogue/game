@@ -3,41 +3,43 @@
 #include "core/panic.hh"
 #include "core/types.hh"
 #include <concepts>
+#include <span>
 #include <utility>
 #include <vector>
 
-template <typename Type>
+template <typename Type, std::unsigned_integral Key = u32>
 struct SparseSet
 {
-  using size_type       = u32;
+  using size_type       = Key;
   using value_type      = Type;
   using reference       = Type&;
   using const_reference = Type const&;
   using pointer         = Type*;
   using const_pointer   = Type const*;
 
-  explicit SparseSet(u32 capacity) : SparseSet() { reserve(capacity); }
+  explicit SparseSet(Key capacity) : SparseSet() { reserve(capacity); }
 
   SparseSet()                                = default;
   SparseSet(SparseSet&&) noexcept            = default;
+  SparseSet(SparseSet const&)                = default;
   SparseSet& operator=(SparseSet&&) noexcept = default;
-  SparseSet& operator=(SparseSet const&)     = delete;
+  SparseSet& operator=(SparseSet const&)     = default;
   ~SparseSet() noexcept                      = default;
 
   [[nodiscard]] size_t capacity() const noexcept { return values_.capacity(); }
 
-  void reserve(u32 count)
+  void reserve(Key count)
   {
     keys_.reserve(count);
     values_.reserve(count);
   }
 
-  [[nodiscard]] bool has(u32 key) const noexcept { return lookup_.has(key); }
+  [[nodiscard]] bool has(Key key) const noexcept { return lookup_.has(key); }
 
   // assumptions: key is not nil, key doesn't already exist
   template <typename... Args>
   requires std::constructible_from<Type, Args...>
-  reference emplace(u32 key, Args&&... args)
+  reference emplace(Key key, Args&&... args)
   {
     PRECONDITION(key != nil);
     PRECONDITION(!has(key));
@@ -48,15 +50,15 @@ struct SparseSet
   }
 
   // assumptions: key is not nil, key is assigned to an element
-  void erase(u32 key) noexcept(std::is_nothrow_move_assignable_v<Type>)
+  void erase(Key key) noexcept(std::is_nothrow_move_assignable_v<Type>)
     requires (std::is_move_assignable_v<Type> || std::is_copy_assignable_v<Type>)
   {
     PRECONDITION(key != nil);
     PRECONDITION(has(key));
     INVARIANT(keys_.size() == values_.size(), "key and value dense arrays must be the same size");
     // swap the indexes of the given key and the key at the end
-    if (u32 end = keys_.back(); key != end) {
-      u32 idx      = lookup_[key];
+    if (Key end = keys_.back(); key != end) {
+      Key idx      = lookup_[key];
       lookup_[end] = idx;
       keys_[idx]   = end;
       values_[idx] = std::move(values_.back());
@@ -73,37 +75,35 @@ struct SparseSet
     lookup_.clear();
   }
 
-  [[nodiscard]] const_reference operator[](u32 key) const noexcept
+  [[nodiscard]] const_reference operator[](Key key) const noexcept
   {
     DEBUG_ASSERT(has(key));
     return values_[lookup_[key]];
   }
 
-  [[nodiscard]] reference operator[](u32 key) noexcept
+  [[nodiscard]] reference operator[](Key key) noexcept
   {
     DEBUG_ASSERT(has(key));
     return values_[lookup_[key]];
   }
 
-  [[nodiscard]] const_pointer get(u32 key) const noexcept
+  [[nodiscard]] const_pointer try_get(Key key) const noexcept
   {
     return has(key) ? &values_[lookup_[key]] : nullptr;
   }
 
-  [[nodiscard]] pointer get(u32 key) noexcept
+  [[nodiscard]] pointer try_get(Key key) noexcept
   {
     return has(key) ? &values_[lookup_[key]] : nullptr;
   }
 
-  [[nodiscard]] u32 size() const noexcept { return values_.size(); }
+  [[nodiscard]] Key size() const noexcept { return values_.size(); }
 
-  [[nodiscard]] SparseSet copy() const requires std::is_copy_constructible_v<Type> { return *this; }
+  std::span<Key> keys() const noexcept { return keys_; }
 
-  auto const& keys() const noexcept { return keys_; }
+  std::span<Type> values() { return values_; }
 
-  auto& values() noexcept { return values_; }
-
-  auto const& values() const noexcept { return values_; }
+  std::span<Type const> values() const { return values_; }
 
 private:
 
@@ -118,7 +118,7 @@ private:
     using iterator_category = std::forward_iterator_tag;
     using difference_type   = std::ptrdiff_t;
     using pointer           = void; // proxy; no operator-> provided
-    using value_type        = std::pair<u32, ReferenceType>;
+    using value_type        = std::pair<Key, ReferenceType>;
     using reference         = value_type;
 
     Iterator() : owner_{nullptr}, idx_{nil} {}
@@ -129,7 +129,7 @@ private:
       return Iterator<true>(owner_, idx_);
     }
 
-    [[nodiscard]] value_type operator*() const noexcept
+    [[nodiscard]] reference operator*() const noexcept
     {
       return {owner_->keys_[idx_], owner_->values_[idx_]};
     }
@@ -158,10 +158,10 @@ private:
 
     friend struct SparseSet<Type>;
 
-    Iterator(OwnerPtr owner, u32 idx) noexcept : owner_{owner}, idx_{idx} {}
+    Iterator(OwnerPtr owner, Key idx) noexcept : owner_{owner}, idx_{idx} {}
 
     OwnerPtr owner_;
-    u32      idx_;
+    Key      idx_;
   }; //////////////////////////////////////////////////////////////////////////////////
 
 public:
@@ -186,16 +186,11 @@ public:
 
 private:
 
-  SparseSet(SparseSet const& other) requires std::is_copy_constructible_v<Type>
-    : values_(other.values_), keys_(other.keys_), lookup_(other.lookup_.copy())
-  {
-    INVARIANT(lookup_.size() == other.lookup_.size());
-  }
-
   // Invariants:
   // - values_ and keys_ and lookup_ are all the same size
   // - keys_[lookup_[key]] equals key
+
   std::vector<Type>    values_;
-  std::vector<u32>     keys_;
-  PagedArray<u32, 256> lookup_; // 256 * 4B = 1 KB of memory per page
+  std::vector<Key>     keys_;
+  PagedArray<Key, 256> lookup_; // 256 * 4B = 1 KB of memory per page when Key is 32-bit
 };

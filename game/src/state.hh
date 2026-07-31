@@ -6,9 +6,9 @@
 /// pipeline.
 struct GameState
 { /////////////////////////////////////////////////////////////////////////////////////////////////
-  Codex                codex;
-  Registry<Components> entities;
-  Chunk                chunk; // TODO: multi-chunk world with lazy-loading
+  Codex    codex;
+  Registry entities;
+  Chunk    chunk; // TODO: multi-chunk world with lazy-loading
 
   /// Explciit copy to prevent unintended and expensive implicit copies.
   GameState copy() const

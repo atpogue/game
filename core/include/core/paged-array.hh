@@ -1,9 +1,14 @@
 #pragma once
+
+// TODO: PagedArray::merge(PagedArray&&) that moves values defined in the other array into this one
+// without modifying the values the other array doesn't have
+
 #include "core/panic.hh"
 #include "core/types.hh"
 #include <bit>
 #include <bitset>
 #include <memory>
+#include <new>
 #include <vector>
 
 // A paged, dynamically allocated sparse array with O(1) insert, erase, lookup.
@@ -50,6 +55,14 @@ private:
     u32                   count = 0u;
   }; //////////////////////////////////////////////////////////////////////////////////
 
+  static void copy_page(Page const& src, Page& dst)
+  {
+    dst.occupied = src.occupied;
+    dst.count    = src.count;
+    for (u32 j = 0; j < PageSize; ++j)
+      if (src.occupied[j]) std::construct_at(dst.at(j), *src.at(j));
+  }
+
   static constexpr u32 shift = std::bit_width(PageSize) - 1; // log2(PageSize)
   static constexpr u32 mask  = PageSize - 1;
 
@@ -61,9 +74,31 @@ private:
 
 public:
 
-  PagedArray()                             = default;
-  PagedArray& operator=(PagedArray const&) = delete;
-  ~PagedArray()                            = default;
+  PagedArray()           = default;
+  ~PagedArray() noexcept = default;
+
+  PagedArray(PagedArray const& other) requires std::is_copy_constructible_v<Type>
+    : pages_(), size_{other.size_}
+  {
+    pages_.resize(other.pages_.size());
+    for (u32 i = 0; i < other.pages_.size(); ++i) {
+      if (!other.pages_[i]) continue;
+      pages_[i] = std::make_unique<Page>();
+      copy_page(*other.pages_[i], *pages_[i]);
+    }
+  }
+
+  PagedArray& operator=(PagedArray const& other) requires std::is_copy_constructible_v<Type>
+  {
+    if (this == &other) return *this;
+    pages_.clear();
+    pages_.resize(other.pages_.size());
+    for (u32 i = 0; i < other.pages_.size(); ++i) {
+      pages_[i] = std::make_unique<Page>();
+      copy_page(*other.pages_[i], *pages_[i]);
+    }
+    return *this;
+  }
 
   // Note: is noexcept without requiring the Type to be move constructible
   PagedArray(PagedArray&& other) noexcept : pages_(std::move(other.pages_)), size_(other.size_)
@@ -157,11 +192,6 @@ public:
   {
     pages_.clear();
     size_ = 0;
-  }
-
-  [[nodiscard]] PagedArray copy() const requires std::is_copy_constructible_v<Type>
-  {
-    return *this;
   }
 
 private:
@@ -271,22 +301,6 @@ public:
   const_iterator end() const noexcept { return cend(); }
 
 private:
-
-  PagedArray(PagedArray const& other) requires std::is_copy_constructible_v<Type>
-    : pages_(), size_{other.size_}
-  {
-    pages_.resize(other.pages_.size());
-    for (u32 i = 0; i < other.pages_.size(); ++i) {
-      if (!other.pages_[i]) continue;
-      Page const& src = *other.pages_[i];
-      pages_[i]       = std::make_unique<Page>();
-      Page& dst       = *pages_[i];
-      dst.occupied    = src.occupied;
-      dst.count       = src.count;
-      for (u32 j = 0; j < PageSize; ++j)
-        if (src.occupied[j]) std::construct_at(dst.at(j), *src.at(j));
-    }
-  }
 
   Page* get_page(u32 idx) noexcept
   {

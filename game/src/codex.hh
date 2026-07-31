@@ -2,9 +2,6 @@
 #include "core/catalog.hh"
 #include "world/terrain.hh"
 
-// TODO: registry like type-erased structure for definitions?
-//      would allow callers do register their own definitions
-//      without requiring knowledge of them in this file
 // A simulation rulebook that defines what exists and how what exists should
 // behave.
 struct Codex

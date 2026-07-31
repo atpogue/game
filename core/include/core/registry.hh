@@ -1,230 +1,193 @@
 #pragma once
-#include "core/entity.hh"
+
+// TODO: ability to query all entity with a series of components; regstry.query<Ts...>()
+// TODO: ability to sort component stores in relation to each other so that running a query on them
+// in a hot path is more performant: registry.sort<Ts...>()
+
+#include "core/panic.hh"
 #include "core/slot-map.hh"
 #include "core/sparse-set.hh"
-#include "core/type-info.hh"
-#include <memory>
-#include <vector>
+#include "core/type-list.hh"
+#include <span>
+#include <tuple>
 
-// TODO: ability to query all entity with a series of components
-// Type-erased interface to component storage.
-// Operations that don't require the registry to have the store's type.
-struct AnyComponentStore
-{
-  virtual ~AnyComponentStore() noexcept                           = default;
-  virtual bool                               has(u32 index) const = 0;
-  virtual void                               erase(u32 index)     = 0;
-  virtual std::unique_ptr<AnyComponentStore> clone() const        = 0;
-};
+template <typename Key, typename List>
+struct BasicRegistry;
 
-template <typename Type>
-struct ComponentStore final
-  : AnyComponentStore
-  , SparseSet<Type>
-{
-  ComponentStore(SparseSet<Type>&& other) noexcept : SparseSet<Type>(std::move(other)) {}
+template <typename Key, typename... Types>
+struct BasicRegistry<Key, TypeList<Types...>>
+{ //////////////////////////////////////////////////////////////////////////////
 
-  ComponentStore()                          = default;
-  ComponentStore(ComponentStore&&) noexcept = default;
-  ~ComponentStore() noexcept                = default;
+  BasicRegistry(u32 limit = UINT32_MAX) : keys_(limit), stores_() {}
 
-  bool has(u32 i) const override { return SparseSet<Type>::has(i); }
+  BasicRegistry(BasicRegistry&&)                 = default;
+  BasicRegistry& operator=(BasicRegistry&&)      = default;
+  BasicRegistry& operator=(BasicRegistry const&) = delete;
 
-  void erase(u32 i) override { SparseSet<Type>::erase(i); }
+  bool valid(Handle<Key> handle) const { return keys_.has(handle); }
 
-  std::unique_ptr<AnyComponentStore> clone() const override
+  Key& operator[](Handle<Key> handle)
   {
-    return std::make_unique<ComponentStore<Type>>(SparseSet<Type>::copy());
+    DEBUG_ASSERT(valid(handle));
+    return keys_[handle];
   }
-};
 
-// Assumptions: [TypeInfo::count] is fixed after Registry construction.
-template <TypeInfo Info, typename EntityData = Nothing>
-struct Registry
-{ ///////////////////////////////////////////////////////////////////////
-
-  Registry(u32 limit = UINT32_MAX) : entities_(limit), stores_(Info::count()) {}
-
-  Registry(Registry&&)                 = default;
-  Registry& operator=(Registry&&)      = default;
-  Registry& operator=(Registry const&) = delete;
-
-  EntityData const* meta(Entity e) const { return entities_.get(handle(e)); }
-
-  EntityData* meta(Entity e) { return entities_.get(handle(e)); }
+  Key const& operator[](Handle<Key> handle) const
+  {
+    DEBUG_ASSERT(valid(handle));
+    return keys_[handle];
+  }
 
   template <typename T, typename... Args>
   requires std::constructible_from<T, Args...>
-  T& emplace(Entity e, Args&&... args)
+  T& emplace(Handle<Key> handle, Args&&... args)
   {
-    PRECONDITION(entities_.has(handle(e)), "entity must be live");
-    return get_or_create_store<T>().emplace(index(e), std::forward<Args>(args)...);
+    PRECONDITION(valid(handle));
+    return store<T>().emplace(handle.index, std::forward<Args>(args)...);
   }
 
   template <typename T>
-  void erase(Entity e)
+  void erase(Handle<Key> handle)
   {
-    PRECONDITION(entities_.has(handle(e)), "entity must be live");
-    if (auto store = get_store<T>()) store->erase(index(e));
-  }
-
-  bool is_alive(Entity e) const { return entities_.has(handle(e)); }
-
-  void destroy(Entity e)
-  {
-    PRECONDITION(entities_.has(handle(e)), "entity must be live");
-    u32 const i = index(e);
-    for (auto& store : stores_)
-      if (store && store->has(i)) store->erase(i);
-    entities_.erase(handle(e));
+    PRECONDITION(valid(handle));
+    store<T>().erase(handle.index);
   }
 
   template <typename T>
-  [[nodiscard]] T* get(Entity e)
+  bool try_erase(Handle<Key> handle)
   {
-    auto store = get_store<T>();
-    return store ? store->get(index(e)) : nullptr;
+    auto& s = store<T>();
+    if (!s.has(handle.index)) return false;
+    s.erase(handle.index);
+    return true;
+  }
+
+  void destroy(Handle<Key> handle)
+  {
+    PRECONDITION(valid(handle));
+    (try_erase<Types>(handle), ...);
+    keys_.erase(handle);
+  }
+
+  bool try_destroy(Handle<Key> handle)
+  {
+    if (!valid(handle)) return false;
+    destroy(handle);
+    return true;
   }
 
   template <typename T>
-  [[nodiscard]] T const* get(Entity e) const
+  [[nodiscard]] T const& get(Handle<Key> handle) const
   {
-    auto store = get_store<T>();
-    return store ? store->get(index(e)) : nullptr;
+    DEBUG_ASSERT(valid(handle));
+    return store<T>()[handle.index];
   }
 
-  template <typename T, typename... Ts>
-  bool has(Entity e) const
+  template <typename T>
+  [[nodiscard]] T& get(Handle<Key> handle)
   {
-    return has(e, Info::template index<T>()) && (has(e, Info::template index<Ts>()) && ...);
+    DEBUG_ASSERT(valid(handle));
+    return store<T>()[handle.index];
+  }
+
+  template <typename T>
+  [[nodiscard]] T const* try_get(Handle<Key> handle) const
+  {
+    return store<T>().try_get(handle.index);
+  }
+
+  template <typename T>
+  [[nodiscard]] T* try_get(Handle<Key> handle)
+  {
+    return store<T>().try_get(handle.index);
+  }
+
+  template <typename T>
+  [[nodiscard]] bool has(Handle<Key> handle) const
+  {
+    return store<T>().has(handle.index);
+  }
+
+  template <typename... Ts>
+  [[nodiscard]] bool all(Handle<Key> handle) const
+  {
+    return (store<Ts>().has(handle.index) && ...);
+  }
+
+  template <typename... Ts>
+  [[nodiscard]] bool any(Handle<Key> handle) const
+  {
+    return (store<Ts>().has(handle.index) || ...);
   }
 
   template <typename... Args>
-  requires std::constructible_from<EntityData, Args...>
-  [[nodiscard]] Entity create(Args&&... args)
+  requires std::constructible_from<Key, Args...>
+  [[nodiscard]] Handle<Key> create(Args&&... args)
   {
-    auto handle = entities_.emplace(std::forward<Args>(args)...);
-    return handle.template with_tag<>();
+    return keys_.emplace(std::forward<Args>(args)...);
   }
 
-  [[nodiscard]] constexpr u32 capacity() const { return entities_.capacity(); }
+  [[nodiscard]] constexpr u32 capacity() const { return keys_.capacity(); }
 
   // Gets the number of live entities;
-  [[nodiscard]] u32 size() const { return entities_.size(); }
+  [[nodiscard]] u32 size() const { return keys_.size(); }
 
-  [[nodiscard]] constexpr u32 limit() const { return entities_.limit(); }
+  [[nodiscard]] constexpr u32 limit() const { return keys_.limit(); }
 
   void clear()
   {
-    for (auto& ptr : stores_) ptr.reset();
-    entities_.clear();
+    std::apply([](auto&... stores) { (stores.clear(), ...); }, stores_);
+    keys_.clear();
   }
 
-  struct Iterator
-  { ///////////////////////////////////////////////////////////////////
-    using iterator_concept                     = std::forward_iterator_tag;
-    using iterator_category                    = std::forward_iterator_tag;
-    using difference_type                      = std::ptrdiff_t;
-    using value_type                           = std::pair<Entity, EntityData>;
-    using reference                            = std::pair<Entity, EntityData const&>;
-    using pointer                              = void;
-    Iterator()                                 = default;
-    Iterator(Iterator const& other)            = default;
-    Iterator& operator=(Iterator const& other) = default;
+  using const_iterator = SlotMap<Key>::const_iterator;
+  using iterator       = SlotMap<Key>::iterator;
 
-    reference operator*() const { return {(*slot_).first.template with_tag<>(), (*slot_).second}; }
+  [[nodiscard]] iterator begin() { return keys_.begin(); }
 
-    Iterator& operator++()
-    {
-      ++slot_;
-      return *this;
-    }
+  [[nodiscard]] iterator end() { return keys_.end(); }
 
-    Iterator operator++(int)
-    {
-      auto temp = *this;
-      ++(*this);
-      return temp;
-    }
+  [[nodiscard]] const_iterator cbegin() const { return keys_.cbegin(); }
 
-    bool operator==(Iterator const&) const = default;
+  [[nodiscard]] const_iterator cend() const { return keys_.cend(); }
 
-  private:
+  [[nodiscard]] const_iterator begin() const { return cbegin(); }
 
-    friend struct Registry;
-
-    Iterator(SlotMap<EntityData>::const_iterator slot) : slot_(slot) {}
-
-    SlotMap<EntityData>::const_iterator slot_;
-  }; //////////////////////////////////////////////////////////////////////////////////
-
-  [[nodiscard]] Iterator begin() const { return Iterator(entities_.begin()); }
-
-  [[nodiscard]] Iterator end() const { return Iterator(entities_.end()); }
+  [[nodiscard]] const_iterator end() const { return cend(); }
 
   // Explicit copy to prevent unintended implicit copy construction.
   // Won't work if any of the component types are not copy constructible.
-  [[nodiscard]] Registry copy() const { return *this; }
+  [[nodiscard]] BasicRegistry copy() const { return *this; }
+
+  template <typename T>
+  constexpr std::span<T> each()
+  {
+    return store<T>().values();
+  }
+
+  template <typename T>
+  constexpr std::span<T const> each() const
+  {
+    return store<T>().values();
+  }
 
 private:
 
-  Registry(Registry const& other) : entities_(other.entities_.copy()), stores_(Info::count())
-  {
-    INVARIANT(entities_.size() == other.entities_.size());
-    for (auto i = 0u; i < Info::count(); ++i) {
-      if (other.stores_[i]) stores_[i] = other.stores_[i]->clone();
-    }
-  }
+  BasicRegistry(BasicRegistry const&) = default;
 
-  static constexpr u32 index(Entity e) noexcept { return e.to_handle().index; }
-
-  static constexpr Handle<EntityData> handle(Entity e) noexcept
+  template <typename T>
+  constexpr SparseSet<T>& store()
   {
-    return e.to_handle<EntityData>();
-  }
-
-  bool has(Entity e, u32 i) const
-  {
-    INVARIANT(i < stores_.size(), "component index must be valid");
-    return stores_[i] ? stores_[i]->has(index(e)) : false;
+    return std::get<SparseSet<T>>(stores_);
   }
 
   template <typename T>
-  [[nodiscard]] constexpr ComponentStore<T>* get_store()
+  constexpr SparseSet<T> const& store() const
   {
-    INVARIANT(
-      Info::template index<T>() < stores_.size(),
-      "component index must smaller than component count"
-    );
-    auto& store = stores_[Info::template index<T>()];
-    return static_cast<ComponentStore<T>*>(store.get());
+    return std::get<SparseSet<T>>(stores_);
   }
 
-  template <typename T>
-  [[nodiscard]] constexpr ComponentStore<T>* get_store() const
-  {
-    INVARIANT(
-      Info::template index<T>() < stores_.size(),
-      "component index must smaller than component count"
-    );
-    auto& store = stores_[Info::template index<T>()];
-    return static_cast<ComponentStore<T>*>(store.get());
-  }
+  SlotMap<Key>                    keys_;
+  std::tuple<SparseSet<Types>...> stores_;
 
-  template <typename T>
-  [[nodiscard]] ComponentStore<T>& get_or_create_store()
-  {
-    INVARIANT(
-      Info::template index<T>() < stores_.size(),
-      "component index must smaller than component count"
-    );
-    auto& store = stores_[Info::template index<T>()];
-    if (!store) store = std::make_unique<ComponentStore<T>>();
-    return *static_cast<ComponentStore<T>*>(store.get());
-  }
-
-  SlotMap<EntityData> entities_;
-  // vector not array to allow use of a component set that is determined at
-  // run-time
-  std::vector<std::unique_ptr<AnyComponentStore>> stores_;
-}; //////////////////////////////////////////////////////////////////////////////////////
+}; /////////////////////////////////////////////////////////////////////////////
