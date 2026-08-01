@@ -2,12 +2,13 @@
 #include "component/pose.hh"
 #include "core/math.hh"
 #include "core/random.hh"
+#include "data.hh"
 #include "director.hh"
 #include "engine/event.hh"
 #include "engine/main.hh"
 #include "engine/render/camera.hh"
 #include "engine/render/draw.hh"
-#include "state.hh"
+#include "simulation.hh"
 #include "world/grassland.hh"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -16,7 +17,7 @@
 
 struct AppState
 {
-  GameState state;
+  Simulation sim;
 
   struct
   {
@@ -37,16 +38,16 @@ void load_chunk(Context const ctx, Chunk& chunk)
 
 Handle<Entity> load_player(Context ctx)
 {
-  auto h = ctx.entities.create(Entity{0});
-  ctx.entities.emplace<Pose>(h, Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
-  DEBUG_ASSERT(ctx.entities.has<Pose>(h));
+  auto h = ctx.registry.create(Entity{0});
+  ctx.registry.emplace<Pose>(h, Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
+  DEBUG_ASSERT(ctx.registry.has<Pose>(h));
   return h;
 }
 
 void process_input(AppState& app)
 {
   for (auto command : app.player.director.generate()) {
-    try_submit_command(app.state.context(), app.player.entity, command);
+    try_submit_command(app.sim.context(), app.player.entity, command);
   }
 }
 
@@ -60,13 +61,13 @@ AppConfig app_config()
 
 AppState* app_start(int /*argc*/, char*[] /*argv*/)
 {
-  GameState state;
-  if (!load_content(state.codex, "content/terrain.lua")) return nullptr;
-  auto ctx = state.context();
-  load_chunk(ctx, state.chunk);
+  Simulation sim;
+  if (!load_content(sim.catalog, "content/terrain.lua")) return nullptr;
+  auto ctx = sim.context();
+  load_chunk(ctx, sim.chunk);
   auto player = load_player(ctx);
   return new AppState{
-    .state  = std::move(state),
+    .sim    = std::move(sim),
     .player = {.entity = player,     .director = {}                       },
     .camera = {
                .position = {0.f, 0.f},
@@ -78,10 +79,10 @@ AppState* app_start(int /*argc*/, char*[] /*argv*/)
 void app_step(AppState& app)
 {
   process_input(app);
-  if (auto action = app.state.entities.try_get<MoveAction>(app.player.entity)) {
-    switch (act(app.state.context(), app.player.entity, *action)) {
+  if (auto action = app.sim.registry.try_get<MoveAction>(app.player.entity)) {
+    switch (act(app.sim.context(), app.player.entity, *action)) {
     case ActionResult::Canceled:
-    case ActionResult::Complete: app.state.entities.erase<MoveAction>(app.player.entity); break;
+    case ActionResult::Complete: app.sim.registry.erase<MoveAction>(app.player.entity); break;
     case ActionResult::Ongoing:  break;
     }
   }
@@ -89,14 +90,14 @@ void app_step(AppState& app)
 
 void app_update(AppState& app, nanoseconds)
 {
-  auto pose = app.state.entities.try_get<Pose>(app.player.entity);
+  auto pose = app.sim.registry.try_get<Pose>(app.player.entity);
   if (pose) app.camera.position = pose->position;
 }
 
 void app_render(AppState& app)
 {
   scene_begin();
-  app.state.chunk.render(app.state.context(), app.camera, tile_size);
+  app.sim.chunk.render(app.sim.context(), app.camera, tile_size);
   scene_present(app.camera.zoom);
 }
 
@@ -111,7 +112,7 @@ void app_event(AppState& app, SDL_Event const& event)
     switch (event.key.scancode) {
     case SDL_SCANCODE_ESCAPE:
     case SDL_SCANCODE_Q:      push_event(make_quit_event()); break;
-    case SDL_SCANCODE_SPACE:  load_chunk(app.state.context(), app.state.chunk); break;
+    case SDL_SCANCODE_SPACE:  load_chunk(app.sim.context(), app.sim.chunk); break;
     default:                  break;
     }
     break;

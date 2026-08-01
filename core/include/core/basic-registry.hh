@@ -43,22 +43,22 @@ struct BasicRegistry<Key, TypeList<Types...>>
   T& emplace(Handle<Key> handle, Args&&... args)
   {
     PRECONDITION(valid(handle));
-    return store<T>().emplace(handle.index, std::forward<Args>(args)...);
+    return store_of<T>().emplace(handle.index, std::forward<Args>(args)...);
   }
 
   template <typename T>
   void erase(Handle<Key> handle)
   {
     PRECONDITION(valid(handle));
-    store<T>().erase(handle.index);
+    store_of<T>().erase(handle.index);
   }
 
   template <typename T>
   bool try_erase(Handle<Key> handle)
   {
-    auto& s = store<T>();
-    if (!s.has(handle.index)) return false;
-    s.erase(handle.index);
+    auto& store = store_of<T>();
+    if (!store.has(handle.index)) return false;
+    store.erase(handle.index);
     return true;
   }
 
@@ -80,44 +80,44 @@ struct BasicRegistry<Key, TypeList<Types...>>
   [[nodiscard]] T const& get(Handle<Key> handle) const
   {
     DEBUG_ASSERT(valid(handle));
-    return store<T>()[handle.index];
+    return store_of<T>()[handle.index];
   }
 
   template <typename T>
   [[nodiscard]] T& get(Handle<Key> handle)
   {
     DEBUG_ASSERT(valid(handle));
-    return store<T>()[handle.index];
+    return store_of<T>()[handle.index];
   }
 
   template <typename T>
   [[nodiscard]] T const* try_get(Handle<Key> handle) const
   {
-    return store<T>().try_get(handle.index);
+    return store_of<T>().try_get(handle.index);
   }
 
   template <typename T>
   [[nodiscard]] T* try_get(Handle<Key> handle)
   {
-    return store<T>().try_get(handle.index);
+    return store_of<T>().try_get(handle.index);
   }
 
   template <typename T>
   [[nodiscard]] bool has(Handle<Key> handle) const
   {
-    return store<T>().has(handle.index);
+    return store_of<T>().has(handle.index);
   }
 
   template <typename... Ts>
   [[nodiscard]] bool all(Handle<Key> handle) const
   {
-    return (store<Ts>().has(handle.index) && ...);
+    return (store_of<Ts>().has(handle.index) && ...);
   }
 
   template <typename... Ts>
   [[nodiscard]] bool any(Handle<Key> handle) const
   {
-    return (store<Ts>().has(handle.index) || ...);
+    return (store_of<Ts>().has(handle.index) || ...);
   }
 
   template <typename... Args>
@@ -162,13 +162,13 @@ struct BasicRegistry<Key, TypeList<Types...>>
   template <typename T>
   constexpr std::span<T> each()
   {
-    return store<T>().values();
+    return store_of<T>().values();
   }
 
   template <typename T>
   constexpr std::span<T const> each() const
   {
-    return store<T>().values();
+    return store_of<T>().values();
   }
 
 private:
@@ -176,13 +176,13 @@ private:
   BasicRegistry(BasicRegistry const&) = default;
 
   template <typename T>
-  constexpr SparseSet<T>& store()
+  constexpr SparseSet<T>& store_of()
   {
     return std::get<SparseSet<T>>(stores_);
   }
 
   template <typename T>
-  constexpr SparseSet<T> const& store() const
+  constexpr SparseSet<T> const& store_of() const
   {
     return std::get<SparseSet<T>>(stores_);
   }

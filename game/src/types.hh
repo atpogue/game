@@ -1,5 +1,4 @@
 #pragma once
-#include "core/handle.hh"
 #include "core/type-list.hh"
 #include "core/types.hh"
 
@@ -10,6 +9,11 @@ using Definitions = TypeList<struct Terrain>;
 
 template <typename Key, typename List>
 struct BasicRegistry;
+
+template <typename List>
+struct BasicCatalog;
+
+using Catalog = BasicCatalog<Definitions>;
 
 using Registry = BasicRegistry<Entity, Components>;
 

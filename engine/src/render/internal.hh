@@ -1,6 +1,7 @@
 #pragma once
-#include "core/handle.hh"
+#include "core/types.hh"
 #include <glm/vec2.hpp>
+
 struct Texture;
 struct SDL_Texture;
 struct SDL_Renderer;

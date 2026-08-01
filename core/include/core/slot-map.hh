@@ -1,5 +1,4 @@
 #pragma once
-#include "core/handle.hh"
 #include "core/panic.hh"
 #include "core/types.hh"
 #include <concepts>
@@ -98,7 +97,7 @@ struct SlotMap
   }
 
   // Get the full handle associated with the slot at the index.
-  [[nodiscard]] Handle<Type> find(u32 index) const noexcept
+  [[nodiscard]] Handle<Type> resolve(u32 index) const noexcept
   {
     // rename to get_handle?
     return index != nil && index < slots_.size() && slots_[index].live == true

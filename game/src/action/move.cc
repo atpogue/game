@@ -5,7 +5,7 @@
 
 ActionResult act(Context ctx, Handle<Entity> e, MoveAction& move)
 {
-  auto pose = ctx.entities.try_get<Pose>(e);
+  auto pose = ctx.registry.try_get<Pose>(e);
   if (!pose) return ActionResult::Canceled;
   pose->position += glm::normalize(move.direction);
   return ActionResult::Complete;

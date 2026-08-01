@@ -1,7 +1,7 @@
-#include "world/world.hh"
 #include "context.hh"
 #include "core/panic.hh"
 #include "engine/render/camera.hh"
+#include "world/world.hh"
 
 World::World(
   u32                             width,
@@ -62,11 +62,12 @@ Chunk& World::get_chunk(u64 key)
 void World::render(Context const ctx, Camera const& camera, float tile_size) const
 {
   for (auto coord : camera) {
-    u32 x = coord.x, y = coord.y;
+    auto x = u32(coord.x);
+    auto y = u32(coord.y);
     wrap_around(x, y);
     auto tile = find(x, y);
     INVARIANT(tile, "tile not found despite wrap around");
     auto pixel = camera.view_coord_at({x, y}, tile_size);
-    ctx.codex.terrain[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
+    ctx.catalog[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
   }
 }

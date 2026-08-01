@@ -1,6 +1,8 @@
 #pragma once
 #include "world/chunk.hh"
 
+struct Terrain;
+
 struct GrasslandGenerator : ChunkGenerator
 {
   GrasslandGenerator(Context const ctx, u64 seed);
@@ -8,6 +10,6 @@ struct GrasslandGenerator : ChunkGenerator
 
 private:
 
-  u64 const seed_;
-  u32 const terrain_[6];
+  u64 const            seed_;
+  Token<Terrain> const terrain_[6];
 };

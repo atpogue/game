@@ -28,7 +28,7 @@ struct IndexedMap
   // Return an ID that is assigned according to append order.
   // Assumes: key doesn't already exist, maximum size not reached.
   template <typename K, typename... Args>
-  requires std::constructible_from<Key, K&&> && std::constructible_from<Type, Args&&...>
+  requires std::constructible_from<Key, K> && std::constructible_from<Type, Args...>
   u32 emplace(K&& key, Args&&... args)
   {
     ASSERT(keys_.size() < nil, "maximum size reached");
@@ -43,6 +43,7 @@ struct IndexedMap
   }
 
   template <typename K>
+  requires std::constructible_from<Key, K>
   [[nodiscard]] bool has(K const& key) const
   {
     return found(locate(key), key);
@@ -51,6 +52,7 @@ struct IndexedMap
   // Performs O(logN) binary search to find the ID of the element with the given key.
   // If the key isn't present, returns nil.
   template <typename K>
+  requires std::constructible_from<Key, K>
   [[nodiscard]] u32 find(K const& key) const
   {
     auto pos = locate(key);
@@ -59,6 +61,7 @@ struct IndexedMap
 
   // Returns null if no element has the given key.
   template <typename K>
+  requires std::constructible_from<Key, K>
   [[nodiscard]] Type const* try_get(K const& key) const
   {
     u32 const idx = find(key);
@@ -67,6 +70,7 @@ struct IndexedMap
 
   // Returns null if no element has the given key.
   template <typename K>
+  requires std::constructible_from<Key, K>
   [[nodiscard]] Type* try_get(K const& key)
   {
     u32 const idx = find(key);
@@ -111,7 +115,7 @@ struct IndexedMap
     sorted_.clear();
   }
 
-  [[nodiscard]] std::span<Key> keys() const noexcept { return keys_; }
+  [[nodiscard]] std::span<Key const> keys() const noexcept { return keys_; }
 
   [[nodiscard]] std::span<Type> values() noexcept { return values_; }
 

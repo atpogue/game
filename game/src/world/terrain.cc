@@ -1,8 +1,9 @@
-#include "world/terrain.hh"
-#include "codex.hh"
+#include "core/basic-catalog.hh"
 #include "core/defer.hh"
 #include "core/lua.hh"
 #include "sprite.hh"
+#include "types.hh"
+#include "world/terrain.hh"
 #include <lua.hpp>
 
 // terrain "name" { sprite = {} }
@@ -10,8 +11,8 @@ static int parse_terrain_table(lua_State* L)
 {
   INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
   INVARIANT(lua_isstring(L, lua_upvalueindex(2)));
-  auto out  = static_cast<Catalog<Terrain>*>(lua_touserdata(L, lua_upvalueindex(1)));
-  auto name = lua_tostring(L, lua_upvalueindex(2));
+  auto catalog = static_cast<Catalog*>(lua_touserdata(L, lua_upvalueindex(1)));
+  auto name    = lua_tostring(L, lua_upvalueindex(2));
   do {
     // arg 1: definition table
     if (!lua_istable(L, 1)) {
@@ -20,14 +21,16 @@ static int parse_terrain_table(lua_State* L)
       );
       break;
     }
+
     int  terrain = lua_gettop(L);
     auto sprite  = lua::try_get_sprite(L, terrain, "sprite");
     if (!sprite) {
       lua::push_string(L, sprite.error().msg);
       break;
     }
+
     DEFER(lua_pop(L, 1));
-    out->emplace(name, *sprite);
+    catalog->emplace<Terrain>(name, *sprite);
     return 0;
   } while (false);
   // this will unwind the stack without calling C++ destructors
@@ -50,9 +53,9 @@ static int build_terrain(lua_State* L)
   return 1;
 }
 
-void lua::add_terrain_builder(lua_State* L, Codex& codex)
+void lua::add_terrain_builder(lua_State* L, Catalog& catalog)
 {
-  lua_pushlightuserdata(L, &codex.terrain);
+  lua_pushlightuserdata(L, &catalog);
   lua_pushcclosure(L, build_terrain, 1);
   lua_setglobal(L, "terrain");
 }

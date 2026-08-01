@@ -1,14 +1,15 @@
 #pragma once
 #include "action/move.hh"
-#include "codex.hh"
 #include "component/pose.hh"
-#include "core/registry.hh"
+#include "core/basic-catalog.hh"
+#include "core/basic-registry.hh"
 #include "types.hh"
 #include "world/chunk.hh"
+#include "world/terrain.hh"
 
 struct Context
 {
-  Codex const& codex;
-  Registry&    entities;
-  Chunk&       chunk;
+  Catalog const& catalog;
+  Registry&      registry;
+  Chunk&         chunk;
 };
