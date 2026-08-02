@@ -3,6 +3,7 @@
 #include "world/tile.hh"
 #include <memory>
 #include <unordered_map>
+
 struct Context;
 struct Camera;
 
@@ -23,7 +24,7 @@ struct World
 
   constexpr bool has(u32 x, u32 y) const { return x < width_ && y < height_; }
 
-  void        render(Context const ctx, Camera const& camera, float tile_size) const;
+  void        render(ConstContext ctx, Camera const& camera, float tile_size) const;
   Tile&       operator[](u32 x, u32 y);
   Tile*       get(u32 x, u32 y);
   Tile const* find(u32 x, u32 y) const;

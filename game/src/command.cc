@@ -1,6 +1,7 @@
 #include "command.hh"
 #include "component/pose.hh"
 #include "context.hh"
+#include "entity.hh"
 #include <glm/geometric.hpp>
 
 Command make_move_command(u32 id, f32 x, f32 y)
@@ -15,7 +16,8 @@ Command make_path_command(u32 id, f32 x, f32 y)
 
 static bool try_submit_command(Context ctx, Handle<Entity> e, Command::Move const& cmd)
 {
-  auto pose = ctx.registry.try_get<Pose>(e);
+  auto view = access_entity(ctx, e);
+  auto pose = view.try_get<Pose>();
   if (!pose) return false;
   pose->position += glm::normalize(glm::vec2(cmd.x, cmd.y));
   return true;
@@ -25,7 +27,7 @@ static bool try_submit_command(Context, Handle<Entity>, Command::Path const&) { 
 
 bool try_submit_command(Context ctx, Handle<Entity> e, Command const cmd)
 {
-  if (!ctx.registry.valid(e)) return false;
+  if (!is_valid(ctx, e)) return false;
   switch (cmd.type) {
   case Command::Type::Move: return try_submit_command(ctx, e, cmd.move);
   case Command::Type::Path: return try_submit_command(ctx, e, cmd.path);

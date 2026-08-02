@@ -1,14 +1,19 @@
+#include "catalog.hh"
 #include "context.hh"
 #include "core/random.hh"
 #include "world/grassland.hh"
 #include <random>
 
+Token<Terrain> find_terrain(Context ctx, std::string_view label)
+{
+  return access_catalog(ctx).find<Terrain>(label);
+}
+
 GrasslandGenerator::GrasslandGenerator(Context const ctx, u64 seed)
   : seed_{seed}
   , terrain_{
-      ctx.catalog.find<Terrain>("grass-1"), ctx.catalog.find<Terrain>("grass-2"),
-      ctx.catalog.find<Terrain>("grass-3"), ctx.catalog.find<Terrain>("grass-tall"),
-      ctx.catalog.find<Terrain>("dirt"),    ctx.catalog.find<Terrain>("rocks"),
+      find_terrain(ctx, "grass-1"),    find_terrain(ctx, "grass-2"), find_terrain(ctx, "grass-3"),
+      find_terrain(ctx, "grass-tall"), find_terrain(ctx, "dirt"),    find_terrain(ctx, "rocks"),
     }
 {
   for (auto token : terrain_) { PRECONDITION(token, "terrain undefined"); }

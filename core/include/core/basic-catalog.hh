@@ -18,7 +18,7 @@ struct BasicCatalog<TypeList<Types...>>
   BasicCatalog& operator=(BasicCatalog const&) = delete;
 
   template <typename T>
-  bool valid(Token<T> token) const
+  [[nodiscard]] bool valid(Token<T> token) const
   {
     return token.value < store_of<T>().size();
   }
@@ -37,14 +37,14 @@ struct BasicCatalog<TypeList<Types...>>
   }
 
   template <typename T>
-  T& operator[](Token<T> token)
+  [[nodiscard]] T& operator[](Token<T> token)
   {
     DEBUG_ASSERT(valid(token));
     return store_of<T>()[token.value];
   }
 
   template <typename T>
-  T const& operator[](Token<T> token) const
+  [[nodiscard]] T const& operator[](Token<T> token) const
   {
     DEBUG_ASSERT(valid(token));
     return store_of<T>()[token.value];
@@ -75,13 +75,13 @@ struct BasicCatalog<TypeList<Types...>>
   }
 
   template <typename T>
-  constexpr std::span<T> each()
+  [[nodiscard]] constexpr std::span<T> each()
   {
     return store_of<T>().values();
   }
 
   template <typename T>
-  constexpr std::span<T const> each() const
+  [[nodiscard]] constexpr std::span<T const> each() const
   {
     return store_of<T>().values();
   }

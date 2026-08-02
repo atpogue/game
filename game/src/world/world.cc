@@ -1,6 +1,8 @@
+#include "catalog.hh"
 #include "context.hh"
 #include "core/panic.hh"
 #include "engine/render/camera.hh"
+#include "world/terrain.hh"
 #include "world/world.hh"
 
 World::World(
@@ -59,8 +61,9 @@ Chunk& World::get_chunk(u64 key)
   return chunk;
 }
 
-void World::render(Context const ctx, Camera const& camera, float tile_size) const
+void World::render(ConstContext ctx, Camera const& camera, float tile_size) const
 {
+  auto catalog = access_catalog(ctx);
   for (auto coord : camera) {
     auto x = u32(coord.x);
     auto y = u32(coord.y);
@@ -68,6 +71,6 @@ void World::render(Context const ctx, Camera const& camera, float tile_size) con
     auto tile = find(x, y);
     INVARIANT(tile, "tile not found despite wrap around");
     auto pixel = camera.view_coord_at({x, y}, tile_size);
-    ctx.catalog[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
+    catalog[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
   }
 }

@@ -1,4 +1,4 @@
-#include "core/basic-catalog.hh"
+#include "catalog.hh"
 #include "core/defer.hh"
 #include "core/lua.hh"
 #include "sprite.hh"
@@ -11,7 +11,7 @@ static int parse_terrain_table(lua_State* L)
 {
   INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
   INVARIANT(lua_isstring(L, lua_upvalueindex(2)));
-  auto catalog = static_cast<Catalog*>(lua_touserdata(L, lua_upvalueindex(1)));
+  auto catalog = static_cast<CatalogWriter*>(lua_touserdata(L, lua_upvalueindex(1)));
   auto name    = lua_tostring(L, lua_upvalueindex(2));
   do {
     // arg 1: definition table
@@ -53,7 +53,7 @@ static int build_terrain(lua_State* L)
   return 1;
 }
 
-void lua::add_terrain_builder(lua_State* L, Catalog& catalog)
+void lua::add_terrain_builder(lua_State* L, CatalogWriter& catalog)
 {
   lua_pushlightuserdata(L, &catalog);
   lua_pushcclosure(L, build_terrain, 1);

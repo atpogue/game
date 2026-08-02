@@ -1,20 +1,28 @@
 #pragma once
-#include "core/type-list.hh"
 #include "core/types.hh"
 
+// Stable, persistent, cross-session, unique identifier for a simulation object.
 enum class Entity : u64 { Nil = UINT64_MAX };
 
-using Components  = TypeList<struct Pose, struct MoveAction>;
-using Definitions = TypeList<struct Terrain>;
-
-template <typename Key, typename List>
-struct BasicRegistry;
-
-template <typename List>
-struct BasicCatalog;
-
-using Catalog = BasicCatalog<Definitions>;
-
-using Registry = BasicRegistry<Entity, Components>;
-
 struct Context;
+struct ConstContext;
+struct LoadContext;
+
+template <AccessPolicy Access>
+struct RegistryView;
+
+using RegistryReader = RegistryView<Read>;
+using RegistryWriter = RegistryView<Write>;
+
+template <AccessPolicy Access>
+struct EntityView;
+
+using EntityReader = EntityView<Read>;
+using EntityWriter = EntityView<Write>;
+
+template <AccessPolicy Access>
+struct CatalogView;
+
+using CatalogReader = CatalogView<Read>;
+using CatalogWriter = CatalogView<Write>;
+

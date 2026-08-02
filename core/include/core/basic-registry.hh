@@ -24,15 +24,15 @@ struct BasicRegistry<Key, TypeList<Types...>>
   BasicRegistry& operator=(BasicRegistry&&)      = default;
   BasicRegistry& operator=(BasicRegistry const&) = delete;
 
-  bool valid(Handle<Key> handle) const { return keys_.has(handle); }
+  [[nodiscard]] bool valid(Handle<Key> handle) const { return keys_.has(handle); }
 
-  Key& operator[](Handle<Key> handle)
+  [[nodiscard]] Key& operator[](Handle<Key> handle)
   {
     DEBUG_ASSERT(valid(handle));
     return keys_[handle];
   }
 
-  Key const& operator[](Handle<Key> handle) const
+  [[nodiscard]] Key const& operator[](Handle<Key> handle) const
   {
     DEBUG_ASSERT(valid(handle));
     return keys_[handle];
@@ -160,13 +160,13 @@ struct BasicRegistry<Key, TypeList<Types...>>
   [[nodiscard]] BasicRegistry copy() const { return *this; }
 
   template <typename T>
-  constexpr std::span<T> each()
+  [[nodiscard]] constexpr std::span<T> each()
   {
     return store_of<T>().values();
   }
 
   template <typename T>
-  constexpr std::span<T const> each() const
+  [[nodiscard]] constexpr std::span<T const> each() const
   {
     return store_of<T>().values();
   }

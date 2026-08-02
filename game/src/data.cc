@@ -1,13 +1,15 @@
-#include "core/basic-catalog.hh"
+#include "catalog.hh"
+#include "context.hh"
 #include "core/lua.hh"
 #include "data.hh"
 #include "world/terrain.hh"
 #include <SDL3/SDL_log.h>
 #include <lua.hpp>
 
-bool load_content(Catalog& catalog, std::string_view path)
+bool load_content(LoadContext ctx, std::string_view path)
 {
-  lua_State* L = luaL_newstate();
+  auto       catalog = access_catalog(ctx);
+  lua_State* L       = luaL_newstate();
   ASSERT(L != nullptr, "failed to create lua state");
   lua::add_terrain_builder(L, catalog);
   auto result = lua::do_file(L, path);

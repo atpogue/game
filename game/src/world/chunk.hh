@@ -1,5 +1,6 @@
 #pragma once
 #include "core/grid2.hh"
+#include "types.hh"
 #include "world/tile.hh"
 
 struct Camera;
@@ -10,7 +11,7 @@ constexpr u32 chunk_size = 64;
 struct Chunk : Grid2<Tile, chunk_size, chunk_size>
 {
   // other relevant data...
-  void render(Context const ctx, Camera const& camera, float tile_size) const;
+  void render(ConstContext ctx, Camera const& camera, float tile_size) const;
 };
 
 struct ChunkGenerator
