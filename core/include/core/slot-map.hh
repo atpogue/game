@@ -143,13 +143,13 @@ struct SlotMap
 
 private:
 
-  template <bool IsConst>
+  template <AccessFlag Access>
   struct Iterator
   { ////////////////////////////////////////////////////////////////////////////////////////////////
   private:
 
-    using ReferenceType = std::conditional_t<IsConst, Type const&, Type&>;
-    using Owner         = std::conditional_t<IsConst, SlotMap const, SlotMap>;
+    using ReferenceType = std::conditional_t<Access == Write, Type&, Type const&>;
+    using Owner         = std::conditional_t<Access == Write, SlotMap, SlotMap const>;
 
   public:
 
@@ -165,9 +165,9 @@ private:
     Iterator(Iterator const& other)            = default;
     Iterator& operator=(Iterator const& other) = default;
 
-    operator Iterator<true>() const noexcept requires (!IsConst)
+    operator Iterator<Read>() const noexcept requires (Access == Write)
     {
-      return Iterator<true>(owner_, index_);
+      return Iterator<Read>(owner_, index_);
     }
 
     reference operator*() const noexcept
@@ -215,8 +215,8 @@ private:
 
 public:
 
-  using iterator       = Iterator<false>;
-  using const_iterator = Iterator<true>;
+  using iterator       = Iterator<Write>;
+  using const_iterator = Iterator<Read>;
 
   [[nodiscard]] const_iterator cbegin() const noexcept
   {

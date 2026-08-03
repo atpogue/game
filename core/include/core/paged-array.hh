@@ -219,12 +219,12 @@ private:
 
   // Any insert that causes pages_ to reallocate invalidates all iterators.
   // Erase only invalidates iterators to the erased element.
-  template <bool IsConst>
+  template <AccessFlag Access>
   struct Iterator
   { ////////////////////////////////////////////////////////////////////
-    using OwnerPtr      = std::conditional_t<IsConst, PagedArray const*, PagedArray*>;
-    using ReferenceType = std::conditional_t<IsConst, Type const&, Type&>;
-    using PageType      = std::conditional_t<IsConst, Page const, Page>;
+    using OwnerPtr      = std::conditional_t<Access == Write, PagedArray*, PagedArray const*>;
+    using ReferenceType = std::conditional_t<Access == Write, Type&, Type const&>;
+    using PageType      = std::conditional_t<Access == Write, Page, Page const>;
 
   public:
 
@@ -236,9 +236,9 @@ private:
 
     Iterator() : owner_{nullptr}, idx_{nil} {}
 
-    operator Iterator<true>() const noexcept requires (!IsConst)
+    operator Iterator<Read>() const noexcept requires (Access == Write)
     {
-      return Iterator<true>(owner_, idx_);
+      return Iterator<Read>(owner_, idx_);
     }
 
     value_type operator*() const noexcept
@@ -285,8 +285,8 @@ private:
 
 public:
 
-  using iterator       = Iterator<false>;
-  using const_iterator = Iterator<true>;
+  using iterator       = Iterator<Write>;
+  using const_iterator = Iterator<Read>;
 
   const_iterator cbegin() const noexcept { return const_iterator(this, 0u); }
 

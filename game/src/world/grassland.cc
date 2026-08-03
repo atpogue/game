@@ -1,7 +1,7 @@
+#include "world/grassland.hh"
 #include "catalog.hh"
 #include "context.hh"
 #include "core/random.hh"
-#include "world/grassland.hh"
 #include <random>
 
 Token<Terrain> find_terrain(Context ctx, std::string_view label)

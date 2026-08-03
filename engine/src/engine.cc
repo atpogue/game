@@ -19,8 +19,11 @@ namespace detail { /////////////////////////////////////////////////////////////
   void engine_event(SDL_Event const& event)
   {
     switch (event.type) {
-    case SDL_EVENT_WINDOW_FOCUS_LOST: SDL_ResetKeyboard(); break;
-    default:                          break;
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+      SDL_ResetKeyboard();
+      break;
+    default:
+      break;
     }
   }
 

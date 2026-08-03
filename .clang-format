@@ -31,9 +31,10 @@ AllowShortCaseExpressionOnASingleLine: true
 AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortNamespacesOnASingleLine: true
-AllowShortCaseLabelsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
+# AllowShortRecordOnASingleLine = Always # v23
 AlwaysBreakTemplateDeclarations: true
 BreakAdjacentStringLiterals: false
 BreakArrays:          false
@@ -57,8 +58,9 @@ BreakStringLiterals: true
 ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2
 ColumnLimit:     100
-EmptyLineAfterAccessModifier: Always
+EmptyLineAfterAccessModifier: Leave
 EmptyLineBeforeAccessModifier: Always
+FixNamespaceComments: true
 JavaScriptQuotes: Single
 KeepEmptyLines:
     AtEndOfFile: true

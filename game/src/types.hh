@@ -8,19 +8,19 @@ struct Context;
 struct ConstContext;
 struct LoadContext;
 
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct RegistryView;
 
 using RegistryReader = RegistryView<Read>;
 using RegistryWriter = RegistryView<Write>;
 
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct EntityView;
 
 using EntityReader = EntityView<Read>;
 using EntityWriter = EntityView<Write>;
 
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct CatalogView;
 
 using CatalogReader = CatalogView<Read>;

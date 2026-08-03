@@ -11,10 +11,10 @@ using Catalog = BasicCatalog<Definitions>;
 [[nodiscard]] CatalogWriter access_catalog(LoadContext ctx);
 
 // A subset of the definitions catalog API that simulation systems can use.
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct CatalogView
 {
-  using Source = std::conditional_t<Access, Catalog, Catalog const>;
+  using Source = std::conditional_t<Access == Write, Catalog, Catalog const>;
 
   CatalogView(Source& src) noexcept : src_(src) {}
 

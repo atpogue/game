@@ -107,11 +107,11 @@ struct SparseSet
 
 private:
 
-  template <bool IsConst>
+  template <AccessFlag Access>
   struct Iterator
   { ////////////////////////////////////////////////////////////////////
-    using Owner         = std::conditional_t<IsConst, SparseSet const, SparseSet>;
-    using ReferenceType = std::conditional_t<IsConst, Type const&, Type&>;
+    using Owner         = std::conditional_t<Access == Write, SparseSet const, SparseSet>;
+    using ReferenceType = std::conditional_t<Access == Write, Type const&, Type&>;
 
   public:
 
@@ -124,9 +124,9 @@ private:
     Iterator() : owner_{nullptr}, idx_{nil} {}
 
     // Implicit conversion from iterator to const_iterator.
-    operator Iterator<true>() const noexcept requires (!IsConst)
+    operator Iterator<Read>() const noexcept requires (Access == Write)
     {
-      return Iterator<true>(owner_, idx_);
+      return Iterator<Read>(owner_, idx_);
     }
 
     [[nodiscard]] reference operator*() const noexcept
@@ -166,8 +166,8 @@ private:
 
 public:
 
-  using iterator       = Iterator<false>;
-  using const_iterator = Iterator<true>;
+  using iterator       = Iterator<Write>;
+  using const_iterator = Iterator<Read>;
 
   [[nodiscard]] const_iterator cbegin() const noexcept { return const_iterator(this, 0u); }
 

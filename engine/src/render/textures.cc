@@ -1,7 +1,7 @@
+#include "engine/render/textures.hh"
 #include "core/panic.hh"
 #include "core/slot-map.hh"
 #include "core/string.hh"
-#include "engine/render/textures.hh"
 #include "internal.hh"
 #include <SDL3/SDL_log.h>
 #include <string_view>

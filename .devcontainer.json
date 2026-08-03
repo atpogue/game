@@ -1,7 +1,7 @@
 {
   "name": "game",
   "image": "fedora:43",
-  "onCreateCommand": "dnf install -y clang clang-tools-extra cmake ninja-build catch catch-devel lua lua-devel glm-devel SDL3 SDL3-devel gdb git",
+  "onCreateCommand": "dnf install -y clang clang-tools-extra libcxx-devel libcxxabi-devel cmake ninja-build catch catch-devel lua lua-devel glm-devel SDL3 SDL3-devel gdb git",
   "customizations": {
     "vscode": {
       "extensions": [

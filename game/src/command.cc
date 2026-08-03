@@ -1,36 +1,30 @@
 #include "command.hh"
-#include "component/pose.hh"
 #include "context.hh"
-#include "entity.hh"
+#include "registry.hh"
 #include <glm/geometric.hpp>
+#include <type_traits>
 
-Command make_move_command(u32 id, f32 x, f32 y)
+static_assert(std::is_trivially_copy_constructible_v<Command>);
+static_assert(std::is_trivially_copy_assignable_v<Command>);
+
+static CommandReply resolve(Context ctx, Entity actor, Command::Detail::Move const& move)
 {
-  return Command{id, Command::Type::Move, {.move = {x, y}}};
+  auto handle = find_entity(ctx, actor);
+  if (!handle) return {CommandStatus::Rejected, CommandError::DeadEntity};
+  auto pose = access_registry(ctx).try_get<Pose>(handle);
+  if (!pose) return {CommandStatus::Rejected, CommandError::MissingComponent};
+  pose->position += glm::normalize(glm::vec2(move.x, move.y));
+  return {CommandStatus::Accepted};
 }
 
-Command make_path_command(u32 id, f32 x, f32 y)
+CommandReply submit_command(Context ctx, Command const& cmd)
 {
-  return Command{id, Command::Type::Path, {.path = {x, y}}};
-}
-
-static bool try_submit_command(Context ctx, Handle<Entity> e, Command::Move const& cmd)
-{
-  auto view = access_entity(ctx, e);
-  auto pose = view.try_get<Pose>();
-  if (!pose) return false;
-  pose->position += glm::normalize(glm::vec2(cmd.x, cmd.y));
-  return true;
-}
-
-static bool try_submit_command(Context, Handle<Entity>, Command::Path const&) { return false; }
-
-bool try_submit_command(Context ctx, Handle<Entity> e, Command const cmd)
-{
-  if (!is_valid(ctx, e)) return false;
-  switch (cmd.type) {
-  case Command::Type::Move: return try_submit_command(ctx, e, cmd.move);
-  case Command::Type::Path: return try_submit_command(ctx, e, cmd.path);
+  switch (cmd.kind()) {
+  case Command::Kind::Nil:
+  case Command::Kind::Custom:
+    return {CommandStatus::Rejected, CommandError::BadCommand};
+  case Command::Kind::Move:
+    return resolve(ctx, cmd.actor(), cmd.as_move());
   }
-  return false;
+  std::unreachable();
 }

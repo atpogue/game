@@ -1,4 +1,4 @@
 add_subdirectory (action)
 add_subdirectory (component)
 add_subdirectory (world)
-target_sources (${GAME} PRIVATE main.cc data.cc command.cc director.cc sprite.cc catalog.cc registry.cc entity.cc context.cc)
+target_sources (${GAME} PRIVATE main.cc data.cc command.cc command-buffer.cc user-interface.cc pilot.cc sprite.cc catalog.cc registry.cc entity.cc context.cc scene.cc)

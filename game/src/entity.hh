@@ -14,20 +14,21 @@
 // registry) or stored on disk, just because an entity does not exist in the registry doesn't mean
 // it is dead/retired, it may not be loaded. Use SQLite? LevelDB?
 
+#include "context.hh"
 #include "registry.hh"
 
-[[nodiscard]] EntityWriter spawn(Context ctx);
+[[nodiscard]] EntityWriter create_entity(Context ctx);
 
 [[nodiscard]] EntityReader access_entity(ConstContext ctx, Handle<Entity> e);
 [[nodiscard]] EntityWriter access_entity(Context ctx, Handle<Entity> e);
 
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct EntityView
 {
   // Not sure if this class is necessary. The same function can be achieved with a handle and a
   // registry view.
 
-  using Source = std::conditional_t<Access, Registry, Registry const>;
+  using Source = std::conditional_t<Access == Write, Registry, Registry const>;
 
   EntityView(Source& src, Handle<Entity> e) noexcept : src_(src), handle_(e)
   {
@@ -70,21 +71,26 @@ struct EntityView
   }
 
   template <typename T, typename... Args>
-  requires std::constructible_from<T, Args...>
+  requires (Access == Write) && std::constructible_from<T, Args...>
   T& emplace(Args&&... args) const
   {
     return src_.template emplace<T>(handle_, std::forward<Args>(args)...);
   }
 
   template <typename T>
+  requires (Access == Write)
   void erase() const
   {
     src_.template erase<T>(handle_);
   }
 
-  Entity id() const { return src_[handle_]; }
+  [[nodiscard]] Handle<Entity> handle() const { return handle_; }
 
-  Handle<Entity> handle() const { return handle_; }
+  [[nodiscard]] operator Handle<Entity>() const { return handle(); }
+
+  [[nodiscard]] Entity id() const { return src_[handle_]; }
+
+  [[nodiscard]] operator Entity() const { return id(); }
 
 private:
 

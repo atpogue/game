@@ -38,8 +38,9 @@ namespace detail {
     window_px = {float(config.width), float(config.height)};
     scene_px  = glm::ceil(window_px / config.min_zoom);
 
-    scene_target = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888,
-                                     SDL_TEXTUREACCESS_TARGET, int(scene_px.x), int(scene_px.y));
+    scene_target = SDL_CreateTexture(
+      renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, int(scene_px.x), int(scene_px.y)
+    );
     if (!scene_target) {
       SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create scene target: %s\n", SDL_GetError());
       return false;

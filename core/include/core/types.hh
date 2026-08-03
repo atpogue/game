@@ -17,7 +17,7 @@ using f64 = double;
 
 constexpr u32 nil = UINT32_MAX;
 
-enum AccessPolicy : bool { Read = false, Write = true };
+enum AccessFlag : bool { Read = false, Write = true };
 
 // A stable, type-tagged index into an append-only container (i.e. `Catalog`).
 // The tag prevents IDs representing different resources being silently interchanged.

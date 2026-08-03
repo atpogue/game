@@ -1,7 +1,7 @@
+#include "data.hh"
 #include "catalog.hh"
 #include "context.hh"
 #include "core/lua.hh"
-#include "data.hh"
 #include "world/terrain.hh"
 #include <SDL3/SDL_log.h>
 #include <lua.hpp>

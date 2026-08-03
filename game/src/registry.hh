@@ -12,10 +12,10 @@ using Registry = BasicRegistry<Entity, Components>;
 [[nodiscard]] RegistryWriter access_registry(Context ctx);
 
 // A subset of the component registry API that simulation systems can use.
-template <AccessPolicy Access>
+template <AccessFlag Access>
 struct RegistryView
 {
-  using Source = std::conditional_t<Access, Registry, Registry const>;
+  using Source = std::conditional_t<Access == Write, Registry, Registry const>;
 
   RegistryView(Source& src) noexcept : src_(src) {}
 
@@ -58,7 +58,7 @@ struct RegistryView
   }
 
   template <typename T, typename... Args>
-  requires (!Access) && std::constructible_from<T, Args...>
+  requires (Access == Write) && std::constructible_from<T, Args...>
   T& emplace(Handle<Entity> handle, Args&&... args) const
   {
     return src_.template emplace<T, Args...>(handle, std::forward<Args>(args)...);

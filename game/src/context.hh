@@ -7,6 +7,7 @@
 
 #include "types.hh"
 
+struct Tile;
 struct Simulation;
 
 [[nodiscard]] Entity who(ConstContext ctx, Handle<Entity> handle);
@@ -32,6 +33,7 @@ private:
   friend Handle<Entity> find_entity(ConstContext, Entity);
   friend Entity         who(ConstContext, Handle<Entity>);
   friend bool           is_valid(ConstContext, Handle<Entity>);
+  friend Tile const*    tile_at(ConstContext ctx, u32 x, u32 y);
 
   ConstContext(Simulation const& src) noexcept : src_{src} {}
 
@@ -56,7 +58,7 @@ private:
   friend struct LoadContext;
   friend RegistryWriter access_registry(Context);
   friend EntityWriter   access_entity(Context, Handle<Entity>);
-  friend EntityWriter   spawn(Context ctx);
+  friend EntityWriter   create_entity(Context ctx);
 
   Context(Simulation& src) noexcept : src_{src} {}
 

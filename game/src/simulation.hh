@@ -2,6 +2,7 @@
 #include "catalog.hh"
 #include "context.hh"
 #include "core/error.hh"
+#include "core/panic.hh"
 #include "registry.hh"
 #include "types.hh"
 #include "world/chunk.hh"
@@ -32,12 +33,20 @@ struct Simulation
     return it != lookup_.end() ? it->second : Handle<Entity>::null();
   }
 
-  // Reserve an entity ID but do not put it in the registry.
-  Entity acquire_entity() { return Entity{entity_count_++}; }
+  Handle<Entity> create()
+  {
+    auto id           = Entity{entity_count_++};
+    auto handle       = registry_.create(id);
+    auto [_, success] = lookup_.emplace(id, handle);
+    INVARIANT(success);
+    return handle;
+  }
 
   Context step() { return *this; }
 
   Result<LoadContext> load() { return LoadContext(*this); }
+
+  void quit() {}
 
   [[nodiscard]] ConstContext context() const { return *this; }
 

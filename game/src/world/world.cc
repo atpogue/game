@@ -1,9 +1,9 @@
+#include "world/world.hh"
 #include "catalog.hh"
 #include "context.hh"
 #include "core/panic.hh"
 #include "engine/render/camera.hh"
 #include "world/terrain.hh"
-#include "world/world.hh"
 
 World::World(
   u32                             width,

@@ -1,16 +1,14 @@
-#include "action/move.hh"
+#include "engine/main.hh"
+#include "command-buffer.hh"
 #include "component/pose.hh"
 #include "context.hh"
 #include "core/math.hh"
 #include "core/random.hh"
 #include "data.hh"
-#include "director.hh"
-#include "engine/event.hh"
-#include "engine/main.hh"
-#include "engine/render/camera.hh"
-#include "engine/render/draw.hh"
 #include "entity.hh"
 #include "simulation.hh"
+#include "types.hh"
+#include "user-interface.hh"
 #include "world/grassland.hh"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -19,15 +17,9 @@
 
 struct AppState
 {
-  Simulation sim;
-
-  struct
-  {
-    Handle<Entity> entity;
-    PlayerDirector director;
-  } player;
-
-  Camera camera;
+  Simulation    sim;
+  UserInterface ui;
+  CommandBuffer cmds;
 };
 
 void load_chunk(LoadContext ctx, Chunk& chunk)
@@ -38,19 +30,12 @@ void load_chunk(LoadContext ctx, Chunk& chunk)
   GrasslandGenerator(ctx, seed).generate(dist(rng), dist(rng), chunk);
 }
 
-Handle<Entity> load_player(Context ctx)
+Entity load_player(Context ctx)
 {
-  auto entity = spawn(ctx);
-  entity.emplace<Pose>(Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
-  DEBUG_ASSERT(entity.has<Pose>());
-  return entity.handle();
-}
-
-void process_input(AppState& app, Context ctx)
-{
-  for (auto command : app.player.director.generate()) {
-    try_submit_command(ctx, app.player.entity, command);
-  }
+  auto player = create_entity(ctx);
+  player.emplace<Pose>(Vec2f{chunk_size * 0.5f, chunk_size * 0.5f});
+  INVARIANT(find_entity(ctx, player.id()) != Handle<Entity>::null());
+  return player.id();
 }
 
 AppConfig app_config()
@@ -63,68 +48,48 @@ AppConfig app_config()
 
 AppState* app_start(int /*argc*/, char*[] /*argv*/)
 {
-  Simulation sim;
-  auto       ctx = sim.load();
+  auto app = std::make_unique<AppState>();
+  auto ctx = app->sim.load();
   if (!ctx) return nullptr;
   if (!load_content(*ctx, "content/terrain.lua")) return nullptr;
-  load_chunk(*ctx, sim.scene());
-  auto player = load_player(*ctx);
-  return new AppState{
-    .sim    = std::move(sim),
-    .player = {.entity = player,     .director = {}                       },
-    .camera = {
-               .position = {0.f, 0.f},
-               .viewport = {800.f / tile_size, 600.f / tile_size},.zoom     = 1.3f,
-               },
-  };
+  load_chunk(*ctx, app->sim.scene());
+  if (!app->ui.load(*ctx, load_player(*ctx))) return nullptr;
+  return app.release();
 }
 
 void app_step(AppState& app)
 {
-  auto ctx      = app.sim.step();
-  auto registry = access_registry(ctx);
-  process_input(app, ctx);
-  if (auto action = registry.try_get<MoveAction>(app.player.entity)) {
-    switch (act(ctx, app.player.entity, *action)) {
+  auto ctx = app.sim.step();
+  app.ui.step(app.cmds, ctx);
+  app.cmds.dispatch(ctx);
+
+  /* TODO: pathfinding
+  for (auto& [e, path, pose] : registry.query<PathAction, Pose>()) {
+    path.act(e, pose);
+    switch (path.status()) {
     case ActionResult::Canceled:
-    case ActionResult::Complete: registry.erase<MoveAction>(app.player.entity); break;
-    case ActionResult::Ongoing:  break;
+    case ActionResult::Complete:
+      registry.erase<PathAction>(e);
+      break;
+    case ActionResult::Ongoing:
+      break;
     }
   }
+  */
 }
 
-void app_update(AppState& app, nanoseconds)
+void app_update(AppState& app, nanoseconds dt)
 {
-  auto ctx      = app.sim.context();
-  auto registry = access_registry(ctx);
-  auto pose     = registry.try_get<Pose>(app.player.entity);
-  if (pose) app.camera.position = pose->position;
+  auto ctx = app.sim.context();
+  app.ui.update(ctx, dt);
 }
 
 void app_render(AppState& app)
 {
   auto ctx = app.sim.context();
-  scene_begin();
-  app.sim.scene().render(ctx, app.camera, tile_size);
-  scene_present(app.camera.zoom);
+  app.ui.render(ctx);
 }
 
-void app_event(AppState& app, SDL_Event const& event)
-{
-  app.player.director.event(event);
-  switch (event.type) {
-  case SDL_EVENT_MOUSE_WHEEL:
-    app.camera.zoom = glm::clamp(app.camera.zoom + 0.5f * event.wheel.y, 0.7f, 1.9f);
-    break;
-  case SDL_EVENT_KEY_DOWN:
-    switch (event.key.scancode) {
-    case SDL_SCANCODE_ESCAPE:
-    case SDL_SCANCODE_Q:      push_event(make_quit_event()); break;
-    default:                  break;
-    }
-    break;
-  default: break;
-  }
-}
+void app_event(AppState& app, SDL_Event const& event) { app.ui.handle_event(event); }
 
 void app_quit(AppState* app) { delete app; }

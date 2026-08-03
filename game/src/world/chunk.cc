@@ -1,7 +1,7 @@
+#include "world/chunk.hh"
 #include "catalog.hh"
 #include "context.hh"
 #include "engine/render/camera.hh"
-#include "world/chunk.hh"
 #include "world/terrain.hh"
 
 void Chunk::render(ConstContext ctx, Camera const& camera, float tile_size) const

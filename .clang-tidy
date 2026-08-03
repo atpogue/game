@@ -1,14 +1,23 @@
 ---
 # Enable/Disable specific check categories
 Checks: >
-  -*,
-  bugprone-*,
-  cert-*,
-  performance-*
+    -*,
+    bugprone-*,
+    cert-*,
+    performance-*,
+    -bugprone-switch-missing-default-case,
+    -bugprone-easily-swappable-parameters
 # readability-*
 # modernize-*,
 # cppcoreguidelines-*,
-# WarningsAsErrors: '*'
-# Provide compilation arguments if needed (usually handled automatically by CMake)
-ExtraArgs: []
+WarningsAsErrors: >
+    bugprone-suspicious-stringview-data-usage,
+    bugprone-dangling-handle,
+    bugprone-exception-escape,
+    bugprone-missing-end-comparison,
+    bugprone-move-forwarding-reference,
+    bugprone-non-zero-enum-to-bool-conversion,
+    bugprone-parent-virtual-call,
+    bugprone-pointer-arithmetic-on-polymorphic-object,
+    bugprone-reserved-identifier
 ...
