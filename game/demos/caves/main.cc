@@ -1,3 +1,4 @@
+/*
 #include "core/random.hh"
 #include "engine/event.hh"
 #include "engine/input/keyboard.hh"
@@ -97,3 +98,4 @@ void app_event(SDL_Event const& event)
 }
 
 void app_quit() { delete cave; }
+*/

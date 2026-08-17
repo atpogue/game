@@ -1,7 +1,7 @@
-#include "engine/render/textures.hh"
 #include "core/panic.hh"
 #include "core/slot-map.hh"
 #include "core/string.hh"
+#include "engine/render/textures.hh"
 #include "internal.hh"
 #include <SDL3/SDL_log.h>
 #include <string_view>
@@ -37,7 +37,7 @@ SDL_Texture* get_texture(Handle<Texture> handle)
 Handle<Texture> create_texture(std::string_view path)
 {
   if (auto it = paths.find(path); it != paths.end()) return it->second;
-  SDL_Surface* surface = SDL_LoadPNG(path.data());
+  SDL_Surface* surface = SDL_LoadPNG(std::string(path).c_str());
   if (!surface) {
     SDL_Log("Couldn't load png: %s", SDL_GetError());
     return Handle<Texture>::null();

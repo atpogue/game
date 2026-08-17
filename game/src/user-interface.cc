@@ -1,4 +1,3 @@
-#include "user-interface.hh"
 #include "catalog.hh"
 #include "command-buffer.hh"
 #include "component/pose.hh"
@@ -9,6 +8,7 @@
 #include "entity.hh"
 #include "pilot.hh"
 #include "scene.hh"
+#include "user-interface.hh"
 #include "world/tile.hh"
 #include <glm/common.hpp>
 #include <memory>
@@ -59,7 +59,7 @@ void UserInterface::step(CommandBuffer& cmds, ConstContext ctx)
   if (pose) camera_.position = pose->position;
 }
 
-void UserInterface::update(ConstContext, nanoseconds) {}
+void UserInterface::update(ConstContext, Nanoseconds) {}
 
 void UserInterface::render(ConstContext ctx) const
 {

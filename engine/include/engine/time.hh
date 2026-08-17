@@ -1,21 +1,22 @@
 #pragma once
 #include "core/types.hh"
-using hertz       = u64;
-using nanoseconds = u64;
-using seconds     = u64;
+
+using Hertz       = u64;
+using Nanoseconds = u64;
+using Seconds     = u64;
 
 // hertz to nanoseconds
-[[nodiscard]] constexpr nanoseconds from_hertz(hertz time) noexcept { return 1'000'000'000 / time; }
+[[nodiscard]] constexpr Nanoseconds from_hertz(Hertz time) noexcept { return 1'000'000'000 / time; }
 
 // nanoseconds to seconds
-[[nodiscard]] constexpr seconds to_seconds(nanoseconds time) noexcept
+[[nodiscard]] constexpr Seconds to_seconds(Nanoseconds time) noexcept
 {
   return time / 1'000'000'000;
 }
 
 struct TimeStep
 {
-  constexpr explicit TimeStep(u64 size) : size_{size}, lag_{0u}, age_{0u}
+  constexpr explicit TimeStep(u64 size) noexcept : size_{size}, lag_{0u}, age_{0u}
   {
     // allow a step size of 0?
   }

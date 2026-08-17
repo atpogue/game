@@ -1,10 +1,10 @@
-#include "engine/main.hh"
 #include "command-buffer.hh"
 #include "component/pose.hh"
 #include "context.hh"
 #include "core/math.hh"
 #include "core/random.hh"
 #include "data.hh"
+#include "engine/app.hh"
 #include "entity.hh"
 #include "simulation.hh"
 #include "types.hh"
@@ -38,7 +38,7 @@ Entity load_player(Context ctx)
   return player.id();
 }
 
-AppConfig app_config()
+AppConfig configure(int /*argc*/, char*[] /*argv*/)
 {
   return {
     .step_rate = 32,
@@ -46,7 +46,7 @@ AppConfig app_config()
   };
 }
 
-AppState* app_start(int /*argc*/, char*[] /*argv*/)
+AppState* start()
 {
   auto app = std::make_unique<AppState>();
   auto ctx = app->sim.load();
@@ -57,7 +57,7 @@ AppState* app_start(int /*argc*/, char*[] /*argv*/)
   return app.release();
 }
 
-void app_step(AppState& app)
+void step(AppState& app)
 {
   auto ctx = app.sim.step();
   app.ui.step(app.cmds, ctx);
@@ -78,18 +78,18 @@ void app_step(AppState& app)
   */
 }
 
-void app_update(AppState& app, nanoseconds dt)
+void update(AppState& app, Nanoseconds dt)
 {
   auto ctx = app.sim.context();
   app.ui.update(ctx, dt);
 }
 
-void app_render(AppState& app)
+void render(AppState& app)
 {
   auto ctx = app.sim.context();
   app.ui.render(ctx);
 }
 
-void app_event(AppState& app, SDL_Event const& event) { app.ui.handle_event(event); }
+void handle_event(AppState& app, SDL_Event const& event) { app.ui.handle_event(event); }
 
-void app_quit(AppState* app) { delete app; }
+void quit(AppState* app) { delete app; }

@@ -5,6 +5,7 @@
 #include <expected>
 #include <format>
 #include <lua.hpp>
+#include <span>
 #include <string>
 #include <variant>
 

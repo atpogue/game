@@ -20,7 +20,7 @@ struct UserInterface
   Result<void> load(ConstContext ctx, Entity player);
   void         handle_event(SDL_Event const& event);
   void         step(CommandBuffer& cmds, ConstContext ctx);
-  void         update(ConstContext ctx, nanoseconds dt);
+  void         update(ConstContext ctx, Nanoseconds dt);
   void         render(ConstContext ctx) const;
 
 private:
