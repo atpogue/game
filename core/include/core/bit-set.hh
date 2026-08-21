@@ -8,8 +8,7 @@ struct BitSet
 {
   explicit BitSet(u32 size = 0u, bool fill = false)
     : words_((size + 63u) / 64u, (u64)fill), size_(size)
-  {
-  }
+  {}
 
   BitSet(BitSet const&)                = default;
   BitSet(BitSet&&) noexcept            = default;

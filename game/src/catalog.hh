@@ -1,9 +1,10 @@
 #pragma once
+#include "assets.hh"
 #include "core/basic-catalog.hh"
 #include "types.hh"
 #include "world/terrain.hh"
 
-using Definitions = TypeList<Terrain>;
+using Definitions = TypeList<TextureAsset, Terrain>;
 
 using Catalog = BasicCatalog<Definitions>;
 

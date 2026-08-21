@@ -6,8 +6,7 @@ namespace detail {
     char const*          category,
     char const*          condition,
     char const*          message,
-    std::source_location location = std::source_location::current()
-  );
+    std::source_location location = std::source_location::current());
 } // namespace detail
 
 #define PANIC(category, cond, ...)                    \

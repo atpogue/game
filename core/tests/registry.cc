@@ -25,9 +25,9 @@ namespace { ////////////////////////////////////////////////////////////////////
     static inline int instances = 0;
     int               value;
 
-    explicit Counted(int v = 0) : value{v} { ++instances; }
+    explicit Counted(int v = 0) : value{ v } { ++instances; }
 
-    Counted(Counted const& o) : value{o.value} { ++instances; }
+    Counted(Counted const& o) : value{ o.value } { ++instances; }
 
     Counted& operator=(Counted const& o) = default;
 
@@ -73,7 +73,7 @@ TEST_CASE("Registry – entity creation and destruction", "[registry][entity]")
 
   SECTION("polling non-existent entity")
   {
-    auto h = GENERATE(Handle<Entity>{}, Handle<Entity>{48u, 29u});
+    auto h = GENERATE(Handle<Entity>{}, Handle<Entity>{ 48u, 29u });
     REQUIRE(r.valid(h) == false);
     REQUIRE(r.has<Position>(h) == false);
     REQUIRE(r.try_get<Position>(h) == nullptr);

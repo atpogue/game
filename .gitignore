@@ -2,6 +2,7 @@
 .vs/
 .idea/
 .cache/
+ignore/
 
 # CMake
 CMakeSettings.json

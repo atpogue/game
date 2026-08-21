@@ -13,14 +13,13 @@ struct World
     u32                             width,
     u32                             height,
     std::unique_ptr<ChunkGenerator> generator,
-    std::unique_ptr<ChunkLoader>    loader
-  );
+    std::unique_ptr<ChunkLoader>    loader);
   World(World const& other)            = delete;
   World& operator=(World const& other) = delete;
   World(World&& other)                 = default;
   World& operator=(World&& other)      = default;
 
-  constexpr u64 size() const { return u64{chunk_size} * width_ * height_; }
+  constexpr u64 size() const { return u64{ chunk_size } * width_ * height_; }
 
   constexpr bool has(u32 x, u32 y) const { return x < width_ && y < height_; }
 

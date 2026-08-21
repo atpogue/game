@@ -1,28 +1,75 @@
+#include "user-interface.hh"
+#include "app/event.hh"
+#include "assets.hh"
 #include "catalog.hh"
 #include "command-buffer.hh"
 #include "component/pose.hh"
 #include "context.hh"
 #include "core/panic.hh"
-#include "engine/event.hh"
-#include "engine/render/draw.hh"
 #include "entity.hh"
+#include "gfx/projection2D.hh"
+#include "gfx/rectangle.hh"
+#include "gfx/renderer.hh"
+#include "gfx/surface.hh"
 #include "pilot.hh"
 #include "scene.hh"
-#include "user-interface.hh"
+#include "types.hh"
+#include "world/chunk.hh"
 #include "world/tile.hh"
+#include <expected>
 #include <glm/common.hpp>
 #include <memory>
 
-Result<void> UserInterface::load(ConstContext, Entity player)
+// void scene_present(float zoom)
+// {
+//   SDL_SetRenderTarget(renderer, NULL);
+//   SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
+//   SDL_RenderClear(renderer);
+
+//   // Sample a centred sub-rectangle of size `window / zoom` and stretch it to
+//   // fill the window: that stretch is the zoom.
+//   SDL_FRect src = {
+//     (scene_px.x - window_px.x / zoom) * 0.5f,
+//     (scene_px.y - window_px.y / zoom) * 0.5f,
+//     window_px.x / zoom,
+//     window_px.y / zoom,
+//   };
+//   SDL_FRect dst = {0.f, 0.f, window_px.x, window_px.y};
+//   SDL_RenderTexture(renderer, scene_target, &src, &dst);
+// }
+// scene_px  = glm::ceil(window_px / config.min_zoom);
+// constexpr SDL_Color background = {73, 49, 62, SDL_ALPHA_OPAQUE};
+
+Result<void> UserInterface::load(LoadContext ctx, Entity player)
 {
   PRECONDITION(player != Entity::Nil);
-  player_ = player;
-  pilot_  = std::make_unique<PlayerPilot>();
-  camera_ = {
-    .position = {              0.f,               0.f},
-    .viewport = {800.f / tile_size, 600.f / tile_size},
-    .zoom     = 1.3f,
+  player_ = {
+    .entity = player,
+    .pilot  = std::make_unique<PlayerPilot>(),
+    .camera = {
+      .position = { 0.f, 0.f },
+      .zoom     = 1.3f,
+    },
   };
+  {
+    auto result = create_window("Game", 800, 600);
+    if (!result) return std::unexpected(result.error());
+    window_ = std::move(*result);
+  }
+  {
+    auto result = create_renderer(window_);
+    if (!result) return std::unexpected(result.error());
+    renderer_ = std::move(*result);
+  }
+  auto catalog = access_catalog(ctx);
+  for (auto& asset : catalog.each<TextureAsset>()) {
+    // TODO: reuse the same surface, don't recreate a surface every time
+    auto surface = load_image(asset.path);
+    if (!surface) return std::unexpected(surface.error());
+    auto texture = renderer_.create_texture(*surface);
+    if (!texture) return std::unexpected(texture.error());
+    asset.handle = textures_.emplace(std::move(*texture));
+  }
   return {};
 }
 
@@ -40,39 +87,59 @@ void UserInterface::handle_event(SDL_Event const& event)
     }
     break;
   case SDL_EVENT_MOUSE_WHEEL:
-    camera_.zoom = glm::clamp(camera_.zoom + 0.5f * event.wheel.y, 0.7f, 1.9f);
+    player_.camera.zoom = glm::clamp(player_.camera.zoom + 0.5f * event.wheel.y, 0.7f, 1.9f);
     return;
   default:
     break;
   }
 
-  if (pilot_) pilot_->handle_event(event);
+  if (player_.pilot) player_.pilot->handle_event(event);
 }
 
 void UserInterface::step(CommandBuffer& cmds, ConstContext ctx)
 {
-  if (pilot_) pilot_->steer(cmds, ctx, player_);
-  auto h = find_entity(ctx, player_);
+  if (player_.pilot) player_.pilot->steer(cmds, ctx, player_.entity);
+  auto h = find_entity(ctx, player_.entity);
   if (!h) return;
   auto e    = access_entity(ctx, h);
   auto pose = e.try_get<Pose>();
-  if (pose) camera_.position = pose->position;
+  if (pose) player_.camera.position = pose->position;
 }
 
-void UserInterface::update(ConstContext, Nanoseconds) {}
+void UserInterface::update(ConstContext, f32) {}
 
-void UserInterface::render(ConstContext ctx) const
+void UserInterface::render(ConstContext ctx, f32)
 {
-  scene_begin();
+  constexpr Color    background = { 73, 49, 62, SDL_ALPHA_OPAQUE };
+  Projection2D const project{
+    .extent          = window_.size(),
+    .pixels_per_unit = pixels_per_unit,
+  };
+  Rectangle const bounds = project.clip(player_.camera);
+
+  renderer_.clear(background);
+
   auto catalog = access_catalog(ctx);
-  for (auto coord : camera_) {
-    auto x    = u32(coord.x);
-    auto y    = u32(coord.y);
-    auto tile = tile_at(ctx, x, y);
-    if (!tile) continue;
-    auto pixel = camera_.view_coord_at({x, y}, tile_size);
-    catalog[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
+
+  glm::ivec2 lo = glm::ivec2(glm::floor(bounds.min()));
+  glm::ivec2 hi = glm::ivec2(glm::ceil(bounds.max()));
+
+  lo = glm::max(lo, glm::ivec2{ 0 });
+  hi = glm::min(hi, glm::ivec2{ chunk_size });
+
+  for (i32 x = lo.x; x < hi.x; ++x) {
+    for (i32 y = lo.y; y < hi.y; ++y) {
+      Tile const* tile = tile_at(ctx, u32(x), u32(y));
+      if (!tile) continue;
+      auto     pixel   = project.to_screen_space(player_.camera, { x, y });
+      auto&    sprite  = catalog[tile->terrain].sprite;
+      Texture* texture = textures_.try_get(catalog[sprite.atlas].handle);
+      if (!texture) continue;
+      auto      scale = player_.camera.zoom * pixels_per_unit;
+      Rectangle dst{ pixel, { scale, scale } };
+      renderer_.draw_texture(*texture, &sprite.source, &dst, &sprite.tint);
+    }
   }
-  scene_present(camera_.zoom);
+  renderer_.present();
 }
 

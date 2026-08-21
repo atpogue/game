@@ -9,10 +9,9 @@ World::World(
   u32                             width,
   u32                             height,
   std::unique_ptr<ChunkGenerator> generator,
-  std::unique_ptr<ChunkLoader>    loader
-)
-  : width_{width}
-  , height_{height}
+  std::unique_ptr<ChunkLoader>    loader)
+  : width_{ width }
+  , height_{ height }
   , generator_(generator.release())
   , loader_(loader.release())
   , chunks_()
@@ -61,16 +60,3 @@ Chunk& World::get_chunk(u64 key)
   return chunk;
 }
 
-void World::render(ConstContext ctx, Camera const& camera, float tile_size) const
-{
-  auto catalog = access_catalog(ctx);
-  for (auto coord : camera) {
-    auto x = u32(coord.x);
-    auto y = u32(coord.y);
-    wrap_around(x, y);
-    auto tile = find(x, y);
-    INVARIANT(tile, "tile not found despite wrap around");
-    auto pixel = camera.view_coord_at({x, y}, tile_size);
-    catalog[tile->terrain].sprite.draw(pixel.x, pixel.y, 1.0f);
-  }
-}

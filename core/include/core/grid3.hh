@@ -10,13 +10,13 @@ template <typename Type, u32 Width, u32 Height = 0u, u32 Depth = 0u>
 struct Grid3
 {
   Grid3(u32 w, u32 h, u32 d)
-    : width_{w}, height_{h}, depth_{d}, data(size_t{width_} * height_ * depth_)
+    : width_{ w }, height_{ h }, depth_{ d }, data(size_t{ width_ } * height_ * depth_)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
   }
 
   Grid3(u32 w, u32 h, u32 d, Type const& value)
-    : width_{w}, height_{h}, depth_{d}, data(size_t{width_} * height_ * depth_, value)
+    : width_{ w }, height_{ h }, depth_{ d }, data(size_t{ width_ } * height_ * depth_, value)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u && depth_ != 0u);
   }
@@ -25,9 +25,9 @@ struct Grid3
   Grid3& operator=(Grid3 const& other) = default;
 
   Grid3(Grid3&& other) noexcept
-    : width_{other.width_}
-    , height_{other.height_}
-    , depth_{other.depth_}
+    : width_{ other.width_ }
+    , height_{ other.height_ }
+    , depth_{ other.depth_ }
     , data(std::move(other.data))
   {
     other.width_  = 0u;
@@ -50,7 +50,7 @@ struct Grid3
 
   constexpr size_t size() const
   {
-    INVARIANT(data.size() == size_t{width_} * height_ * depth_);
+    INVARIANT(data.size() == size_t{ width_ } * height_ * depth_);
     return data.size();
   }
 
@@ -99,7 +99,7 @@ private:
 
   constexpr size_t index(u32 x, u32 y, u32 z) const
   {
-    size_t i = x + (y * size_t{width_}) + (z * size_t{width_} * height_);
+    size_t i = x + (y * size_t{ width_ }) + (z * size_t{ width_ } * height_);
     INVARIANT(i < data.size() && "invalid index");
     return i;
   }
@@ -110,7 +110,7 @@ template <typename Type, u32 Width, u32 Height, u32 Depth>
 requires (Width > 0u && Height > 0u && Depth > 0u)
 struct Grid3<Type, Width, Height, Depth>
 {
-  constexpr size_t size() const { return size_t{Width} * Height * Depth; }
+  constexpr size_t size() const { return size_t{ Width } * Height * Depth; }
 
   constexpr bool has(u32 x, u32 y, u32 z) const { return x < Width && y < Height && z < Depth; }
 
@@ -152,10 +152,10 @@ struct Grid3<Type, Width, Height, Depth>
 
 private:
 
-  std::array<Type, size_t{Width} * Height * Depth> data;
+  std::array<Type, size_t{ Width } * Height * Depth> data;
 
   constexpr size_t index(u32 x, u32 y, u32 z) const
   {
-    return x + (y * size_t{Width}) + (z * size_t{Width} * Height);
+    return x + (y * size_t{ Width }) + (z * size_t{ Width } * Height);
   }
 };

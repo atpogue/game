@@ -137,7 +137,7 @@ private:
     using value_type        = std::pair<Key, ReferenceType>;
     using reference         = value_type;
 
-    Iterator() : owner_{nullptr}, idx_{nil} {}
+    Iterator() : owner_{ nullptr }, idx_{ nil } {}
 
     // Implicit conversion from iterator to const_iterator.
     operator Iterator<Read>() const noexcept requires (Access == Write)
@@ -147,7 +147,7 @@ private:
 
     [[nodiscard]] reference operator*() const noexcept
     {
-      return {owner_->keys_[idx_], owner_->values_[idx_]};
+      return { owner_->keys_[idx_], owner_->values_[idx_] };
     }
 
     Iterator& operator++() noexcept
@@ -174,7 +174,7 @@ private:
 
     friend struct IndexedMap<Key, Type, Compare>;
 
-    Iterator(Owner* owner, u32 idx) noexcept : owner_{owner}, idx_{idx} {}
+    Iterator(Owner* owner, u32 idx) noexcept : owner_{ owner }, idx_{ idx } {}
 
     Owner* owner_;
     u32    idx_;

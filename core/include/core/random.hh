@@ -13,7 +13,7 @@ struct SplitMix64
 
   static constexpr u64 max() { return UINT64_MAX; }
 
-  explicit SplitMix64(u64 seed) : x{seed} {}
+  explicit SplitMix64(u64 seed) : x{ seed } {}
 
   inline u64 operator()()
   {

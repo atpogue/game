@@ -1,34 +1,48 @@
 #include "sprite.hh"
+#include "assets.hh"
+#include "catalog.hh"
 #include "core/defer.hh"
-#include "core/lua.hh"
-#include "world/tile.hh"
+#include "gfx/rectangle.hh"
+#include "lua.hh"
+#include "types.hh"
 
-Sprite make_sprite_1x1(Handle<Texture> atlas, f32 x, f32 y, Color color)
+static Result<Rectangle> try_get_rectangle(lua_State* L, int idx, std::string_view field)
 {
-  return {
-    atlas, {x * tile_size, y * tile_size, tile_size, tile_size},
-     color
-  };
-}
-
-void Sprite::draw(float x, float y, float scale) const
-{
-  draw_texture(atlas, source, {x, y, source.w * scale, source.h * scale}, color);
+  auto rectangle = lua::try_push_field(L, LUA_TTABLE, idx, field);
+  if (!rectangle) return std::unexpected(rectangle.error());
+  DEFER(lua_pop(L, 1));
+  auto x = lua::try_get<f32>(L, *rectangle, 1);
+  if (!x) return std::unexpected(x.error());
+  auto y = lua::try_get<f32>(L, *rectangle, 2);
+  if (!y) return std::unexpected(y.error());
+  auto w = lua::try_get<f32>(L, *rectangle, 3);
+  if (!w) return std::unexpected(y.error());
+  auto h = lua::try_get<f32>(L, *rectangle, 4);
+  if (!h) return std::unexpected(y.error());
+  return Rectangle({ *x, *y }, { *w, *h });
 }
 
 // sprite = { atlas = "path", x = N, y = N, color = N }
-Result<Sprite> lua::try_get_sprite(lua_State* L, int idx, std::string_view field)
+Result<Sprite>
+lua::try_get_sprite(CatalogWriter catalog, lua_State* L, int idx, std::string_view field)
 {
   auto sprite = try_push_field(L, LUA_TTABLE, idx, field);
   if (!sprite) return std::unexpected(sprite.error());
   DEFER(lua_pop(L, 1));
   auto atlas = try_get_string(L, *sprite, "atlas");
   if (!atlas) return std::unexpected(atlas.error());
-  auto x = try_get<f32>(L, *sprite, "x");
-  if (!x) return std::unexpected(x.error());
-  auto y = try_get<f32>(L, *sprite, "y");
-  if (!y) return std::unexpected(y.error());
+  auto source = try_get_rectangle(L, *sprite, "source");
+  if (!source) return std::unexpected(source.error());
   auto color = try_get<u32>(L, *sprite, "color");
   if (!color) return std::unexpected(color.error());
-  return make_sprite_1x1(create_texture(*atlas), *x, *y, hex_color(*color));
+  auto texture = catalog.find<TextureAsset>(*atlas);
+  if (!texture)
+    texture
+      = catalog.emplace<TextureAsset>(*atlas, TextureAsset{ *atlas, Handle<Texture>::null() });
+  return Sprite{
+    .atlas  = texture,
+    .source = *source,
+    .tint   = make_color_hex(*color),
+  };
 }
+

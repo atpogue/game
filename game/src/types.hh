@@ -26,3 +26,6 @@ struct CatalogView;
 using CatalogReader = CatalogView<Read>;
 using CatalogWriter = CatalogView<Write>;
 
+// TODO: make this a user-interface implementation detail
+constexpr f32 pixels_per_unit = 16.f;
+

@@ -41,9 +41,9 @@ struct Command
     } move;
   };
 
-  Command() noexcept : actor_{Entity::Nil}, kind_{Kind::Nil}, body_{} {}
+  Command() noexcept : actor_{ Entity::Nil }, kind_{ Kind::Nil }, body_{} {}
 
-  Command(Entity e, Detail::Move detail) : Command(e, Kind::Move, Detail{detail}) {}
+  Command(Entity e, Detail::Move detail) : Command(e, Kind::Move, Detail{ detail }) {}
 
   Command(Command const&) noexcept            = default;
   Command(Command&&) noexcept                 = default;
@@ -66,7 +66,7 @@ struct Command
   [[nodiscard]] inline explicit operator bool() const { return !is_empty(); }
 
 private:
-  Command(Entity e, Kind kind, Detail detail) : actor_{e}, kind_{kind}, detail_{detail}
+  Command(Entity e, Kind kind, Detail detail) : actor_{ e }, kind_{ kind }, detail_{ detail }
   {
     DEBUG_ASSERT(actor_ != Entity::Nil);
     DEBUG_ASSERT(kind_ != Kind::Nil);
@@ -84,7 +84,7 @@ private:
 
 [[nodiscard]] inline Command make_command_move(Entity e, f32 x, f32 y)
 {
-  return Command(e, Command::Detail::Move{x, y});
+  return Command(e, Command::Detail::Move{ x, y });
 }
 
 // Validate and translate a command into an action on its actor.

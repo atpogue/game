@@ -46,7 +46,7 @@ private:
   enum class Kind : bool { Command, Reply };
 
   Kind   kind_   = Kind::Command;
-  Detail detail_ = {.command = {}};
+  Detail detail_ = { .command = {} };
 };
 
 struct CommandBuffer
@@ -98,9 +98,12 @@ private:
       return size_++;
     }
 
-    [[nodiscard]] std::span<CommandRequest> view() { return {requests_.data(), size_}; }
+    [[nodiscard]] std::span<CommandRequest> view() { return { requests_.data(), size_ }; }
 
-    [[nodiscard]] std::span<CommandRequest const> view() const { return {requests_.data(), size_}; }
+    [[nodiscard]] std::span<CommandRequest const> view() const
+    {
+      return { requests_.data(), size_ };
+    }
 
     [[nodiscard]] u32 size() const { return size_; }
 

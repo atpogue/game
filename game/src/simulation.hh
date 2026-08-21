@@ -35,7 +35,7 @@ struct Simulation
 
   Handle<Entity> create()
   {
-    auto id           = Entity{entity_count_++};
+    auto id           = Entity{ entity_count_++ };
     auto handle       = registry_.create(id);
     auto [_, success] = lookup_.emplace(id, handle);
     INVARIANT(success);

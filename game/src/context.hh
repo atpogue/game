@@ -35,7 +35,7 @@ private:
   friend bool           is_valid(ConstContext, Handle<Entity>);
   friend Tile const*    tile_at(ConstContext ctx, u32 x, u32 y);
 
-  ConstContext(Simulation const& src) noexcept : src_{src} {}
+  ConstContext(Simulation const& src) noexcept : src_{ src } {}
 
   Simulation const* operator->() const { return &src_; }
 
@@ -60,7 +60,7 @@ private:
   friend EntityWriter   access_entity(Context, Handle<Entity>);
   friend EntityWriter   create_entity(Context ctx);
 
-  Context(Simulation& src) noexcept : src_{src} {}
+  Context(Simulation& src) noexcept : src_{ src } {}
 
   Simulation* operator->() const { return &src_; }
 
@@ -84,7 +84,7 @@ private:
   friend struct Simulation;
   friend CatalogWriter access_catalog(LoadContext);
 
-  LoadContext(Simulation& src) noexcept : src_{src} {}
+  LoadContext(Simulation& src) noexcept : src_{ src } {}
 
   Simulation* operator->() const { return &src_; }
 

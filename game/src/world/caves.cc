@@ -7,8 +7,7 @@
 #include <utility>
 
 void generate_cave(
-  Grid2<u32>& out, u32 wall, u32 floor, u32 birth, u32 survival, u32 range, u32 iterations
-)
+  Grid2<u32>& out, u32 wall, u32 floor, u32 birth, u32 survival, u32 range, u32 iterations)
 {
   DEBUG_ASSERT(out.size() > 0u);
   DEBUG_ASSERT(iterations > 0u);
@@ -48,7 +47,9 @@ void generate_cave(
 }
 
 CaveGenerator::CaveGenerator(Context const ctx, u64 seed)
-  : seed_{seed}, wall_{ctx.codex.terrain.find("stone")}, floor_{ctx.codex.terrain.find("dirt")}
+  : seed_{ seed }
+  , wall_{ ctx.codex.terrain.find("stone") }
+  , floor_{ ctx.codex.terrain.find("dirt") }
 {
   PRECONDITION(wall_ != nil);
   PRECONDITION(floor_ != nil);
@@ -56,11 +57,11 @@ CaveGenerator::CaveGenerator(Context const ctx, u64 seed)
 
 void CaveGenerator::generate(u32 x, u32 y, Chunk& chunk)
 {
-  auto const hash = split_mix(seed_ ^ split_mix((u64{x} << 32) | y));
+  auto const hash = split_mix(seed_ ^ split_mix((u64{ x } << 32) | y));
   Grid2<u32> cave(chunk_size, chunk_size);
   // uniformly random fill
-  Xoshiro256ss                rng{hash};
-  std::bernoulli_distribution coin{0.45f};
+  Xoshiro256ss                rng{ hash };
+  std::bernoulli_distribution coin{ 0.45f };
   for (auto& tile : cave) tile = coin(rng) ? wall_ : floor_;
   generate_cave(cave, wall_, floor_, 5, 6, 1, 1);
   generate_cave(cave, wall_, floor_, 3, 4, 2, 2);

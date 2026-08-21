@@ -3,8 +3,8 @@
 // TODO: polling of action results
 // TODO: HerdPilot
 
-#include "engine/input/keyboard.hh"
-#include "engine/input/mouse.hh"
+#include "app/keyboard.hh"
+#include "app/mouse.hh"
 #include "types.hh"
 
 union SDL_Event;

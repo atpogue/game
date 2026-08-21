@@ -1,1 +1,1 @@
-target_sources (${CORE} PRIVATE random.cc panic.cc lua.cc)
+target_sources (core PRIVATE random.cc panic.cc)

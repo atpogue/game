@@ -1,9 +1,9 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-AlignAfterOpenBracket: BlockIndent
+AlignAfterOpenBracket: AlwaysBreak
 AlignOperands:   AlignAfterOperator
-AlignArrayOfStructures: Right
+AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
     Enabled:         true
     AlignCompound:   true
@@ -49,10 +49,17 @@ BraceWrapping:
     AfterUnion:      true
     BeforeCatch:     false
     BeforeElse:      false
+    IndentBraces: false
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+    SplitEmptyNamespace: false
+BracedInitializerIndentWidth: 2
 BinPackParameters: OnePerLine
+BinPackLongBracedList: false
 BitFieldColonSpacing: Both
 BreakBeforeBinaryOperators: All
 BreakConstructorInitializers: BeforeComma
+# BreakAfterOpenBracketBracedList: true
 BreakInheritanceList: BeforeComma
 BreakStringLiterals: true
 ConstructorInitializerIndentWidth: 2
@@ -60,7 +67,7 @@ ContinuationIndentWidth: 2
 ColumnLimit:     100
 EmptyLineAfterAccessModifier: Leave
 EmptyLineBeforeAccessModifier: Always
-FixNamespaceComments: true
+FixNamespaceComments: false
 JavaScriptQuotes: Single
 KeepEmptyLines:
     AtEndOfFile: true
@@ -100,5 +107,6 @@ SpaceBeforeParensOptions:
     AfterRequiresInExpression: true
 SpaceBeforeRangeBasedForLoopColon: true
 UseTab: Never
+Cpp11BracedListStyle: false
 ...
 

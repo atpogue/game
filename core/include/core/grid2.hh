@@ -9,19 +9,19 @@
 template <typename Type, u32 Width = 0u, u32 Height = 0u>
 struct Grid2
 {
-  Grid2(u32 w, u32 h) : width_{w}, height_{h}, data_(size_t{width_} * height_)
+  Grid2(u32 w, u32 h) : width_{ w }, height_{ h }, data_(size_t{ width_ } * height_)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
   }
 
   Grid2(u32 w, u32 h, Type const& value)
-    : width_{w}, height_{h}, data_(size_t{width_} * height_, value)
+    : width_{ w }, height_{ h }, data_(size_t{ width_ } * height_, value)
   {
     DEBUG_ASSERT(width_ != 0u && height_ != 0u, "constructed unusable grid");
   }
 
   Grid2(Grid2&& other) noexcept
-    : width_{other.width_}, height_{other.height_}, data_(std::move(other.data_))
+    : width_{ other.width_ }, height_{ other.height_ }, data_(std::move(other.data_))
   {
     other.width_  = 0u;
     other.height_ = 0u;
@@ -41,8 +41,7 @@ struct Grid2
   constexpr size_t size() const
   {
     INVARIANT(
-      data_.size() == size_t{width_} * height_, "size of data array must match grid dimensions"
-    );
+      data_.size() == size_t{ width_ } * height_, "size of data array must match grid dimensions");
     return data_.size();
   }
 
@@ -99,7 +98,7 @@ private:
 
   constexpr size_t index(u32 x, u32 y) const
   {
-    size_t i = x + (y * size_t{width_});
+    size_t i = x + (y * size_t{ width_ });
     INVARIANT(i < data_.size(), "translated coordinates to invalid index");
     return i;
   }
@@ -110,7 +109,7 @@ template <typename Type, u32 Width, u32 Height>
 requires (Width > 0u && Height > 0u)
 struct Grid2<Type, Width, Height>
 {
-  constexpr size_t size() const { return size_t{Width} * Height; }
+  constexpr size_t size() const { return size_t{ Width } * Height; }
 
   constexpr bool has(u32 x, u32 y) const { return x < Width && y < Height; }
 
@@ -147,7 +146,7 @@ struct Grid2<Type, Width, Height>
 
 private:
 
-  std::array<Type, size_t{Width} * Height> data_;
+  std::array<Type, size_t{ Width } * Height> data_;
 
-  constexpr size_t index(u32 x, u32 y) const { return x + (y * size_t{Width}); }
+  constexpr size_t index(u32 x, u32 y) const { return x + (y * size_t{ Width }); }
 };

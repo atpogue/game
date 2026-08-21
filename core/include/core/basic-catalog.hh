@@ -26,7 +26,7 @@ struct BasicCatalog<TypeList<Types...>>
   template <typename T>
   [[nodiscard]] Token<T> find(std::string_view label) const
   {
-    return {store_of<T>().find(label)};
+    return { store_of<T>().find(label) };
   }
 
   template <typename T>
@@ -54,7 +54,7 @@ struct BasicCatalog<TypeList<Types...>>
   requires std::constructible_from<T, Args...>
   Token<T> emplace(std::string_view label, Args&&... args)
   {
-    return {store_of<T>().emplace(label, std::forward<Args>(args)...)};
+    return { store_of<T>().emplace(label, std::forward<Args>(args)...) };
   }
 
   template <typename T>

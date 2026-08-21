@@ -43,7 +43,7 @@ struct Handle
   u32 index      = nil;
   u32 generation = nil;
 
-  [[nodiscard]] static consteval Handle<Tag> null() noexcept { return {nil, nil}; }
+  [[nodiscard]] static consteval Handle<Tag> null() noexcept { return { nil, nil }; }
 
   [[nodiscard]] constexpr std::strong_ordering operator<=>(Handle<Tag> const&) const noexcept
     = default;
