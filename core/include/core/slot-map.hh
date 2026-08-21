@@ -17,7 +17,7 @@ struct SlotMap
   using const_pointer   = Type const*;
 
   explicit SlotMap(u32 limit = UINT32_MAX) noexcept
-    : slots_(), limit_{limit}, size_{0u}, first_free_{nil}
+    : slots_(), limit_{ limit }, size_{ 0u }, first_free_{ nil }
   {
     PRECONDITION(limit > 0u, "constructed unusable slot map");
   }
@@ -35,9 +35,8 @@ struct SlotMap
   // Assumptions: handle is not null, handle has element.
   template <typename... Args>
   requires std::constructible_from<Type, Args...>
-  Handle<Type> replace(
-    Handle<Type> handle, Args&&... args
-  ) noexcept(std::is_nothrow_constructible_v<Type, Args...>)
+  Handle<Type> replace(Handle<Type> handle, Args&&... args)
+    noexcept(std::is_nothrow_constructible_v<Type, Args...>)
   {
     PRECONDITION(handle, "handle must not be null");
     u32 i = locate(handle);
@@ -48,7 +47,7 @@ struct SlotMap
     slot.value.~Type();
     new (&slot.value) Type(std::forward<Args>(args)...);
     ++slot.generation;
-    return {i, slot.generation};
+    return { i, slot.generation };
   }
 
   // Fills a slot and returns its handle.
@@ -63,7 +62,7 @@ struct SlotMap
     new (&slot.value) Type(std::forward<Args>(args)...);
     slot.live = true;
     ++size_;
-    return {i, slot.generation};
+    return { i, slot.generation };
   }
 
   // Empty a slot and mark it for re-use, destroying the element if it exists.
@@ -101,7 +100,7 @@ struct SlotMap
   {
     // rename to get_handle?
     return index != nil && index < slots_.size() && slots_[index].live == true
-           ? Handle<Type>{index, slots_[index].generation}
+           ? Handle<Type>{ index, slots_[index].generation }
            : Handle<Type>::null();
   }
 
@@ -160,7 +159,7 @@ private:
     using reference         = value_type;
     using pointer           = void; // proxy; no operator-> provided
 
-    Iterator() : owner_{nullptr}, index_{0u} {}
+    Iterator() : owner_{ nullptr }, index_{ 0u } {}
 
     Iterator(Iterator const& other)            = default;
     Iterator& operator=(Iterator const& other) = default;
@@ -175,10 +174,7 @@ private:
       PRECONDITION(owner_, "dereferenced singular iterator");
       PRECONDITION(index_ < owner_->slots_.size(), "dereferenced end iterator");
       INVARIANT(owner_->slots_[index_].live == true, "dereferenced dead slot");
-      return {
-        {index_, owner_->slots_[index_].generation},
-        owner_->slots_[index_].value
-      };
+      return { { index_, owner_->slots_[index_].generation }, owner_->slots_[index_].value };
     }
 
     Iterator& operator++() noexcept
@@ -203,7 +199,7 @@ private:
 
     friend struct SlotMap<Type>;
 
-    Iterator(Owner* map, u32 index) noexcept : owner_{map}, index_{index}
+    Iterator(Owner* map, u32 index) noexcept : owner_{ map }, index_{ index }
     {
       INVARIANT(owner_, "constructed without parent container");
       INVARIANT(index_ <= owner_->slots_.size(), "constructed with invalid index");

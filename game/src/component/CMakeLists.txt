@@ -1,1 +1,1 @@
-target_sources (${GAME} PRIVATE)
+target_sources (game PRIVATE)

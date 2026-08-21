@@ -9,7 +9,7 @@ namespace {
 u64 random_seed()
 {
   std::random_device rd;
-  return (u64{rd()} << 32) | rd();
+  return (u64{ rd() } << 32) | rd();
 }
 
 Xoshiro256ss::Xoshiro256ss(u64 seed)

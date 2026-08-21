@@ -1,17 +1,22 @@
 #pragma once
 #include "core/error.hh"
-#include "engine/render/textures.hh"
+#include "gfx/color.hh"
+#include "gfx/rectangle.hh"
+#include "types.hh"
+
+struct TextureAsset;
+struct lua_State;
 
 struct Sprite
 {
-  Handle<Texture> atlas;
-  Rectangle       source;
-  Color           color;
+  Token<TextureAsset> atlas;
+  Rectangle           source;
+  Color               tint;
   // assumes the sprite is valid
   void draw(float x, float y, float scale = 1.f) const;
 };
 
-Sprite make_sprite_1x1(Handle<Texture> atlas, f32 x, f32 y, Color color);
-struct lua_State;
-
-namespace lua { Result<Sprite> try_get_sprite(lua_State* L, int idx, std::string_view field); }
+namespace lua {
+  Result<Sprite>
+  try_get_sprite(CatalogWriter catalog, lua_State* L, int idx, std::string_view field);
+}

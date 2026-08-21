@@ -78,7 +78,7 @@ public:
   ~PagedArray() noexcept = default;
 
   PagedArray(PagedArray const& other) requires std::is_copy_constructible_v<Type>
-    : pages_(), size_{other.size_}
+    : pages_(), size_{ other.size_ }
   {
     pages_.resize(other.pages_.size());
     for (u32 i = 0; i < other.pages_.size(); ++i) {
@@ -234,7 +234,7 @@ private:
     using value_type        = std::pair<u32, ReferenceType>;
     using reference         = value_type;
 
-    Iterator() : owner_{nullptr}, idx_{nil} {}
+    Iterator() : owner_{ nullptr }, idx_{ nil } {}
 
     operator Iterator<Read>() const noexcept requires (Access == Write)
     {
@@ -246,7 +246,7 @@ private:
       PRECONDITION(owner_, "dereference singular iterator");
       PRECONDITION(idx_ != nil, "dereferenced end iterator");
       INVARIANT(owner_->has(idx_), "dereferenced empty slot");
-      return value_type{idx_, (*owner_)[idx_]};
+      return value_type{ idx_, (*owner_)[idx_] };
     }
 
     Iterator& operator++() noexcept
@@ -273,7 +273,7 @@ private:
 
     friend struct PagedArray<Type, PageSize>;
 
-    Iterator(OwnerPtr owner, u32 idx) noexcept : owner_(owner), idx_{idx}
+    Iterator(OwnerPtr owner, u32 idx) noexcept : owner_(owner), idx_{ idx }
     {
       INVARIANT(owner_, "constructed without parent container");
       idx_ = owner_->find_occupied(idx_);

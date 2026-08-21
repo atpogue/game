@@ -1,1 +1,1 @@
-target_sources (${GAME} PRIVATE move.cc)
+target_sources (game PRIVATE move.cc)

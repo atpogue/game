@@ -7,8 +7,7 @@
 #endif
 
 void detail::panic(
-  char const* category, char const* condition, char const* message, std::source_location location
-)
+  char const* category, char const* condition, char const* message, std::source_location location)
 {
 #ifdef HAVE_STACKTRACE
   std::stacktrace trace = std::stacktrace::current();

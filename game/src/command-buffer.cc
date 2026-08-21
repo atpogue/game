@@ -4,13 +4,13 @@
 static_assert(std::is_trivially_copyable_v<Command>);
 static_assert(std::is_trivially_copyable_v<CommandReply>);
 
-CommandBuffer::CommandBuffer() : batches_(), generation_{0u} {}
+CommandBuffer::CommandBuffer() : batches_(), generation_{ 0u } {}
 
 Handle<Command> CommandBuffer::post(Command cmd)
 {
   Batch& batch = CommandBuffer::get_batch(generation_);
   if (batch.size() >= max_command_count) return Handle<Command>::null();
-  return {batch.append(cmd), generation_};
+  return { batch.append(cmd), generation_ };
 }
 
 std::optional<CommandReply> CommandBuffer::poll(Handle<Command> handle) const
@@ -22,7 +22,7 @@ std::optional<CommandReply> CommandBuffer::poll(Handle<Command> handle) const
   PRECONDITION(handle.index < batch.size(), "handle was never issued in its generation");
   CommandRequest const& request = batch[handle.index];
   if (request.is_resolved()) return request.as_reply();
-  return CommandReply{CommandStatus::Pending};
+  return CommandReply{ CommandStatus::Pending };
 }
 
 void CommandBuffer::dispatch(Context ctx)

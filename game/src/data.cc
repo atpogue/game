@@ -1,7 +1,7 @@
 #include "data.hh"
 #include "catalog.hh"
 #include "context.hh"
-#include "core/lua.hh"
+#include "lua.hh"
 #include "world/terrain.hh"
 #include <SDL3/SDL_log.h>
 #include <lua.hpp>
@@ -16,8 +16,7 @@ bool load_content(LoadContext ctx, std::string_view path)
   if (!result) {
     SDL_LogError(
       SDL_LOG_CATEGORY_ERROR, "Error in %s:\n\t %s", path.data(), // NOLINT
-      result.error().msg.data()
-    );
+      result.error().msg.data());
     return false;
   }
   INVARIANT(lua_gettop(L) == 0 && "unprocessed items still on the lua stack");

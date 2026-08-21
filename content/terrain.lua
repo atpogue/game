@@ -1,25 +1,34 @@
-terrain "grass-1" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 5, y = 0, color = 0x3BD872FF },
+local function make_sprite(x, y, color)
+  local tilesize = 16.0
+  return {
+    atlas = 'assets/kenney-1bitpack.png',
+    source = { x * tilesize, y * tilesize, tilesize, tilesize},
+    color = color
+  }
+end
+
+terrain 'grass-1' {
+  sprite = make_sprite(5, 0, 0x3BD872FF)
 }
 
-terrain "grass-2" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 6, y = 0, color = 0x43FF64FF },
+terrain 'grass-2' {
+  sprite = make_sprite(6, 0, 0x43FF64FF)
 }
 
-terrain "grass-3" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 7, y = 0, color = 0x32DC96FF },
+terrain 'grass-3' {
+  sprite = make_sprite(7, 0, 0x32DC96FF)
 }
 
-terrain "grass-tall" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 0, y = 2, color = 0x0C9B64FF },
+terrain 'grass-tall' {
+  sprite = make_sprite(0, 2, 0x0C9B64FF)
 }
 
-terrain "dirt" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 2, y = 0, color = 0x79464bff },
+terrain 'dirt' {
+  sprite = make_sprite(2, 0, 0x79464bff)
 }
 
-terrain "rocks" {
-    sprite = { atlas = "assets/kenney-1bitpack.png", x = 2, y = 0, color = 0xcec5b7ff },
+terrain 'rocks' {
+  sprite = make_sprite(2, 0, 0xcec5b7ff)
 }
 
 -- purple: 0x3B0264ff

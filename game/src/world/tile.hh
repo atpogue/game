@@ -1,6 +1,5 @@
 #pragma once
 #include "core/types.hh"
-constexpr f32 tile_size = 16.f;
 
 struct Terrain;
 
