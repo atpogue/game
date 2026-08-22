@@ -1,5 +1,5 @@
-#include "context.hh"
-#include "simulation.hh"
+#include "game/context.hh"
+#include "game/simulation.hh"
 #include <type_traits>
 
 static_assert(std::is_trivially_copy_constructible_v<Context>);

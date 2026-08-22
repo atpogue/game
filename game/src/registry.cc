@@ -1,7 +1,7 @@
-#include "registry.hh"
-#include "context.hh"
-#include "simulation.hh"
-#include "types.hh"
+#include "game/registry.hh"
+#include "game/context.hh"
+#include "game/simulation.hh"
+#include "game/types.hh"
 
 static_assert(std::is_trivially_copy_constructible_v<RegistryReader>);
 static_assert(std::is_trivially_copy_constructible_v<RegistryWriter>);

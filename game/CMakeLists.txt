@@ -1,21 +1,17 @@
 find_package(Lua 5.4 REQUIRED)
 
-add_executable (game)
+add_library (game)
 
 target_include_directories (
   game
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
   PRIVATE ${LUA_INCLUDE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries (
   game
   PRIVATE ${LUA_LIBRARIES}
-  PRIVATE app
-  PRIVATE gfx
-  PRIVATE core
+  PUBLIC core gfx
 )
 
 add_subdirectory (src)
-# add_subdirectory (demos)
-

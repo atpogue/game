@@ -1,8 +1,8 @@
 #include "gfx/renderer.hh"
-#include "app/window.hh"
 #include "core/panic.hh"
 #include "gfx/surface.hh"
 #include "gfx/texture.hh"
+#include "sys/window.hh"
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_pixels.h>

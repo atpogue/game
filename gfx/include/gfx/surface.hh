@@ -23,6 +23,8 @@ struct Surface
 
   [[nodiscard]] SDL_Surface* handle() noexcept { return handle_; }
 
+  [[nodiscard]] explicit operator bool() const noexcept { return valid(); }
+
 private:
   SDL_Surface* handle_ = nullptr;
 };

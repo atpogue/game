@@ -1,6 +1,6 @@
 #include "app/cue.hh"
-#include "app/keyboard.hh"
-#include "app/mouse.hh"
+#include "sys/keyboard.hh"
+#include "sys/mouse.hh"
 
 static bool keyboard_matches_modifier(Keyboard const& kb, With with)
 {

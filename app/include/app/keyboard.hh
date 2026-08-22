@@ -1,21 +1,20 @@
 #pragma once
-#include <SDL3/SDL_events.h>
-#include <bitset>
 
-struct Keyboard
+// TODO: polling of action results
+// TODO: HerdPilot
+
+#include "game/pilot.hh"
+#include "game/types.hh"
+#include "sys/keyboard.hh"
+#include "sys/mouse.hh"
+
+struct KeyboardPilot : Pilot
 {
-  // is the key currently active?
-  bool operator[](SDL_Scancode key) const;
-  // did the key see a [SDL_EVENT_KEY_DOWN] event since the last flush?
-  bool was_pressed(SDL_Scancode key) const;
-  // did the key see a [SDL_EVENT_KEY_UP] event since the last flush?
-  bool was_released(SDL_Scancode key) const;
-  // forget all events that have occured, use after accounting for events
-  void flush();
-  void reset();
-  void event(SDL_Event const& event);
+  void handle_event(SDL_Event const& event) override;
+  void steer(CommandBuffer& out, ConstContext ctx, Entity e) override;
 
 private:
 
-  std::bitset<SDL_SCANCODE_COUNT> state_, pressed_, released_;
+  Keyboard keyboard;
+  Mouse    mouse;
 };

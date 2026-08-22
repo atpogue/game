@@ -1,4 +1,4 @@
-#include "lua.hh"
+#include "game/lua.hh"
 #include "core/defer.hh"
 #include "core/panic.hh"
 #include <format>

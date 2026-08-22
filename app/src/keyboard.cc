@@ -1,34 +1,23 @@
 #include "app/keyboard.hh"
+#include "game/command-buffer.hh"
+#include "game/command.hh"
+#include "game/context.hh"
+#include <SDL3/SDL_events.h>
 
-bool Keyboard::operator[](SDL_Scancode key) const { return state_.test(key); }
-
-bool Keyboard::was_pressed(SDL_Scancode key) const { return pressed_.test(key); }
-
-bool Keyboard::was_released(SDL_Scancode key) const { return released_.test(key); }
-
-void Keyboard::flush()
+void KeyboardPilot::handle_event(SDL_Event const& event)
 {
-  pressed_.reset();
-  released_.reset();
+  mouse.event(event);
+  keyboard.event(event);
 }
 
-void Keyboard::reset()
+void KeyboardPilot::steer(CommandBuffer& out, ConstContext, Entity e)
 {
-  pressed_.reset();
-  released_.reset();
-  state_.reset();
-}
-
-void Keyboard::event(SDL_Event const& event)
-{
-  switch (event.type) {
-  case SDL_EVENT_KEY_DOWN:
-    state_.set(event.key.scancode, true);
-    pressed_.set(event.key.scancode, true);
-    break;
-  case SDL_EVENT_KEY_UP:
-    state_.set(event.key.scancode, false);
-    released_.set(event.key.scancode, true);
-    break;
-  }
+  f32 x = 0.f, y = 0.f;
+  if (keyboard[SDL_SCANCODE_W]) y -= 0.1f;
+  if (keyboard[SDL_SCANCODE_S]) y += 0.1f;
+  if (keyboard[SDL_SCANCODE_A]) x -= 0.1f;
+  if (keyboard[SDL_SCANCODE_D]) x += 0.1f;
+  if (x != 0.f || y != 0.f) out.post(make_command_move(e, x, y));
+  mouse.flush();
+  keyboard.flush();
 }

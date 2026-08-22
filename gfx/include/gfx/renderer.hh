@@ -44,6 +44,8 @@ struct Renderer
 
   [[nodiscard]] SDL_Renderer* handle() noexcept { return handle_; }
 
+  [[nodiscard]] explicit operator bool() const noexcept { return valid(); }
+
 private:
   SDL_Renderer* handle_ = nullptr;
 };

@@ -9,10 +9,7 @@ target_include_directories (
 target_link_libraries (
   gfx
   PRIVATE SDL3::SDL3
-  PUBLIC glm::glm
-  PUBLIC core
-  PUBLIC app
+  PUBLIC glm::glm core sys
 )
 
 add_subdirectory (src)
-

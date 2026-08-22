@@ -1,5 +1,5 @@
-#include "command-buffer.hh"
-#include "context.hh"
+#include "game/command-buffer.hh"
+#include "game/context.hh"
 
 static_assert(std::is_trivially_copyable_v<Command>);
 static_assert(std::is_trivially_copyable_v<CommandReply>);

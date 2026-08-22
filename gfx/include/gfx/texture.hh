@@ -24,6 +24,8 @@ struct Texture
 
   glm::vec2 size() noexcept;
 
+  [[nodiscard]] explicit operator bool() const noexcept { return valid(); }
+
 private:
   SDL_Renderer* owner_  = nullptr;
   SDL_Texture*  handle_ = nullptr;

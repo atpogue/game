@@ -1,7 +1,7 @@
 local function make_sprite(x, y, color)
   local tilesize = 16.0
   return {
-    atlas = 'assets/kenney-1bitpack.png',
+    atlas = 'content/kenney-1bitpack.png',
     source = { x * tilesize, y * tilesize, tilesize, tilesize},
     color = color
   }

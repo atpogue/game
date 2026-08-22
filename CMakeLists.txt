@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.25)
 
-project (game VERSION 0.0.1 LANGUAGES CXX)
+project (play VERSION 0.0.1 LANGUAGES CXX)
 
 option (BUILD_TESTS "Build tests" OFF)
 option (ENABLE_LINTER "Run fast static analysis (clang-tidy) during builds" OFF)
@@ -42,8 +42,9 @@ if (BUILD_TESTS)
 endif ()
 
 add_subdirectory (core)
-add_subdirectory (app)
+add_subdirectory (sys)
 add_subdirectory (gfx)
+add_subdirectory (app)
 add_subdirectory (game)
 
 add_library(project_warnings INTERFACE)
@@ -65,15 +66,23 @@ if (ENABLE_DEEP_ANALYSIS)
 endif ()
 
 target_link_libraries (core PRIVATE project_warnings)
-target_link_libraries (app  PRIVATE project_warnings)
-target_link_libraries (gfx  PRIVATE project_warnings)
 target_link_libraries (game PRIVATE project_warnings)
+target_link_libraries (sys  PRIVATE project_warnings)
+target_link_libraries (gfx  PRIVATE project_warnings)
+target_link_libraries (app  PRIVATE project_warnings)
 
 if (ENABLE_LINTER)
   find_program(CLANG_TIDY_EXE NAMES clang-tidy REQUIRED)
   set_target_properties (core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-  set_target_properties (app  PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
-  set_target_properties (gfx  PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   set_target_properties (game PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  set_target_properties (sys  PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  set_target_properties (gfx  PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+  set_target_properties (app  PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif ()
+
+add_executable (${PROJECT_NAME})
+
+target_sources (${PROJECT_NAME} PRIVATE run.cc)
+
+target_link_libraries (${PROJECT_NAME} PRIVATE game app)
 

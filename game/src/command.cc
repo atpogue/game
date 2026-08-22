@@ -1,6 +1,6 @@
-#include "command.hh"
-#include "context.hh"
-#include "registry.hh"
+#include "game/command.hh"
+#include "game/context.hh"
+#include "game/registry.hh"
 #include <glm/geometric.hpp>
 #include <type_traits>
 

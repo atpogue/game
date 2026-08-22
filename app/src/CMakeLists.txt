@@ -1,1 +1,1 @@
-target_sources (app PRIVATE main.cc event.cc keyboard.cc mouse.cc cue.cc window.cc)
+target_sources (app PRIVATE application.cc cue.cc keyboard.cc)

@@ -75,13 +75,19 @@ struct BasicCatalog<TypeList<Types...>>
   }
 
   template <typename T>
-  [[nodiscard]] constexpr std::span<T> each()
+  [[nodiscard]] u32 count() const
+  {
+    return store_of<T>().size();
+  }
+
+  template <typename T>
+  [[nodiscard]] std::span<T> each()
   {
     return store_of<T>().values();
   }
 
   template <typename T>
-  [[nodiscard]] constexpr std::span<T const> each() const
+  [[nodiscard]] std::span<T const> each() const
   {
     return store_of<T>().values();
   }

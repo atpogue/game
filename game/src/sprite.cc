@@ -1,10 +1,8 @@
-#include "sprite.hh"
-#include "assets.hh"
-#include "catalog.hh"
+#include "game/sprite.hh"
 #include "core/defer.hh"
-#include "gfx/rectangle.hh"
-#include "lua.hh"
-#include "types.hh"
+#include "game/catalog.hh"
+#include "game/lua.hh"
+#include "game/types.hh"
 
 static Result<Rectangle> try_get_rectangle(lua_State* L, int idx, std::string_view field)
 {
@@ -35,10 +33,8 @@ lua::try_get_sprite(CatalogWriter catalog, lua_State* L, int idx, std::string_vi
   if (!source) return std::unexpected(source.error());
   auto color = try_get<u32>(L, *sprite, "color");
   if (!color) return std::unexpected(color.error());
-  auto texture = catalog.find<TextureAsset>(*atlas);
-  if (!texture)
-    texture
-      = catalog.emplace<TextureAsset>(*atlas, TextureAsset{ *atlas, Handle<Texture>::null() });
+  auto texture = catalog.find<TextureDef>(*atlas);
+  if (!texture) texture = catalog.emplace<TextureDef>(*atlas, TextureDef{ *atlas });
   return Sprite{
     .atlas  = texture,
     .source = *source,
