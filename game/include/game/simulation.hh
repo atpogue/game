@@ -42,7 +42,7 @@ struct Simulation
     return handle;
   }
 
-  Context step() { return *this; }
+  Context step(i64) { return *this; }
 
   Result<LoadContext> load() { return LoadContext(*this); }
 

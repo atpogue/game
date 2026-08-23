@@ -82,7 +82,7 @@ endif ()
 
 add_executable (${PROJECT_NAME})
 
-target_sources (${PROJECT_NAME} PRIVATE run.cc)
+target_sources (${PROJECT_NAME} PRIVATE play.cc)
 
 target_link_libraries (${PROJECT_NAME} PRIVATE game app)
 

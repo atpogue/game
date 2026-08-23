@@ -1,4 +1,6 @@
 #include "app/application.hh"
+#include "core/clock.hh"
+#include "core/panic.hh"
 #include "core/random.hh"
 #include "game/biome/grassland.hh"
 #include "game/command-buffer.hh"
@@ -12,14 +14,16 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_render.h>
+#include <memory>
 #include <print>
 #include <random>
 
-struct AppState
+struct Runtime
 {
   Simulation    sim;
   Application   app;
   CommandBuffer cmds;
+  Clock         clock = { 0, 32 };
 };
 
 void load_chunk(LoadContext ctx, Chunk& chunk)
@@ -38,17 +42,12 @@ Entity load_player(Context ctx)
   return player.id();
 }
 
-AppConfig configure(int /*argc*/, char*[] /*argv*/)
+Runtime* start(int /*argc*/, char* /*argv*/[])
 {
-  return {
-    .step_rate = 32,
-  };
-}
+  auto state = std::make_unique<Runtime>();
+  state->clock.set_rate(32);
 
-AppState* start()
-{
-  auto state = std::make_unique<AppState>();
-  auto ctx   = state->sim.load();
+  auto ctx = state->sim.load();
   if (!ctx) return nullptr;
   if (!load_content(*ctx, "content/terrain.lua")) {
     std::println("Failed to load content.");
@@ -62,39 +61,37 @@ AppState* start()
   return state.release();
 }
 
-void step(AppState& state)
+void step(Runtime& state, i64 tick)
 {
-  auto ctx = state.sim.step();
+  auto ctx = state.sim.step(tick);
   state.app.step(state.cmds, ctx);
   state.cmds.dispatch(ctx);
-
-  /* TODO: pathfinding
-  for (auto& [e, path, pose] : registry.query<PathAction, Pose>()) {
-    path.act(e, pose);
-    switch (path.status()) {
-    case ActionResult::Canceled:
-    case ActionResult::Complete:
-      registry.erase<PathAction>(e);
-      break;
-    case ActionResult::Ongoing:
-      break;
-    }
-  }
-  */
 }
 
-void update(AppState& state, f32 delta)
+void update(Runtime& state, f32 delta)
 {
   auto ctx = state.sim.context();
   state.app.update(ctx, delta);
 }
 
-void render(AppState& state, f32 alpha)
+void render(Runtime& state, f32 alpha)
 {
   auto ctx = state.sim.context();
   state.app.render(ctx, alpha);
 }
 
-void handle_event(AppState& state, SDL_Event const& event) { state.app.handle_event(event); }
+void iterate(Runtime& state)
+{
+  auto tick = state.clock.tick();
+  for (auto steps = state.clock.advance(); steps > 0; steps--) step(state, tick++);
+  DEBUG_ASSERT(tick == state.clock.tick());
 
-void quit(AppState* state) { delete state; }
+  update(state, state.clock.delta());
+
+  render(state, state.clock.alpha());
+}
+
+void handle_event(Runtime& state, SDL_Event const& event) { state.app.handle_event(event); }
+
+void quit(Runtime* state) { delete state; }
+
