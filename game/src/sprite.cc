@@ -1,50 +1,66 @@
-#include "game/catalog.hh"
-#include "game/context.hh"
 #include "game/sprite.hh"
-#include "sdk/node.hh"
+#include "game/catalog.hh"
+#include "game/texture.hh"
+#include "sdk/table.hh"
+#include <string>
+#include <utility>
 
-Result<Rectangle> parse_rectangle(LuaNode const& node)
+namespace {
+
+struct RectangleData
 {
-  Rectangle rectangle;
+  f32 x;
+  f32 y;
+  f32 width;
+  f32 height;
+};
 
-  if (auto x = node.expect_number(1)) {
-    rectangle.origin.x = f32(*x);
-  } else return err(x);
-
-  if (auto y = node.expect_number(2)) {
-    rectangle.origin.y = f32(*y);
-  } else return err(y);
-
-  if (auto w = node.expect_number(3)) {
-    rectangle.extent.x = f32(*w);
-  } else return err(w);
-
-  if (auto h = node.expect_number(4)) {
-    rectangle.extent.y = f32(*h);
-  } else return err(h);
-
-  return rectangle;
-}
-
-Result<Sprite> parse_sprite(LuaNode const& node)
+struct SpriteData
 {
-  auto   catalog = access_catalog(node.context());
-  Sprite sprite;
+  std::string   atlas;
+  RectangleData source;
+  u32           color;
+};
 
-  if (auto atlas = node.expect_string("atlas")) {
-    auto texture = catalog.find<TextureDef>(*atlas);
-    if (!texture) texture = catalog.emplace<TextureDef>(*atlas, TextureDef{ *atlas });
-    sprite.atlas = texture;
-  } else return err(atlas);
+} // namespace
 
-  if (auto source = node.find("source").and_then(parse_rectangle)) {
-    sprite.source = *source;
-  } else return err(source);
+template <>
+struct LuaTraits<RectangleData>
+{
+  static constexpr LuaField<RectangleData> schema[] = {
+    lua_field<&RectangleData::x>(1),
+    lua_field<&RectangleData::y>(2),
+    lua_field<&RectangleData::width>(3),
+    lua_field<&RectangleData::height>(4),
+  };
+};
 
-  if (auto color = node.expect_integer("color")) {
-    sprite.tint = make_color_hex(*color);
-  } else return err(color);
+template <>
+struct LuaTraits<SpriteData>
+{
+  static constexpr LuaField<SpriteData> schema[] = {
+    lua_field<&SpriteData::atlas>("atlas"),
+    lua_field<&SpriteData::source>("source"),
+    lua_field<&SpriteData::color>("color"),
+  };
+};
 
-  return sprite;
+Result<Sprite> parse_sprite(LuaNode const& node, CatalogWriter catalog)
+{
+  Result<SpriteData> data = translate<SpriteData>(node);
+  if (!data) return Error(std::move(data).error());
+
+  Token<TextureDef> texture = catalog.find<TextureDef>(data->atlas);
+  if (!texture) {
+    texture = catalog.emplace<TextureDef>(data->atlas, TextureDef{ data->atlas });
+  }
+
+  return Sprite{
+    .atlas = texture,
+    .source = Rectangle{
+      .origin = { data->source.x, data->source.y },
+      .extent = { data->source.width, data->source.height },
+    },
+    .tint = make_color_hex(data->color),
+  };
 }
-

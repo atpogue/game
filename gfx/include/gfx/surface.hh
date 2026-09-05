@@ -1,5 +1,5 @@
 #pragma once
-#include "core/error.hh"
+#include "core/result.hh"
 #include <string_view>
 
 struct Surface;

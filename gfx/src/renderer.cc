@@ -42,7 +42,7 @@ Renderer::~Renderer() noexcept { SDL_DestroyRenderer(handle_); }
 Result<Renderer> create_renderer(Window& window)
 {
   SDL_Renderer* handle = SDL_CreateRenderer(window.handle(), nullptr);
-  if (!handle) return std::unexpected<Error>(SDL_GetError());
+  if (!handle) return Error(SDL_GetError());
   if (!SDL_SetRenderVSync(handle, 1))
     std::println("[Warning] Could not enable vsync: %s", SDL_GetError());
   return Renderer(handle);
@@ -79,7 +79,7 @@ Result<Texture> Renderer::create_texture(int w, int h)
 {
   SDL_Texture* texture
     = SDL_CreateTexture(handle_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, w, h);
-  if (!texture) return std::unexpected<Error>(SDL_GetError());
+  if (!texture) return Error(SDL_GetError());
   if (!SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST))
     std::println("[Warning] Could not set scale mode: %s", SDL_GetError());
   return Texture(handle_, texture);
@@ -88,7 +88,7 @@ Result<Texture> Renderer::create_texture(int w, int h)
 Result<Texture> Renderer::create_texture(Surface& surface)
 {
   SDL_Texture* texture = SDL_CreateTextureFromSurface(handle_, surface.handle());
-  if (!texture) return std::unexpected<Error>(SDL_GetError());
+  if (!texture) return Error(SDL_GetError());
   if (!SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_NEAREST))
     std::println("[Warning] Could not set scale mode: %s", SDL_GetError());
   return Texture(handle_, texture);
@@ -98,7 +98,7 @@ Result<Texture> Renderer::create_target(int width, int height)
 {
   auto target
     = SDL_CreateTexture(handle_, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
-  if (!target) return std::unexpected<Error>(SDL_GetError());
+  if (!target) return Error(SDL_GetError());
   if (!SDL_SetTextureScaleMode(target, SDL_SCALEMODE_NEAREST))
     std::println("[Warning] Could not set scale mode: %s", SDL_GetError());
   return Texture(handle_, target);

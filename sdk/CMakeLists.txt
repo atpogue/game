@@ -15,3 +15,7 @@ target_link_libraries (
 )
 
 add_subdirectory (src)
+
+if (BUILD_TESTS)
+  add_subdirectory (tests)
+endif ()

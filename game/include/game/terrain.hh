@@ -1,12 +1,13 @@
 #pragma once
+#include "core/result.hh"
 #include "game/sprite.hh"
 #include "game/types.hh"
 
-struct lua_State;
+struct LuaNode;
 
 struct Terrain
 {
   Sprite sprite;
 };
 
-namespace lua { void add_terrain_builder(lua_State* L, CatalogWriter& catalog); }
+[[nodiscard]] Result<Terrain> parse_terrain(LuaNode const& node, CatalogWriter catalog);

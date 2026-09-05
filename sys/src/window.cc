@@ -22,7 +22,7 @@ Result<Window> create_window(std::string_view title, i32 width, i32 height)
 {
   ASSERT(width != 0 && height != 0);
   auto window = SDL_CreateWindow(std::string(title).c_str(), width, height, 0);
-  if (!window) return std::unexpected<Error>(SDL_GetError());
+  if (!window) return Error(SDL_GetError());
   return Window(window);
 }
 
@@ -41,4 +41,3 @@ glm::ivec2 Window::size() const noexcept
 }
 
 void Window::resize(i32 width, i32 height) noexcept { SDL_SetWindowSize(handle_, width, height); }
-

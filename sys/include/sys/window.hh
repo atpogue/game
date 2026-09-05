@@ -1,5 +1,5 @@
 #pragma once
-#include "core/error.hh"
+#include "core/result.hh"
 #include "core/types.hh"
 #include <glm/ext/vector_int2.hpp>
 
@@ -35,4 +35,3 @@ struct Window
 private:
   SDL_Window* handle_ = nullptr;
 };
-

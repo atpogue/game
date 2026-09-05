@@ -3,10 +3,9 @@
 #include "game/types.hh"
 #include "gfx/color.hh"
 #include "gfx/rectangle.hh"
-#include <string_view>
 
 struct TextureDef;
-struct LuaTable;
+struct LuaNode;
 
 struct Sprite
 {
@@ -15,4 +14,4 @@ struct Sprite
   Color             tint;
 };
 
-Result<Sprite> parse_sprite(LuaTable const& table);
+[[nodiscard]] Result<Sprite> parse_sprite(LuaNode const& node, CatalogWriter catalog);
