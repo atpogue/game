@@ -1,11 +1,44 @@
-#include "game/lua.hh"
 #include "core/defer.hh"
 #include "core/panic.hh"
+#include "game/lua.hh"
 #include <format>
 #include <lauxlib.h>
+#include <lua.h>
 #include <lualib.h>
 
 using namespace lua;
+
+LuaReader::LuaReader(lua_State* L, i64 idx) noexcept : handle_{ L }, idx_{ idx }
+{
+  PRECONDITION(L != nullptr);
+  PRECONDITION(idx != 0);
+}
+
+LuaReader::~LuaReader() noexcept
+{
+  DEBUG_ASSERT(lua_gettop(handle_) == idx_);
+  lua_settop(handle_, idx_);
+}
+
+[[nodiscard]] Result<bool>        LuaReader::expect_boolean() const;
+[[nodiscard]] Result<i64>         LuaReader::expect_integer() const;
+[[nodiscard]] Result<f64>         LuaReader::expect_number() const;
+[[nodiscard]] Result<std::string> LuaReader::expect_string() const;
+[[nodiscard]] Result<LuaTable>    LuaReader::expect_table() const;
+
+// {
+//   lua_pushvalue(handle_, idx_);
+//   i64 out = lua_tointeger(handle_, idx_);
+//   lua_pop(handle_, 1);
+//   return out;
+// }
+
+Result<bool> lua::try_get_boolean(lua_State* L, int table, std::string_view field)
+{
+  auto idx = try_push_field(L, LUA_TBOOLEAN, table, field);
+  if (!idx) return std::unexpected(idx.error());
+  return pop_boolean(L);
+}
 
 static int handle_error(lua_State* L)
 {

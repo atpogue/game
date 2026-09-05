@@ -1,44 +1,50 @@
-#include "game/sprite.hh"
-#include "core/defer.hh"
 #include "game/catalog.hh"
-#include "game/lua.hh"
-#include "game/types.hh"
+#include "game/context.hh"
+#include "game/sprite.hh"
+#include "sdk/node.hh"
 
-static Result<Rectangle> try_get_rectangle(lua_State* L, int idx, std::string_view field)
+Result<Rectangle> parse_rectangle(LuaNode const& node)
 {
-  auto rectangle = lua::try_push_field(L, LUA_TTABLE, idx, field);
-  if (!rectangle) return std::unexpected(rectangle.error());
-  DEFER(lua_pop(L, 1));
-  auto x = lua::try_get<f32>(L, *rectangle, 1);
-  if (!x) return std::unexpected(x.error());
-  auto y = lua::try_get<f32>(L, *rectangle, 2);
-  if (!y) return std::unexpected(y.error());
-  auto w = lua::try_get<f32>(L, *rectangle, 3);
-  if (!w) return std::unexpected(y.error());
-  auto h = lua::try_get<f32>(L, *rectangle, 4);
-  if (!h) return std::unexpected(y.error());
-  return Rectangle({ *x, *y }, { *w, *h });
+  Rectangle rectangle;
+
+  if (auto x = node.expect_number(1)) {
+    rectangle.origin.x = f32(*x);
+  } else return err(x);
+
+  if (auto y = node.expect_number(2)) {
+    rectangle.origin.y = f32(*y);
+  } else return err(y);
+
+  if (auto w = node.expect_number(3)) {
+    rectangle.extent.x = f32(*w);
+  } else return err(w);
+
+  if (auto h = node.expect_number(4)) {
+    rectangle.extent.y = f32(*h);
+  } else return err(h);
+
+  return rectangle;
 }
 
-// sprite = { atlas = "path", x = N, y = N, color = N }
-Result<Sprite>
-lua::try_get_sprite(CatalogWriter catalog, lua_State* L, int idx, std::string_view field)
+Result<Sprite> parse_sprite(LuaNode const& node)
 {
-  auto sprite = try_push_field(L, LUA_TTABLE, idx, field);
-  if (!sprite) return std::unexpected(sprite.error());
-  DEFER(lua_pop(L, 1));
-  auto atlas = try_get_string(L, *sprite, "atlas");
-  if (!atlas) return std::unexpected(atlas.error());
-  auto source = try_get_rectangle(L, *sprite, "source");
-  if (!source) return std::unexpected(source.error());
-  auto color = try_get<u32>(L, *sprite, "color");
-  if (!color) return std::unexpected(color.error());
-  auto texture = catalog.find<TextureDef>(*atlas);
-  if (!texture) texture = catalog.emplace<TextureDef>(*atlas, TextureDef{ *atlas });
-  return Sprite{
-    .atlas  = texture,
-    .source = *source,
-    .tint   = make_color_hex(*color),
-  };
+  auto   catalog = access_catalog(node.context());
+  Sprite sprite;
+
+  if (auto atlas = node.expect_string("atlas")) {
+    auto texture = catalog.find<TextureDef>(*atlas);
+    if (!texture) texture = catalog.emplace<TextureDef>(*atlas, TextureDef{ *atlas });
+    sprite.atlas = texture;
+  } else return err(atlas);
+
+  if (auto source = node.find("source").and_then(parse_rectangle)) {
+    sprite.source = *source;
+  } else return err(source);
+
+  if (auto color = node.expect_integer("color")) {
+    sprite.tint = make_color_hex(*color);
+  } else return err(color);
+
+  return sprite;
 }
 

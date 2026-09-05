@@ -1,22 +1,13 @@
 #include "app/application.hh"
 #include "core/clock.hh"
-#include "core/panic.hh"
 #include "core/random.hh"
 #include "game/biome/grassland.hh"
 #include "game/command-buffer.hh"
-#include "game/component/pose.hh"
-#include "game/context.hh"
 #include "game/entity.hh"
 #include "game/load.hh"
 #include "game/simulation.hh"
-#include "game/types.hh"
 #include "sys/main.hh"
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-#include <SDL3/SDL_render.h>
-#include <memory>
 #include <print>
-#include <random>
 
 struct Runtime
 {

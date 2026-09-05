@@ -1,12 +1,12 @@
 #pragma once
-#include "core/error.hh"
+#include "core/result.hh"
 #include "game/types.hh"
 #include "gfx/color.hh"
 #include "gfx/rectangle.hh"
 #include <string_view>
 
 struct TextureDef;
-struct lua_State;
+struct LuaTable;
 
 struct Sprite
 {
@@ -15,7 +15,4 @@ struct Sprite
   Color             tint;
 };
 
-namespace lua {
-  Result<Sprite>
-  try_get_sprite(CatalogWriter catalog, lua_State* L, int idx, std::string_view field);
-}
+Result<Sprite> parse_sprite(LuaTable const& table);

@@ -7,27 +7,27 @@ local function make_sprite(x, y, color)
   }
 end
 
-terrain 'grass-1' {
+content['terrain']['grass-1'] = {
   sprite = make_sprite(5, 0, 0x3BD872FF)
 }
 
-terrain 'grass-2' {
+content['terrain']['grass-2'] = {
   sprite = make_sprite(6, 0, 0x43FF64FF)
 }
 
-terrain 'grass-3' {
+content['terrain']['grass-3'] = {
   sprite = make_sprite(7, 0, 0x32DC96FF)
 }
 
-terrain 'grass-tall' {
+content['terrain']['grass-tall'] = {
   sprite = make_sprite(0, 2, 0x0C9B64FF)
 }
 
-terrain 'dirt' {
+content['terrain']['dirt'] = {
   sprite = make_sprite(2, 0, 0x79464bff)
 }
 
-terrain 'rocks' {
+content['terrain']['rocks'] = {
   sprite = make_sprite(2, 0, 0xcec5b7ff)
 }
 

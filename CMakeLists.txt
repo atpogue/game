@@ -44,6 +44,7 @@ endif ()
 add_subdirectory (core)
 add_subdirectory (sys)
 add_subdirectory (gfx)
+add_subdirectory (sdk)
 add_subdirectory (app)
 add_subdirectory (game)
 
