@@ -1,5 +1,6 @@
 #pragma once
 #include "core/panic.hh"
+#include "core/types.hh"
 #include "sdk/types.hh"
 #include <initializer_list>
 #include <span>
@@ -25,7 +26,7 @@ struct LuaPath
 
   constexpr LuaPath(std::span<LuaKey const> keys) : keys_(keys.begin(), keys.end()) {}
 
-  constexpr LuaKey const& operator[](size_t i) const { return keys_[i]; }
+  constexpr LuaKey const& operator[](u32 i) const { return keys_[i]; }
 
   LuaPath& operator+=(LuaPath const& rhs)
   {
@@ -51,23 +52,22 @@ struct LuaPath
     return lhs;
   }
 
-  constexpr size_t size() const { return keys_.size(); }
+  constexpr u32 size() const { return static_cast<u32>(keys_.size()); }
 
   constexpr bool empty() const { return keys_.empty(); }
 
-  constexpr auto begin() const { return keys_.begin(); }
+  constexpr std::vector<LuaKey>::const_iterator begin() const { return keys_.begin(); }
 
-  constexpr auto end() const { return keys_.end(); }
+  constexpr std::vector<LuaKey>::const_iterator end() const { return keys_.end(); }
 
   constexpr std::span<LuaKey const> span() const { return keys_; }
 
-  constexpr std::span<LuaKey const> span(size_t length) const
+  constexpr std::span<LuaKey const> span(u32 length) const
   {
-    PRECONDITION(length < keys_.size());
-    return { keys_.begin(), keys_.begin() + long(length) };
+    PRECONDITION(length <= keys_.size());
+    return { keys_.begin(), length };
   }
 
 private:
   std::vector<LuaKey> keys_;
 };
-

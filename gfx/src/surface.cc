@@ -27,10 +27,9 @@ Result<Surface> load_image(std::string_view path)
   if (path.ends_with(".png")) surface = SDL_LoadPNG(std::string(path).c_str());
   else if (path.ends_with(".bmp")) surface = SDL_LoadBMP(std::string(path).c_str());
   else {
-    return std::unexpected<Error>(
+    return Error(
       std::format("Unsupported file type (expected BMP or PNG): {}", path));
   }
-  if (!surface) { return std::unexpected<Error>(SDL_GetError()); }
+  if (!surface) { return Error(SDL_GetError()); }
   return Surface(surface);
 }
-

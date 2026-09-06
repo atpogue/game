@@ -1,5 +1,5 @@
 #pragma once
-#include "core/error.hh"
+#include "core/result.hh"
 #include "core/panic.hh"
 #include "game/catalog.hh"
 #include "game/chunk.hh"

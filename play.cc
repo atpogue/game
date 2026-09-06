@@ -46,7 +46,7 @@ Runtime* start(int /*argc*/, char* /*argv*/[])
   }
   load_chunk(*ctx, state->sim.scene());
   if (auto result = state->app.load(*ctx, load_player(*ctx)); !result) {
-    std::println("Failed to open application: {}", result.error().msg);
+    std::println("Failed to open application: {}", result.error());
     return nullptr;
   }
   return state.release();
@@ -85,4 +85,3 @@ void iterate(Runtime& state)
 void handle_event(Runtime& state, SDL_Event const& event) { state.app.handle_event(event); }
 
 void quit(Runtime* state) { delete state; }
-

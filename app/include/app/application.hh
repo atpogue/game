@@ -1,5 +1,5 @@
 #pragma once
-#include "core/error.hh"
+#include "core/result.hh"
 #include "game/pilot.hh"
 #include "gfx/camera2D.hh"
 #include "gfx/renderer.hh"
@@ -40,4 +40,3 @@ private:
   Renderer             renderer_;
   std::vector<Texture> textures_;
 };
-

@@ -3,7 +3,7 @@
 // TODO: migration to SDL3 GPU for shader support
 // TODO: headless renderer
 
-#include "core/error.hh"
+#include "core/result.hh"
 #include "gfx/color.hh"
 #include "gfx/rectangle.hh"
 
@@ -49,4 +49,3 @@ struct Renderer
 private:
   SDL_Renderer* handle_ = nullptr;
 };
-

@@ -1,59 +1,14 @@
 #include "game/terrain.hh"
-#include "core/defer.hh"
 #include "game/catalog.hh"
-#include "game/lua.hh"
-#include "game/sprite.hh"
-#include "game/types.hh"
-#include <lua.hpp>
+#include "sdk/node.hh"
+#include <utility>
 
-// terrain "name" { sprite = {} }
-static int parse_terrain_table(lua_State* L)
+Result<Terrain> parse_terrain(LuaNode const& node, CatalogWriter catalog)
 {
-  INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
-  INVARIANT(lua_isstring(L, lua_upvalueindex(2)));
-  auto catalog = static_cast<CatalogWriter*>(lua_touserdata(L, lua_upvalueindex(1)));
-  auto name    = lua_tostring(L, lua_upvalueindex(2));
-  do {
-    // arg 1: definition table
-    if (!lua_istable(L, 1)) {
-      lua::push_fstring(
-        L, "terrain '{}': expected table, found {}", name, lua_typename(L, lua_type(L, 1)));
-      break;
-    }
+  Result<LuaNode> sprite_node = node.find("sprite");
+  if (!sprite_node) return Error(std::move(sprite_node).error());
 
-    int  terrain = lua_gettop(L);
-    auto sprite  = lua::try_get_sprite(*catalog, L, terrain, "sprite");
-    if (!sprite) {
-      lua::push_string(L, sprite.error().msg);
-      break;
-    }
-
-    DEFER(lua_pop(L, 1));
-    catalog->emplace<Terrain>(name, *sprite);
-    return 0;
-  } while (false);
-  // this will unwind the stack without calling C++ destructors
-  return lua_error(L);
-}
-
-static int build_terrain(lua_State* L)
-{
-  INVARIANT(lua_islightuserdata(L, lua_upvalueindex(1)));
-  // arg 1: name string
-  if (!lua_isstring(L, 1)) {
-    lua_pushstring(
-      L, std::format("terrain: expected string, found {}", lua_typename(L, lua_type(L, 1))).data());
-    return lua_error(L);
-  }
-  lua_pushvalue(L, lua_upvalueindex(1));
-  lua_pushvalue(L, 1); // name
-  lua_pushcclosure(L, parse_terrain_table, 2);
-  return 1;
-}
-
-void lua::add_terrain_builder(lua_State* L, CatalogWriter& catalog)
-{
-  lua_pushlightuserdata(L, &catalog);
-  lua_pushcclosure(L, build_terrain, 1);
-  lua_setglobal(L, "terrain");
+  Result<Sprite> sprite = parse_sprite(*sprite_node, catalog);
+  if (!sprite) return Error(std::move(sprite).error());
+  return Terrain{ .sprite = std::move(*sprite) };
 }
