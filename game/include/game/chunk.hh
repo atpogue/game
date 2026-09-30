@@ -3,15 +3,11 @@
 #include "game/tile.hh"
 
 namespace Game {
-  struct Camera;
-  struct World;
-
   constexpr u32 chunk_size = 64;
 
   struct Chunk : Grid2<Tile, chunk_size, chunk_size>
   {
     // other relevant data...
-    void render(World&, Camera const& camera, float tile_size) const;
   };
 
   struct ChunkGenerator

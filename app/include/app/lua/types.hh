@@ -4,7 +4,9 @@
 
 namespace Lua {
 
+  // Mirrors the Lua C API type tags, with integers distinguished from other numbers.
   enum class Type : i8 {
+    None          = -1,
     Nil           = 0,
     Boolean       = 1,
     LightUserData = 2,
@@ -20,6 +22,7 @@ namespace Lua {
   [[nodiscard]] constexpr std::string_view type_name(Type type) noexcept
   {
     switch (type) {
+    case Type::None:          return "none";
     case Type::Nil:           return "nil";
     case Type::Boolean:       return "boolean";
     case Type::LightUserData: return "light userdata";

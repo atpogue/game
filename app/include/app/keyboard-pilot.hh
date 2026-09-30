@@ -3,13 +3,15 @@
 #include "sys/keyboard.hh"
 #include "sys/mouse.hh"
 
-struct KeyboardPilot : Pilot
-{
-  void handle_event(SDL_Event const& event) override;
-  void steer(World const&, CommandBuffer& out, Entity e) override;
+namespace App {
+  struct KeyboardPilot : Pilot
+  {
+    void handle_event(SDL_Event const& event) override;
+    void steer(Game::World const&, Game::CommandBuffer& out, Game::Entity entity) override;
 
-private:
+  private:
 
-  Keyboard keyboard;
-  Mouse    mouse;
-};
+    Keyboard keyboard_;
+    Mouse    mouse_;
+  };
+}

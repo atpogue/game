@@ -9,10 +9,10 @@ namespace detail {
     std::source_location location = std::source_location::current());
 } // namespace detail
 
-#define PANIC(category, cond, ...)                    \
-  do {                                                \
-    if (!(cond)) [[unlikely]]                         \
-      detail::panic(category, #cond, "" __VA_ARGS__); \
+#define PANIC(category, cond, ...)                      \
+  do {                                                  \
+    if (!(cond)) [[unlikely]]                           \
+      ::detail::panic(category, #cond, "" __VA_ARGS__); \
   } while (0)
 
 // Always-on: aborts in both debug and release.

@@ -10,8 +10,12 @@ target_include_directories(
 
 target_link_libraries(
   app
-  PRIVATE ${LUA_LIBRARIES} gfx
-  PUBLIC game
+  PRIVATE ${LUA_LIBRARIES}
+  PUBLIC game gfx
 )
 
 add_subdirectory(src)
+
+if (BUILD_TESTS)
+  add_subdirectory(tests)
+endif ()

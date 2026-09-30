@@ -1,6 +1,6 @@
+#include "game/biome/caves.hh"
 #include "core/grid2.hh"
 #include "core/random.hh"
-#include "game/biome/caves.hh"
 #include "game/world.hh"
 #include <random>
 #include <ranges>
@@ -47,29 +47,31 @@ namespace Game {
     }
   }
 
-  CaveGenerator::CaveGenerator(World& world, u64 seed)
-    : _seed{ seed }
-    , _wall{ world.content.find<Terrain>("stone") }
-    , _floor{ world.content.find<Terrain>("dirt") }
+  CaveGenerator::CaveGenerator(World const& world, u64 seed)
+    : seed_{ seed }
+    , wall_{ world.content.find<Terrain>("stone") }
+    , floor_{ world.content.find<Terrain>("dirt") }
   {
-    PRECONDITION(wall_ != nil);
-    PRECONDITION(floor_ != nil);
+    PRECONDITION(wall_, "terrain undefined");
+    PRECONDITION(floor_, "terrain undefined");
   }
 
   void CaveGenerator::generate(u32 x, u32 y, Chunk& chunk)
   {
-    auto const hash = split_mix(seed_ ^ split_mix((u64{ x } << 32) | y));
-    Grid2<u32> cave(chunk_size, chunk_size);
+    auto const    hash  = split_mix(seed_ ^ split_mix((u64{ x } << 32) | y));
+    constexpr u32 wall  = 1u;
+    constexpr u32 floor = 0u;
+    Grid2<u32>    cave(chunk_size, chunk_size);
     // uniformly random fill
     Xoshiro256ss                rng{ hash };
     std::bernoulli_distribution coin{ 0.45f };
     for (auto& tile : cave)
-      tile = coin(rng) ? wall_ : floor_;
-    generate_cave(cave, wall_, floor_, 5, 6, 1, 1);
-    generate_cave(cave, wall_, floor_, 3, 4, 2, 2);
-    generate_cave(cave, wall_, floor_, 9, 10, 2, 1);
-    for (auto [tile, terrain] : std::views::zip(chunk, cave)) {
-      tile.terrain = terrain;
+      tile = coin(rng) ? wall : floor;
+    generate_cave(cave, wall, floor, 5, 6, 1, 1);
+    generate_cave(cave, wall, floor, 3, 4, 2, 2);
+    generate_cave(cave, wall, floor, 9, 10, 2, 1);
+    for (auto [tile, cell] : std::views::zip(chunk, cave)) {
+      tile.terrain = cell == wall ? wall_ : floor_;
     }
   }
 }

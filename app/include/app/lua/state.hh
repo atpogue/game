@@ -1,19 +1,20 @@
 #pragma once
-
-#include "core/result.hh"
-#include "sdk/table.hh"
-#include "sdk/value.hh"
+#include "app/lua/table.hh"
+#include <optional>
+#include <string>
 #include <string_view>
 
 struct lua_State;
 
 namespace Lua {
 
+  // Owns a sandboxed Lua state: only the base, table, string, math, and utf8 libraries are opened.
+  // Failures print a diagnostic.
   struct State
   {
-    [[nodiscard]] static Result<State> create();
+    [[nodiscard]] static std::optional<State> create();
 
-    State()                        = default;
+    State() noexcept               = default;
     State(State const&)            = delete;
     State& operator=(State const&) = delete;
 
@@ -21,20 +22,24 @@ namespace Lua {
     State& operator=(State&&) noexcept;
     ~State() noexcept;
 
-    [[nodiscard]] Status load(std::string_view file);
+    // Runs the file at the given path.
+    [[nodiscard]] bool load(std::string_view path);
 
-    [[nodiscard]] Status execute(std::string_view name, std::string_view source);
+    // Runs the source code, using the name to identify the chunk in diagnostics.
+    [[nodiscard]] bool execute(std::string_view name, std::string_view source);
 
-    [[nodiscard]] Table globals() noexcept;
+    [[nodiscard]] Table globals() const;
 
-    [[nodiscard]] Table create_table() noexcept;
+    // The path is used to identify the table and its fields in diagnostics.
+    [[nodiscard]] Table create_table(std::string path = {}) const;
 
-    [[nodiscard]] lua_State* get() const noexcept { return _handle; }
+    [[nodiscard]] lua_State* get() const noexcept { return handle_; }
 
   private:
+
     explicit State(lua_State*) noexcept;
 
-    lua_State* _handle;
+    lua_State* handle_ = nullptr;
   };
 
 } // namespace Lua

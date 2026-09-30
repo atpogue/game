@@ -6,7 +6,7 @@ This is the early development of a game and engine built from scratch in C++23. 
 
 ### Toolchain
 
-- A C++23 compiler that supports GNU statement expressions: GCC 14+, Clang 17+
+- A C++23 compiler that supports GNU statement expressions: GCC 14+, Clang 19+
 - [CMake](https://cmake.org/) 3.25+
 - [Lua](https://www.lua.org/) 5.4+
 

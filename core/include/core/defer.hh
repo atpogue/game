@@ -13,8 +13,11 @@ struct Defer
 template <typename F>
 Defer(F) -> Defer<F>;
 
-#define DEFER(expr)         \
-  Defer _defer##__COUNTER__ \
-  {                         \
-    [&] { expr; }           \
+#define DEFER_CONCAT_IMPL(a, b) a##b
+#define DEFER_CONCAT(a, b)      DEFER_CONCAT_IMPL(a, b)
+
+#define DEFER(expr)                       \
+  Defer DEFER_CONCAT(defer_, __COUNTER__) \
+  {                                       \
+    [&] { expr; }                         \
   }

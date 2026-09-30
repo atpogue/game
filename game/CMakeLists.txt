@@ -6,6 +6,6 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(game PUBLIC core)
+target_link_libraries(game PUBLIC core glm::glm)
 
 add_subdirectory(src)

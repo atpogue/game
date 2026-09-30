@@ -1,57 +1,47 @@
 #pragma once
+#include "app/lua/types.hh"
 #include "core/panic.hh"
-#include "core/types.hh"
 #include <string_view>
 
 namespace Lua {
 
+  // Identifies a field of a table by name or by integer index.
   // Note: Key does not own or manage a copy of the string value. It holds a string view.
   struct Key
   {
     enum class Kind : u8 { Index, Name };
 
-    constexpr Key(char const* name) : _kind{ Kind::Name }, _name{ name } {}
+    constexpr Key(char const* name) noexcept : kind_{ Kind::Name }, name_{ name } {}
 
-    constexpr Key(std::string_view name) : _kind{ Kind::Name }, _name{ name } {}
+    constexpr Key(std::string_view name) noexcept : kind_{ Kind::Name }, name_{ name } {}
 
-    constexpr Key(int index) noexcept : _kind{ Kind::Index }, _index{ index } {}
+    constexpr Key(Integer index) noexcept : kind_{ Kind::Index }, index_{ index } {}
 
-    constexpr Key& operator=(std::string_view name)
+    constexpr Key(int index) noexcept : Key(Integer{ index }) {}
+
+    [[nodiscard]] constexpr std::string_view as_name() const noexcept
     {
-      _kind = Kind::Name;
-      _name = name;
-      return *this;
+      DEBUG_ASSERT(kind_ == Kind::Name);
+      return name_;
     }
 
-    constexpr Key& operator=(int index) noexcept
+    [[nodiscard]] constexpr Integer as_index() const noexcept
     {
-      _kind  = Kind::Index;
-      _index = index;
-      return *this;
+      DEBUG_ASSERT(kind_ == Kind::Index);
+      return index_;
     }
 
-    [[nodiscard]] std::string_view as_name() const
-    {
-      DEBUG_ASSERT(_kind == Kind::Name);
-      return std::string_view(_name.begin(), _name.end());
-    }
+    [[nodiscard]] constexpr bool is_index() const noexcept { return kind_ == Kind::Index; }
 
-    [[nodiscard]] int as_index() const noexcept
-    {
-      DEBUG_ASSERT(_kind == Kind::Index);
-      return _index;
-    }
+    [[nodiscard]] constexpr bool is_name() const noexcept { return kind_ == Kind::Name; }
 
-    [[nodiscard]] int is_index() const noexcept { return _kind == Kind::Index; }
-
-    [[nodiscard]] int is_name() const noexcept { return _kind == Kind::Name; }
-
-    [[nodiscard]] Kind kind() const noexcept { return _kind; }
+    [[nodiscard]] constexpr Kind kind() const noexcept { return kind_; }
 
   private:
-    Kind             _kind  = Kind::Index;
-    int              _index = 0;
-    std::string_view _name  = {};
+
+    Kind             kind_  = Kind::Index;
+    Integer          index_ = 0;
+    std::string_view name_  = {};
   };
 
 } // namespace Lua

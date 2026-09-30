@@ -9,7 +9,7 @@ namespace Game {
 
   static CommandReply resolve(World& world, Entity actor, Command::Detail::Move const& move)
   {
-    auto handle = world.find_entity(actor);
+    auto handle = world.find(actor);
     if (!handle) return { CommandStatus::Rejected, CommandError::DeadEntity };
     auto pose = world.entities.try_get<Pose>(handle);
     if (!pose) return { CommandStatus::Rejected, CommandError::MissingComponent };

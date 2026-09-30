@@ -1,19 +1,28 @@
 #pragma once
 #include "app/sprite.hh"
-#include "game/content/terrain.hh"
+#include "core/basic-catalog.hh"
+#include "gfx/texture.hh"
+#include <string_view>
+#include <vector>
 
-struct Texture;
+struct Renderer;
 
-namespace Lua {
-  struct Table;
+namespace Game { struct World; }
 
-  bool import(Color&, Table const&);
+namespace App {
+  using Assets  = TypeList<Texture>;
+  using Catalog = BasicCatalog<Assets>; // labeled by file path
 
-  bool import(Game::Content&, Table const&);
+  // The presentation of content definitions.
+  struct Visuals
+  {
+    Catalog             assets;
+    std::vector<Sprite> terrain; // parallel to the world's terrain definitions
+  };
 
-  bool import(App::Assets&, App::Sprite&, Table const&);
-
-  bool import(Game::Content&, Game::Terrain&, Table const&);
-
-  bool read(Content&, Lua::Table const&, Sprite&);
+  // Runs the Lua content script at the path, then compiles the definitions it authored into the
+  // world's catalog and their presentation into the visuals. Diagnostics are printed to stdout.
+  // Returns false if the script failed or any definition could not be compiled.
+  [[nodiscard]] bool
+  load_content(std::string_view path, Game::World& world, Renderer& renderer, Visuals& visuals);
 }

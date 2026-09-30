@@ -1,9 +1,9 @@
 #pragma once
-#include "component/pose.hh"
-#include "content/terrain.hh"
 #include "core/basic-catalog.hh"
 #include "core/basic-registry.hh"
 #include "game/chunk.hh"
+#include "game/component/pose.hh"
+#include "game/content/terrain.hh"
 #include "game/entity.hh"
 #include <unordered_map>
 
@@ -16,9 +16,9 @@ namespace Game {
 
   struct World
   {
-    Catalog  content;
-    Registry entities;
-    Chunk    environment;
+    Catalog  content;     // immutable after loading
+    Registry entities;    // entity data
+    Chunk    environment; // placeholder for a chunked world
 
     [[nodiscard]] Handle<Entity> find(Entity e) const;
 
@@ -28,7 +28,10 @@ namespace Game {
 
   private:
 
-    u64                                        _entity_counter;
-    std::unordered_map<Entity, Handle<Entity>> _lookup;
+    // Total number of entities including those not loaded.
+    u64 entity_counter_ = 0u;
+
+    // Hash map used because entity IDs are sparse, not dense.
+    std::unordered_map<Entity, Handle<Entity>> lookup_;
   };
 }

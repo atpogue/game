@@ -3,7 +3,7 @@ local function make_sprite(x, y, color)
   return {
     atlas = 'content/kenney-1bitpack.png',
     source = { x * tilesize, y * tilesize, tilesize, tilesize},
-    color = color
+    tint = color
   }
 end
 

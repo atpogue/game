@@ -1,94 +1,92 @@
+#include "app/lua/reference.hh"
 #include "core/panic.hh"
-#include "sdk/reference.hh"
-#include "sdk/state.hh"
 #include <lua.hpp>
 
 namespace Lua {
 
-  static Type get_type(lua_State* L, int idx) noexcept
+  static Type type_at(lua_State* L, int idx) noexcept
   {
     if (lua_isinteger(L, idx)) return Type::Integer;
-    return static_cast<Type>(idx);
+    return static_cast<Type>(lua_type(L, idx));
   }
 
-  Reference::Reference(State* state, i32 ridx) noexcept
-    : _state{ state }, _ridx{ ridx }, _type{ Type::None }
+  Reference Reference::pop(lua_State* L) noexcept
   {
-    PRECONDITION(_state != nullptr);
-    lua_State* const L = _state->handle();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, _ridx);
-    _type = get_type(L, -1);
-    lua_pop(L, 1);
+    static_assert(no_ref == LUA_NOREF);
+    PRECONDITION(L != nullptr);
+    Type const type = type_at(L, -1);
+    int const  ridx = luaL_ref(L, LUA_REGISTRYINDEX);
+    return Reference(L, ridx, type);
   }
 
-  Reference::Reference(Reference const& other) noexcept
-    : _state{ other._state }, _ridx{ LUA_NOREF }, _type{ Type::None }
+  Reference::Reference(lua_State* L, int ridx, Type type) noexcept
+    : state_{ L }, ridx_{ ridx }, type_{ type }
+  {}
+
+  Reference::Reference(Reference const& other) noexcept : type_{ other.type_ }
   {
-    lua_State* const L = _state->handle();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, other._ridx);
-    _type = get_type(L, -1);
-    _ridx = luaL_ref(L, LUA_REGISTRYINDEX);
+    if (other.state_ == nullptr) return;
+    state_ = other.state_;
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, other.ridx_);
+    ridx_ = luaL_ref(state_, LUA_REGISTRYINDEX);
   }
 
   Reference::Reference(Reference&& other) noexcept
-    : _state{ other._state }, _ridx{ other._ridx }, _type{ other._type }
+    : state_{ other.state_ }, ridx_{ other.ridx_ }, type_{ other.type_ }
   {
-    other._ridx = LUA_NOREF;
-    other._type = Type::None;
+    other.state_ = nullptr;
+    other.ridx_  = no_ref;
+    other.type_  = Type::None;
   }
 
   Reference& Reference::operator=(Reference const& other) noexcept
   {
     if (&other == this) return *this;
-    if (_ridx != LUA_NOREF) luaL_unref(_state->handle(), LUA_REGISTRYINDEX, _ridx);
-    _state             = other._state;
-    lua_State* const L = _state->handle();
-    lua_rawgeti(L, LUA_REGISTRYINDEX, other._ridx);
-    _type = get_type(L, -1);
-    _ridx = luaL_ref(L, LUA_REGISTRYINDEX);
-    return *this;
+    Reference copy(other);
+    return *this = std::move(copy);
   }
 
   Reference& Reference::operator=(Reference&& other) noexcept
   {
     if (&other == this) return *this;
-    if (_ridx != LUA_NOREF) luaL_unref(_state->handle(), LUA_REGISTRYINDEX, _ridx);
-    _state      = other._state;
-    _ridx       = other._ridx;
-    _type       = other._type;
-    other._ridx = LUA_NOREF;
-    other._type = Type::None;
+    release();
+    state_       = other.state_;
+    ridx_        = other.ridx_;
+    type_        = other.type_;
+    other.state_ = nullptr;
+    other.ridx_  = no_ref;
+    other.type_  = Type::None;
     return *this;
   }
 
-  Reference::~Reference() noexcept
+  Reference::~Reference() noexcept { release(); }
+
+  void Reference::release() noexcept
   {
-    lua_State* const L = _state->handle();
-    if (_ridx != LUA_NOREF) {
-      luaL_unref(L, LUA_REGISTRYINDEX, _ridx);
-    }
+    if (state_ != nullptr && ridx_ != LUA_NOREF) luaL_unref(state_, LUA_REGISTRYINDEX, ridx_);
+    state_ = nullptr;
+    ridx_  = no_ref;
+    type_  = Type::None;
   }
 
   bool operator==(Reference const& l, Reference const& r) noexcept
   {
-    if (l._state != r._state) return false;
-    lua_State* const L = l._state->handle();
-    if (L == nullptr) return true;
-    if (l._ridx == r._ridx) return true;
-    lua_rawgeti(L, LUA_REGISTRYINDEX, l._ridx);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, r._ridx);
-    bool out = lua_rawequal(L, -1, -2);
+    if (l.state_ != r.state_) return false;
+    if (l.state_ == nullptr || l.ridx_ == r.ridx_) return true;
+    lua_State* const L = l.state_;
+    lua_rawgeti(L, LUA_REGISTRYINDEX, l.ridx_);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, r.ridx_);
+    bool const equal = lua_rawequal(L, -1, -2);
     lua_pop(L, 2);
-    return out;
+    return equal;
   }
 
   int Reference::push() const noexcept
   {
-    lua_State* const L = _state->handle();
-    DEBUG_ASSERT(_ridx != LUA_NOREF);
-    lua_rawgeti(L, LUA_REGISTRYINDEX, _ridx);
-    DEBUG_ASSERT(_type == get_type(L, -1));
-    return lua_gettop(L);
+    PRECONDITION(state_ != nullptr, "pushed an empty reference");
+    lua_rawgeti(state_, LUA_REGISTRYINDEX, ridx_);
+    DEBUG_ASSERT(type_ == type_at(state_, -1));
+    return lua_gettop(state_);
   }
 
 } // namespace Lua

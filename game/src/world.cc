@@ -1,20 +1,21 @@
-#include "core/panic.hh"
 #include "game/world.hh"
+#include "core/panic.hh"
 
-Handle<Entity> World::create()
-{
-  auto const id     = Entity{ _entity_counter++ };
-  auto const handle = _entities.create(id);
-  auto [_, success] = _lookup.emplace(id, handle);
-  INVARIANT(success);
-  return handle;
+namespace Game {
+  Handle<Entity> World::create()
+  {
+    auto const           id     = Entity{ entity_counter_++ };
+    Handle<Entity> const handle = entities.create(id);
+    auto [_, success]           = lookup_.emplace(id, handle);
+    INVARIANT(success);
+    return handle;
+  }
+
+  Handle<Entity> World::find(Entity e) const
+  {
+    auto it = lookup_.find(e);
+    return it != lookup_.end() ? it->second : Handle<Entity>::null();
+  }
+
+  void World::advance() {}
 }
-
-Handle<Entity> World::find_entity(Entity e) const
-{
-  auto it = _lookup.find(e);
-  return it != _lookup.end() ? it->second : Handle<Entity>::null();
-}
-
-void World::advance() {}
-

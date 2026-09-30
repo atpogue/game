@@ -64,7 +64,7 @@ namespace Game {
 
     [[nodiscard]] inline Kind kind() const { return kind_; }
 
-    [[nodiscard]] inline bool is_empty() const { return kind_ != Kind::Nil; }
+    [[nodiscard]] inline bool is_empty() const { return kind_ == Kind::Nil; }
 
     [[nodiscard]] inline explicit operator bool() const { return !is_empty(); }
 

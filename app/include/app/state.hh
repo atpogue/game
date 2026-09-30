@@ -1,26 +1,24 @@
 #pragma once
+#include "app/content.hh"
 #include "app/pilot.hh"
-#include "core/basic-catalog.hh"
 #include "core/result.hh"
-#include "game/world.hh"
+#include "game/entity.hh"
 #include "gfx/camera2D.hh"
 #include "gfx/renderer.hh"
-#include "gfx/texture.hh"
 #include "sys/window.hh"
 #include <memory>
-#include <vector>
 
 union SDL_Event;
-struct SDL_Texture;
-struct CommandBuffer;
+
+namespace Game {
+  struct CommandBuffer;
+  struct World;
+}
 
 namespace App {
-  using Assets  = TypeList<Texture>;
-  using Catalog = BasicCatalog<Assets>;
-
   struct Player
   {
-    Entity                 entity;
+    Game::Entity           entity = Game::Entity::Nil;
     std::unique_ptr<Pilot> pilot;
     Camera2D               camera;
   };
@@ -33,16 +31,20 @@ namespace App {
     State& operator=(State&&) noexcept = default;
     State& operator=(State const&)     = delete;
 
-    Result<void> load(World&, Entity player);
-    void         handle_event(SDL_Event const&);
-    void         step(World const&, CommandBuffer&);
-    void         update(World const&, f32 delta);
-    void         render(World const&, f32 alpha);
+    // Opens the window and loads content into the world.
+    [[nodiscard]] Result<void> load(Game::World&, Game::Entity player);
+    void                       handle_event(SDL_Event const&);
+    void                       step(Game::World const&, Game::CommandBuffer&);
+    void                       update(Game::World const&, f32 delta);
+    void                       render(Game::World const&, f32 alpha);
 
   private:
-    Player   _player;
-    Window   _window;
-    Renderer _renderer;
-    Catalog  _textures;
+
+    // Declaration order matters: visuals must be destroyed before the renderer, and the renderer
+    // before the window.
+    Player   player_;
+    Window   window_;
+    Renderer renderer_;
+    Visuals  visuals_;
   };
 }

@@ -1,1 +1,1 @@
-target_sources (sdk PRIVATE table.cc value.cc reference.cc)
+target_sources (app PRIVATE reference.cc state.cc table.cc value.cc)

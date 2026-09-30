@@ -1,165 +1,177 @@
-#include "core/color.hh"
-#include "core/rectangle.hh"
-#include "sdk/state.hh"
-#include "sdk/table.hh"
-#include "sdk/value.hh"
+#include "app/lua/value.hh"
+#include "app/lua/table.hh"
+#include "core/panic.hh"
+#include <format>
 #include <lua.hpp>
 #include <print>
 
 namespace Lua {
 
-  Value::Value(Handle handle) noexcept : Handle(std::move(handle)) {}
+  Value::Value(Reference reference, std::string path) noexcept
+    : reference_(std::move(reference)), path_(std::move(path))
+  {}
 
   bool Value::to_boolean() const noexcept
   {
-    lua_State* const L = state();
-    push();
-    bool boolean = lua_toboolean(L, -1);
+    DEBUG_ASSERT(is_boolean());
+    lua_State* const L = reference_.state();
+    reference_.push();
+    bool const boolean = lua_toboolean(L, -1);
     lua_pop(L, 1);
     return boolean;
   }
 
-  f64 Value::to_number() const noexcept
+  Number Value::to_number() const noexcept
   {
-    lua_State* const L = state();
-    push();
-    f64 number = lua_tonumber(L, -1);
+    DEBUG_ASSERT(is_number() || is_integer());
+    lua_State* const L = reference_.state();
+    reference_.push();
+    Number const number = lua_tonumber(L, -1);
     lua_pop(L, 1);
     return number;
   }
 
-  i64 Value::to_integer() const noexcept
+  Integer Value::to_integer() const noexcept
   {
-    lua_State* const L = state();
-    push();
-    i64 integer = lua_tointeger(L, -1);
+    DEBUG_ASSERT(is_integer());
+    lua_State* const L = reference_.state();
+    reference_.push();
+    Integer const integer = lua_tointeger(L, -1);
     lua_pop(L, 1);
     return integer;
   }
 
-  std::string Value::to_string() const
+  std::string_view Value::to_string() const noexcept
   {
-    lua_State* const L = state();
-    push();
-    std::string string = lua_tostring(L, -1);
+    DEBUG_ASSERT(is_string());
+    lua_State* const L = reference_.state();
+    reference_.push();
+    size_t      length = 0;
+    char const* data   = lua_tolstring(L, -1, &length);
     lua_pop(L, 1);
-    return string;
+    // The registry reference keeps the string alive.
+    return std::string_view(data, length);
   }
 
-  Status Value::expect(Type expected) const
+  Table Value::to_table() const
   {
-    if (type() == expected) return {};
-    Error e{ "expected " };
-    e.error() += type_name(Type::Table);
-    e.error() += ", found ";
-    e.error() += describe();
-    return e;
+    DEBUG_ASSERT(is_table());
+    return Table(reference_, path_);
+  }
+
+  void Value::report(std::string_view expected) const
+  {
+    std::println("{}: expected {}, found {}", path_, expected, describe());
+  }
+
+  std::optional<bool> Value::expect_boolean() const
+  {
+    if (is_boolean()) return to_boolean();
+    report(type_name(Type::Boolean));
+    return std::nullopt;
+  }
+
+  std::optional<Integer> Value::expect_integer() const
+  {
+    if (is_integer()) return to_integer();
+    if (is_number()) {
+      // Accept floats with an exact integer representation (i.e. `2.0`).
+      lua_State* const L = reference_.state();
+      reference_.push();
+      int           exact   = 0;
+      Integer const integer = lua_tointegerx(L, -1, &exact);
+      lua_pop(L, 1);
+      if (exact) return integer;
+    }
+    report(type_name(Type::Integer));
+    return std::nullopt;
+  }
+
+  std::optional<Integer> Value::expect_integer_range(Integer min, Integer max) const
+  {
+    std::optional<Integer> integer = expect_integer();
+    if (!integer) return std::nullopt;
+    if (*integer < min || *integer > max) {
+      std::println("{}: expected integer in range [{}, {}], found {}", path_, min, max, *integer);
+      return std::nullopt;
+    }
+    return integer;
+  }
+
+  std::optional<Number> Value::expect_number() const
+  {
+    if (is_number() || is_integer()) return to_number();
+    report(type_name(Type::Number));
+    return std::nullopt;
+  }
+
+  std::optional<Number> Value::expect_number_range(Number min, Number max) const
+  {
+    std::optional<Number> number = expect_number();
+    if (!number) return std::nullopt;
+    if (!(*number >= min && *number <= max)) {
+      std::println("{}: expected number in range [{}, {}], found {}", path_, min, max, *number);
+      return std::nullopt;
+    }
+    return number;
+  }
+
+  std::optional<std::string_view> Value::expect_string() const
+  {
+    if (is_string()) return to_string();
+    report(type_name(Type::String));
+    return std::nullopt;
+  }
+
+  std::optional<Table> Value::expect_table() const
+  {
+    if (is_table()) return to_table();
+    report(type_name(Type::Table));
+    return std::nullopt;
   }
 
   std::string Value::describe() const
   {
-    std::string description{ type_name(type()) };
+    std::string_view const name = type_name(type());
     switch (type()) {
-    case Type::Boolean: description += (to_boolean() ? "true" : "false"); break;
-    case Type::Integer: description += std::to_string(to_integer()); break;
-    case Type::Number:  description += std::to_string(to_number()); break;
-    case Type::String:
-      description += '"';
-      description += to_string();
-      description += '"';
-      break;
-    default: break;
+    case Type::Boolean: return std::format("{} {}", name, to_boolean());
+    case Type::Integer: return std::format("{} {}", name, to_integer());
+    case Type::Number:  return std::format("{} {}", name, to_number());
+    case Type::String:  return std::format("{} \"{}\"", name, to_string());
+    default:            return std::string(name);
     }
-    return description;
   }
 
-  bool read(Value const& src, bool& dst)
+  bool read(bool& dst, Value const& src)
   {
-    auto boolean = src.expect_boolean();
+    std::optional<bool> boolean = src.expect_boolean();
     if (!boolean) return false;
     dst = *boolean;
     return true;
   }
 
-  bool read(Value const& src, Integer& dst)
+  bool read(Integer& dst, Value const& src)
   {
-    auto integer = src.expect_integer();
+    std::optional<Integer> integer = src.expect_integer();
     if (!integer) return false;
     dst = *integer;
     return true;
   }
 
-  bool read(Value const& src, Number& dst)
+  bool read(Number& dst, Value const& src)
   {
-    auto number = src.expect_number();
+    std::optional<Number> number = src.expect_number();
     if (!number) return false;
     dst = *number;
     return true;
   }
 
-  bool read(Value const& src, std::string& dst)
+  bool read(std::string& dst, Value const& src)
   {
-    auto string = src.expect_string();
+    std::optional<std::string_view> string = src.expect_string();
     if (!string) return false;
     dst = std::string(*string);
     return true;
   }
 
-  bool read(Value const& value, Rectangle& rect)
-  {
-    Table table = ({
-      auto table = value.expect_table();
-      if (!table) return false;
-      std::move(*table);
-    });
-
-    bool ok  = true;
-    ok      &= table["x"].read(rect.origin.x);
-    ok      &= table["y"].read(rect.origin.y);
-    ok      &= table["w"].read(rect.extent.x);
-    ok      &= table["h"].read(rect.extent.y);
-    return ok;
-  }
-
-  bool read(Value const& value, Color& color)
-  {
-    switch (value.type()) {
-    case Lua::Type::Integer:
-      {
-        u32 rgba;
-        if (!value.read(rgba)) return false;
-        color = make_color_hex(rgba);
-        break;
-      }
-    case Lua::Type::Table:
-      {
-        Lua::Table table = value.to_table();
-
-        bool ok  = true;
-        ok      &= table["r"].read(color.r);
-        ok      &= table["g"].read(color.g);
-        ok      &= table["b"].read(color.b);
-        ok      &= table["a"].read(color.a);
-        if (!ok) return false;
-        break;
-      }
-    default:
-      std::println("{}: expected integer or table, found {}", value.path(), value.describe());
-      return false;
-    }
-    return true;
-  }
-
 } // namespace Lua
-
-// Result<Integer> Value::expect_bounded_integer(Integer min, Integer max) const {}
-
-// Result<Number> Value::expect_bounded_number(Number min, Number max) const
-// {
-//   f64 number = TRY(expect_number());
-//   if (number > max || number < min) {
-//     // return range_error_message(
-//     //   src.type(), std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max(), number);
-//   }
-// }
-

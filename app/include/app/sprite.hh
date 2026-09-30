@@ -1,15 +1,18 @@
 #pragma once
+#include "core/types.hh"
 #include "gfx/color.hh"
 #include "gfx/rectangle.hh"
 
 struct Texture;
 
-// TODO: make this a user-interface implementation detail
-constexpr f32 pixels_per_unit = 16.f;
+namespace App {
+  // TODO: make this a user-interface implementation detail
+  constexpr f32 pixels_per_unit = 16.f;
 
-struct Sprite
-{
-  Handle<Texture> atlas;
-  Rectangle       source;
-  Color           tint;
-};
+  struct Sprite
+  {
+    Handle<Texture> atlas;
+    Rectangle       source;
+    Color           tint;
+  };
+}

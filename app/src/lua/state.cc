@@ -1,15 +1,12 @@
+#include "app/lua/state.hh"
 #include "core/defer.hh"
 #include "core/panic.hh"
-#include "sdk/reference.hh"
-#include "sdk/state.hh"
-#include <format>
-#include <lauxlib.h>
-#include <lua.h>
 #include <lua.hpp>
+#include <print>
 #include <string>
-#include <variant>
 
 namespace Lua {
+
   static int traceback(lua_State* L)
   {
     char const* message = lua_tostring(L, 1);
@@ -44,74 +41,91 @@ namespace Lua {
     }
   }
 
-  // Ignores meta-methods in the global table.
-  static void push_global(lua_State* L, std::string_view name) noexcept
+  // Prints and pops the error message on the top of the stack.
+  static void report_error(lua_State* L)
   {
-    lua_pushglobaltable(L);
-    lua_pushlstring(L, name.data(), name.size());
-    lua_rawget(L, -2);
-    lua_replace(L, -2);
-  }
-
-  static std::string pop_string(lua_State* L)
-  {
-    size_t      length = 0;
-    char const* data   = lua_tolstring(L, -1, &length);
-    std::string string(data, length);
+    size_t           length  = 0;
+    char const*      data    = lua_tolstring(L, -1, &length);
+    std::string_view message = data != nullptr ? std::string_view(data, length)
+                                               : std::string_view("(error object is not a string)");
+    std::println("{}", message);
     lua_pop(L, 1);
-    return string;
   }
 
-  static Status call(lua_State* L)
+  // Calls the function on the top of the stack.
+  static bool call(lua_State* L)
   {
+    int const function = lua_gettop(L);
     lua_pushcfunction(L, traceback);
-    auto errh = lua_gettop(L);
-    DEFER(lua_remove(L, errh));
-    int const status = lua_pcall(L, 0, 0, errh);
-    if (status != LUA_OK) return Error(pop_string(L));
-    return {};
+    lua_insert(L, function); // place the message handler beneath the function
+    DEFER(lua_remove(L, function));
+    if (lua_pcall(L, 0, 0, function) == LUA_OK) return true;
+    report_error(L);
+    return false;
   }
 
-  Result<State> State::create()
+  std::optional<State> State::create()
   {
     lua_State* L = luaL_newstate();
-    if (L == nullptr) return Error("failed to create Lua state");
+    if (L == nullptr) {
+      std::println("failed to create Lua state");
+      return std::nullopt;
+    }
     open_libraries(L);
     return State(L);
   }
 
-  State::State(State&& other) noexcept : _handle{ other._handle } { other._handle = nullptr; }
+  State::State(lua_State* L) noexcept : handle_{ L } {}
+
+  State::State(State&& other) noexcept : handle_{ other.handle_ } { other.handle_ = nullptr; }
 
   State& State::operator=(State&& other) noexcept
   {
     if (&other == this) return *this;
-    _handle       = other._handle;
-    other._handle = nullptr;
+    if (handle_ != nullptr) lua_close(handle_);
+    handle_       = other.handle_;
+    other.handle_ = nullptr;
     return *this;
   }
 
-  State::~State() noexcept { lua_close(_handle); }
-
-  Table State::globals() noexcept { return Table(_handle, LUA_RIDX_GLOBALS); }
-
-  Table State::create_table(LuaPath const& path) noexcept
+  State::~State() noexcept
   {
-    lua_newtable(_handle);
-    return Table(_handle, luaL_ref(_handle, LUA_REGISTRYINDEX));
+    if (handle_ != nullptr) lua_close(handle_);
   }
 
-  Status State::load(std::string_view path)
+  Table State::globals() const
   {
-    auto status = luaL_loadfile(_handle, std::string(path).c_str());
-    if (status != LUA_OK) return Error(pop_string(_handle));
-    return call(_handle);
+    PRECONDITION(handle_ != nullptr);
+    lua_rawgeti(handle_, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    return Table(Reference::pop(handle_), {});
   }
 
-  Status State::execute(std::string_view name, std::string_view source)
+  Table State::create_table(std::string path) const
   {
-    auto status = luaL_loadbuffer(_handle, source.data(), source.size(), std::string(name).c_str());
-    if (status != LUA_OK) return Error(pop_string(_handle));
-    return call(_handle);
+    PRECONDITION(handle_ != nullptr);
+    lua_newtable(handle_);
+    return Table(Reference::pop(handle_), std::move(path));
+  }
+
+  bool State::load(std::string_view path)
+  {
+    PRECONDITION(handle_ != nullptr);
+    if (luaL_loadfile(handle_, std::string(path).c_str()) != LUA_OK) {
+      report_error(handle_);
+      return false;
+    }
+    return call(handle_);
+  }
+
+  bool State::execute(std::string_view name, std::string_view source)
+  {
+    PRECONDITION(handle_ != nullptr);
+    std::string const chunk_name = "=" + std::string(name);
+    if (luaL_loadbuffer(handle_, source.data(), source.size(), chunk_name.c_str()) != LUA_OK) {
+      report_error(handle_);
+      return false;
+    }
+    return call(handle_);
   }
 
 } // namespace Lua

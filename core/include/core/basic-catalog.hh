@@ -21,13 +21,13 @@ struct BasicCatalog<TypeList<Types...>>
   template <typename T>
   [[nodiscard]] bool valid(Handle<T> handle) const
   {
-    return handle.generation == _generation && handle.index < store_of<T>().size();
+    return handle.generation == generation_ && handle.index < store_of<T>().size();
   }
 
   template <typename T>
   [[nodiscard]] Handle<T> find(std::string_view label) const
   {
-    return { store_of<T>().find(label), _generation };
+    return { store_of<T>().find(label), generation_ };
   }
 
   template <typename T>
@@ -51,42 +51,30 @@ struct BasicCatalog<TypeList<Types...>>
     return store_of<T>()[handle.index];
   }
 
-  template <typename T>
-  Handle<T> create(std::string_view label, T const& value)
-  {
-    return { store_of<T>().emplace(label, value), _generation };
-  }
-
-  template <typename T>
-  Handle<T> create(std::string_view label, T&& value)
-  {
-    return { store_of<T>().emplace(label, std::forward(value)), _generation };
-  }
-
   template <typename T, typename... Args>
   requires std::constructible_from<T, Args...>
   Handle<T> emplace(std::string_view label, Args&&... args)
   {
-    return { store_of<T>().emplace(label, std::forward<Args>(args)...), _generation };
+    return { store_of<T>().emplace(label, std::forward<Args>(args)...), generation_ };
   }
 
   template <typename T>
   [[nodiscard]] T const* try_get(Handle<T> handle) const
   {
     if (!valid(handle)) return nullptr;
-    return store_of<T>()[handle.index];
+    return &store_of<T>()[handle.index];
   }
 
   template <typename T>
   [[nodiscard]] T* try_get(Handle<T> handle)
   {
     if (!valid(handle)) return nullptr;
-    return store_of<T>()[handle.index];
+    return &store_of<T>()[handle.index];
   }
 
   void clear()
   {
-    std::apply([](auto&... stores) { (stores.clear(), ...); }, _stores);
+    std::apply([](auto&... stores) { (stores.clear(), ...); }, stores_);
   }
 
   template <typename T>
@@ -116,18 +104,18 @@ private:
   template <typename T>
   constexpr IndexedMap<std::string, T>& store_of()
   {
-    return std::get<IndexedMap<std::string, T>>(_stores);
+    return std::get<IndexedMap<std::string, T>>(stores_);
   }
 
   template <typename T>
   constexpr IndexedMap<std::string, T> const& store_of() const
   {
-    return std::get<IndexedMap<std::string, T>>(_stores);
+    return std::get<IndexedMap<std::string, T>>(stores_);
   }
 
   BasicCatalog(BasicCatalog const&) = default;
 
-  u32                                           _generation;
-  std::tuple<IndexedMap<std::string, Types>...> _stores;
+  u32                                           generation_ = 0u;
+  std::tuple<IndexedMap<std::string, Types>...> stores_;
 };
 

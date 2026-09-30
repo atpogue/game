@@ -1,6 +1,6 @@
 #pragma once
-#include "content/terrain.hh"
 #include "core/types.hh"
+#include "game/content/terrain.hh"
 
 namespace Game {
   struct Tile
